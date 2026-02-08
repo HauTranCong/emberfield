@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://dams7sdefx3c0"]
+
+[ext_resource type="Script" uid="uid://cpr2qlm0axfo2" path="res://sense/main.gd" id="1_irjbn"]
+[ext_resource type="PackedScene" uid="uid://dlgb1s7mqmeg7" path="res://sense/maps/town.tscn" id="1_tvs3x"]
+[ext_resource type="PackedScene" uid="uid://e44upqeun2xc" path="res://sense/player/player.tscn" id="2_1bue1"]
+
+[node name="Main" type="Node2D" unique_id=657329077 node_paths=PackedStringArray("town", "player")]
+script = ExtResource("1_irjbn")
+town = NodePath("Town")
+player = NodePath("Player")
+
+[node name="Town" parent="." unique_id=1811788023 instance=ExtResource("1_tvs3x")]
+
+[node name="Player" parent="." unique_id=268643816 instance=ExtResource("2_1bue1")]
