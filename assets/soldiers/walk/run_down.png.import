@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dcjinhce1avyh"
-path="res://.godot/imported/Idle_Left_Up.png-00bb7faa532b134af1c71cc46c3bf5b9.ctex"
+uid="uid://duraapauskgmu"
+path="res://.godot/imported/run_down.png-975f2a087e471a4b7757d5a7b4a283d4.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/soldiers/idle/Idle_Left_Up.png"
-dest_files=["res://.godot/imported/Idle_Left_Up.png-00bb7faa532b134af1c71cc46c3bf5b9.ctex"]
+source_file="res://assets/soldiers/walk/run_down.png"
+dest_files=["res://.godot/imported/run_down.png-975f2a087e471a4b7757d5a7b4a283d4.ctex"]
 
 [params]
 

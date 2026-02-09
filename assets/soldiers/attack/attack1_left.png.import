@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dbdsmiruuxjui"
-path="res://.godot/imported/Idle_Right_Down.png-d740092b4473fde9b4c7001b508b8311.ctex"
+uid="uid://dbfvef4lsmqtn"
+path="res://.godot/imported/attack1_left.png-5493f9ddd54c5fdca09a0bcfd114b1ab.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/soldiers/idle/Idle_Right_Down.png"
-dest_files=["res://.godot/imported/Idle_Right_Down.png-d740092b4473fde9b4c7001b508b8311.ctex"]
+source_file="res://assets/soldiers/attack/attack1_left.png"
+dest_files=["res://.godot/imported/attack1_left.png-5493f9ddd54c5fdca09a0bcfd114b1ab.ctex"]
 
 [params]
 
