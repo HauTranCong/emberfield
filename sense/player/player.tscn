@@ -1,19 +1,23 @@
 [gd_scene format=3 uid="uid://e44upqeun2xc"]
 
 [ext_resource type="Script" uid="uid://dj5nhtaj0wm7u" path="res://sense/player/player.gd" id="1_1lvrt"]
+[ext_resource type="Script" uid="uid://bq2dj6s14ogkj" path="res://sense/player/character_stats.gd" id="2_2ln50"]
 [ext_resource type="Texture2D" uid="uid://ch0yj7vxnp8wa" path="res://assets/soldiers/attack/attack1_up.png" id="2_gu5sq"]
-[ext_resource type="Texture2D" uid="uid://cxf1w3yr3fv1v" path="res://assets/soldiers/idle/idle_down.png" id="2_q2i2t"]
+[ext_resource type="Texture2D" uid="uid://cxf1w3yr3fv1v" path="res://assets/soldiers/idle/Idle_Down.png" id="2_q2i2t"]
 [ext_resource type="Texture2D" uid="uid://cyr2y72qg0c1q" path="res://assets/soldiers/attack/attack1_down.png" id="3_2ln50"]
 [ext_resource type="Texture2D" uid="uid://cw03hvbqu7drf" path="res://assets/soldiers/idle/idle_left.png" id="3_hdta4"]
 [ext_resource type="Texture2D" uid="uid://bbdmgiqtgyrad" path="res://assets/soldiers/idle/idle_right.png" id="4_hf6m7"]
 [ext_resource type="Texture2D" uid="uid://dbfvef4lsmqtn" path="res://assets/soldiers/attack/attack1_left.png" id="4_tlyb0"]
-[ext_resource type="Texture2D" uid="uid://kxj8xbqlybhf" path="res://assets/soldiers/idle/idle_up.png" id="5_4ou4p"]
+[ext_resource type="Texture2D" uid="uid://kxj8xbqlybhf" path="res://assets/soldiers/idle/Idle_Up.png" id="5_4ou4p"]
 [ext_resource type="Texture2D" uid="uid://8ybipf56if1f" path="res://assets/soldiers/attack/attack1_right.png" id="5_vvynw"]
 [ext_resource type="Texture2D" uid="uid://duraapauskgmu" path="res://assets/soldiers/walk/run_down.png" id="6_gu5sq"]
 [ext_resource type="Texture2D" uid="uid://bmx6k58nr8mox" path="res://assets/soldiers/walk/run_right.png" id="8_2ln50"]
 [ext_resource type="Texture2D" uid="uid://c2nkfd86twrp1" path="res://assets/soldiers/walk/run_left.png" id="9_2ln50"]
 [ext_resource type="Texture2D" uid="uid://co3gm2k2o5ej7" path="res://assets/soldiers/walk/run_up.png" id="9_tlyb0"]
-[ext_resource type="Script" uid="uid://cpr2qlm0axfo2" path="res://sense/main.gd" id="14_gu5sq"]
+
+[sub_resource type="Resource" id="Resource_tlyb0"]
+script = ExtResource("2_2ln50")
+metadata/_custom_type_script = "uid://bq2dj6s14ogkj"
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_8agjn"]
 atlas = ExtResource("3_2ln50")
@@ -682,7 +686,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_fn8tw")
 }],
-"loop": true,
+"loop": false,
 "name": &"attack_down",
 "speed": 5.0
 }, {
@@ -711,7 +715,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_nmj2c")
 }],
-"loop": true,
+"loop": false,
 "name": &"attack_left",
 "speed": 5.0
 }, {
@@ -740,7 +744,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_w4kkp")
 }],
-"loop": true,
+"loop": false,
 "name": &"attack_right",
 "speed": 5.0
 }, {
@@ -769,7 +773,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_fcex4")
 }],
-"loop": true,
+"loop": false,
 "name": &"attack_up",
 "speed": 5.0
 }, {
@@ -798,7 +802,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_f7ghd")
 }],
-"loop": true,
+"loop": false,
 "name": &"idle_down",
 "speed": 5.0
 }, {
@@ -827,7 +831,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_xpjgu")
 }],
-"loop": true,
+"loop": false,
 "name": &"idle_left",
 "speed": 5.0
 }, {
@@ -856,7 +860,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_rqdhw")
 }],
-"loop": true,
+"loop": false,
 "name": &"idle_left_down",
 "speed": 5.0
 }, {
@@ -885,7 +889,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_w5mlw")
 }],
-"loop": true,
+"loop": false,
 "name": &"idle_left_up",
 "speed": 5.0
 }, {
@@ -914,7 +918,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_68m5q")
 }],
-"loop": true,
+"loop": false,
 "name": &"idle_right",
 "speed": 5.0
 }, {
@@ -943,7 +947,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_tmd27")
 }],
-"loop": true,
+"loop": false,
 "name": &"idle_right_down",
 "speed": 5.0
 }, {
@@ -972,7 +976,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_d1rpt")
 }],
-"loop": true,
+"loop": false,
 "name": &"idle_right_up",
 "speed": 5.0
 }, {
@@ -1001,7 +1005,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_x2q3k")
 }],
-"loop": true,
+"loop": false,
 "name": &"idle_up",
 "speed": 5.0
 }, {
@@ -1030,7 +1034,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_u5ymd")
 }],
-"loop": true,
+"loop": false,
 "name": &"move_down",
 "speed": 5.0
 }, {
@@ -1059,7 +1063,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_4c0yk")
 }],
-"loop": true,
+"loop": false,
 "name": &"move_left",
 "speed": 5.0
 }, {
@@ -1088,7 +1092,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_rf1dt")
 }],
-"loop": true,
+"loop": false,
 "name": &"move_left_down",
 "speed": 5.0
 }, {
@@ -1117,7 +1121,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_x0m3s")
 }],
-"loop": true,
+"loop": false,
 "name": &"move_left_up",
 "speed": 5.0
 }, {
@@ -1146,7 +1150,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_i6ryh")
 }],
-"loop": true,
+"loop": false,
 "name": &"move_right",
 "speed": 5.0
 }, {
@@ -1175,7 +1179,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_var3u")
 }],
-"loop": true,
+"loop": false,
 "name": &"move_right_down",
 "speed": 5.0
 }, {
@@ -1204,7 +1208,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_erm36")
 }],
-"loop": true,
+"loop": false,
 "name": &"move_right_up",
 "speed": 5.0
 }, {
@@ -1233,7 +1237,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_dqet8")
 }],
-"loop": true,
+"loop": false,
 "name": &"move_up",
 "speed": 5.0
 }]
@@ -1254,14 +1258,16 @@ _data = {
 &"move_left": SubResource("Animation_gu5sq")
 }
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_gu5sq"]
+
 [node name="Player" type="CharacterBody2D" unique_id=268643816]
 script = ExtResource("1_1lvrt")
+stats = SubResource("Resource_tlyb0")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=379667701]
 position = Vector2(0, 1)
 sprite_frames = SubResource("SpriteFrames_pnikv")
-animation = &"attack_right"
-frame_progress = 0.3359519
+animation = &"attack_left"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=316279987]
 position = Vector2(0, 2)
@@ -1271,7 +1277,14 @@ shape = SubResource("CapsuleShape2D_k6ng8")
 zoom = Vector2(2, 2)
 position_smoothing_enabled = true
 position_smoothing_speed = 10.0
-script = ExtResource("14_gu5sq")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=362436563]
 libraries/ = SubResource("AnimationLibrary_2ln50")
+
+[node name="AttackHitbox" type="Area2D" parent="." unique_id=764226218]
+collision_layer = 7
+collision_mask = 2
+monitoring = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AttackHitbox" unique_id=1558090882]
+shape = SubResource("CircleShape2D_gu5sq")
