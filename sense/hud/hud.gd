@@ -1,9 +1,7 @@
 extends CanvasLayer
 
-@onready var health_bar: ProgressBar = $MarginContainer/VBoxContainer/HealthContainer/HealthBar
-@onready var stamina_bar: ProgressBar = $MarginContainer/VBoxContainer/StaminaContainer/StaminaBar
-@onready var health_label: Label = $MarginContainer/VBoxContainer/HealthContainer/HealthBar/Label
-@onready var stamina_label: Label = $MarginContainer/VBoxContainer/StaminaContainer/StaminaBar/Label
+@onready var health_bar: PixelBar = $MarginContainer/VBoxContainer/HealthContainer/HealthBar
+@onready var stamina_bar: PixelBar = $MarginContainer/VBoxContainer/StaminaContainer/StaminaBar
 
 # Status effect icons
 @onready var icon_speed: Control = $StatusIconsContainer/IconsFlow/SpeedIcon
@@ -41,15 +39,11 @@ func setup(character_stats: CharacterStats) -> void:
 
 
 func _on_health_changed(current: int, maximum: int) -> void:
-	health_bar.max_value = maximum
-	health_bar.value = current
-	health_label.text = "%d / %d" % [current, maximum]
+	health_bar.set_values(current, maximum)
 
 
 func _on_stamina_changed(current: float, maximum: float) -> void:
-	stamina_bar.max_value = maximum
-	stamina_bar.value = current
-	stamina_label.text = "%d / %d" % [int(current), int(maximum)]
+	stamina_bar.set_values(current, maximum)
 
 
 # === STATUS ICON FUNCTIONS ===
