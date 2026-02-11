@@ -1,14 +1,14 @@
 extends Node2D
 
-@export var town: Node2D
-@export var player: Node2D
-@export var camera_path: NodePath = NodePath("Camera2D")
+@onready var town: Node2D = $Town
+@onready var player: Node2D = $Player
+@onready var hud: CanvasLayer = $HUD
 
 func _ready() -> void:
 	if town == null or player == null:
 		push_error("Assign town & player in Inspector")
 		return
-
+	
 	# Spawn: ưu tiên Spawn marker, nếu không có thì giữa town
 	var spawn: Node2D = town.get_node_or_null("Spawn") as Node2D
 	if spawn != null:
@@ -17,19 +17,15 @@ func _ready() -> void:
 		var town_rect: Rect2 = _get_town_world_rect(town)
 		if town_rect.size != Vector2.ZERO:
 			player.global_position = town_rect.get_center()
+	
+	# Setup HUD với player stats
+	if hud != null and player.has_method("get") and player.get("stats") != null:
+		hud.setup(player.stats)
+	
+	# Setup minimap - pass self to share the same world_2d
+	if hud != null:
+		hud.setup_minimap(player, self)
 
-	# Camera limits
-	var cam: Camera2D = player.get_node_or_null(camera_path) as Camera2D
-	if cam != null:
-		var town_rect2: Rect2 = _get_town_world_rect(town)
-		if town_rect2.size != Vector2.ZERO:
-			_apply_camera_limits(cam, town_rect2)
-
-func _apply_camera_limits(cam: Camera2D, r: Rect2) -> void:
-	cam.limit_left = int(r.position.x)
-	cam.limit_top = int(r.position.y)
-	cam.limit_right = int(r.position.x + r.size.x)
-	cam.limit_bottom = int(r.position.y + r.size.y)
 
 func _get_town_world_rect(root: Node) -> Rect2:
 	var found: bool = false
@@ -71,6 +67,7 @@ func _get_town_world_rect(root: Node) -> Rect2:
 			union_world = union_world.merge(r_world)
 
 	return union_world if found else Rect2()
+
 
 func _collect_tilemap_layers(node: Node, out_layers: Array[TileMapLayer]) -> void:
 	for child: Node in node.get_children():
