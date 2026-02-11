@@ -1286,11 +1286,13 @@ _data = {
 }
 
 [node name="Player" type="CharacterBody2D" unique_id=268643816]
+y_sort_enabled = true
 script = ExtResource("1_1lvrt")
 stats = SubResource("Resource_tlyb0")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=379667701]
-position = Vector2(0, 1)
+y_sort_enabled = true
+position = Vector2(-1, 0)
 sprite_frames = SubResource("SpriteFrames_pnikv")
 animation = &"attack_right"
 

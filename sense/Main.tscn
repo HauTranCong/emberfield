@@ -4,12 +4,19 @@
 [ext_resource type="PackedScene" uid="uid://dlgb1s7mqmeg7" path="res://sense/maps/town.tscn" id="1_tvs3x"]
 [ext_resource type="PackedScene" uid="uid://e44upqeun2xc" path="res://sense/player/player.tscn" id="2_1bue1"]
 [ext_resource type="PackedScene" uid="uid://db4xj232ats72" path="res://sense/hud/hud.tscn" id="3_hud"]
+[ext_resource type="PackedScene" uid="uid://2q84aiy734et" path="res://sense/Town Shop/General_Goods.tscn" id="5_uhpmu"]
 
 [node name="Main" type="Node2D" unique_id=657329077]
+y_sort_enabled = true
 script = ExtResource("1_irjbn")
 
 [node name="Town" parent="." unique_id=1811788023 instance=ExtResource("1_tvs3x")]
 
 [node name="Player" parent="." unique_id=268643816 instance=ExtResource("2_1bue1")]
+texture_filter = 1
 
 [node name="HUD" parent="." unique_id=1121581603 instance=ExtResource("3_hud")]
+visible = false
+
+[node name="Shop" parent="." unique_id=1689578860 instance=ExtResource("5_uhpmu")]
+position = Vector2(278.00003, 207.00002)
