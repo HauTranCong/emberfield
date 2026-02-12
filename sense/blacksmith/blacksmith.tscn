@@ -1,0 +1,48 @@
+[gd_scene format=3 uid="uid://cq3v8yw1234ab"]
+
+[ext_resource type="Script" uid="uid://ldokdrmg45tk" path="res://sense/blacksmith/black_smith_area.gd" id="1_smith"]
+[ext_resource type="Texture2D" uid="uid://d18ul2vflgwdj" path="res://assets/blacksmith/black_smith_objects.png" id="2_texture"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_area"]
+size = Vector2(151.83334, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_static"]
+size = Vector2(145.22263, 12.01326)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_building"]
+atlas = ExtResource("2_texture")
+region = Rect2(599.3791, 33.988243, 391.07123, 435.8207)
+
+[node name="Blacksmith" type="Node2D" unique_id=873164060]
+y_sort_enabled = true
+
+[node name="TileMap_BlacksmithStruct" type="TileMapLayer" parent="." unique_id=721822469]
+position = Vector2(953, 89)
+
+[node name="Area2D" type="Area2D" parent="." unique_id=1234180666]
+position = Vector2(0, 5)
+script = ExtResource("1_smith")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=1197147717]
+position = Vector2(1117.267, 149)
+scale = Vector2(0.73, 0.4)
+shape = SubResource("RectangleShape2D_area")
+
+[node name="Hint" type="Label" parent="Area2D" unique_id=263337431]
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=413422059]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D" unique_id=1329538375]
+position = Vector2(1116, 135)
+scale = Vector2(0.75, 4)
+shape = SubResource("RectangleShape2D_static")
+
+[node name="SmithBuilding" type="Sprite2D" parent="." unique_id=1900346950]
+position = Vector2(1120, 96)
+scale = Vector2(0.34894505, 0.29425287)
+texture = SubResource("AtlasTexture_building")
+
+[connection signal="body_entered" from="Area2D" to="Area2D" method="_on_body_entered"]
+[connection signal="body_exited" from="Area2D" to="Area2D" method="_on_body_exited"]
