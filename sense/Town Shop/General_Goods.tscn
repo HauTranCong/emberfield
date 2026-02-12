@@ -1,0 +1,68 @@
+[gd_scene format=3 uid="uid://2q84aiy734et"]
+
+[ext_resource type="Script" uid="uid://buqa24ev2h77c" path="res://sense/Town Shop/general_goods.gd" id="1_0q4i7"]
+[ext_resource type="Texture2D" uid="uid://d2o4dtjmsv6e3" path="res://assets/Shop/General-shop/Merchant Cart.png" id="1_6xrvg"]
+[ext_resource type="Texture2D" uid="uid://chvrgxw86st8g" path="res://assets/Shop/General-shop/Merchant Man-Sheet.png" id="2_0q4i7"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_knsfb"]
+size = Vector2(56, 9.666668)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3hn0m"]
+atlas = ExtResource("2_0q4i7")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lq5o8"]
+atlas = ExtResource("2_0q4i7")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ufneg"]
+atlas = ExtResource("2_0q4i7")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_jfna2"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3hn0m")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lq5o8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ufneg")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 5.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_0q4i7"]
+size = Vector2(55, 16)
+
+[node name="Shop" type="StaticBody2D" unique_id=1689578860]
+y_sort_enabled = true
+scale = Vector2(2, 2)
+script = ExtResource("1_0q4i7")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=966760986]
+y_sort_enabled = true
+position = Vector2(-4.333334, -15.333335)
+texture = ExtResource("1_6xrvg")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1392989862]
+position = Vector2(0.66666657, -5.500001)
+shape = SubResource("RectangleShape2D_knsfb")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1087211752]
+y_sort_enabled = true
+texture_filter = 1
+position = Vector2(22.666664, -14.333335)
+sprite_frames = SubResource("SpriteFrames_jfna2")
+animation = &"idle"
+
+[node name="InteractArea" type="Area2D" parent="." unique_id=1531978543]
+position = Vector2(-2.9999998, 6.333333)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractArea" unique_id=1417347395]
+position = Vector2(3.3333333, -2.9999993)
+shape = SubResource("RectangleShape2D_0q4i7")
