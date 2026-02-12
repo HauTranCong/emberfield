@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://e44upqeun2xc" path="res://sense/player/player.tscn" id="2_1bue1"]
 [ext_resource type="PackedScene" uid="uid://db4xj232ats72" path="res://sense/hud/hud.tscn" id="3_hud"]
 [ext_resource type="PackedScene" uid="uid://2q84aiy734et" path="res://sense/Town Shop/General_Goods.tscn" id="5_uhpmu"]
+[ext_resource type="PackedScene" uid="uid://cq3v8yw1234ab" path="res://sense/blacksmith/blacksmith.tscn" id="6_blacksmith"]
 
 [node name="Main" type="Node2D" unique_id=657329077]
 y_sort_enabled = true
@@ -20,3 +21,8 @@ visible = false
 
 [node name="Shop" parent="." unique_id=1689578860 instance=ExtResource("5_uhpmu")]
 position = Vector2(278.00003, 207.00002)
+
+[node name="Blacksmith" parent="." unique_id=320432510 instance=ExtResource("6_blacksmith")]
+
+[connection signal="body_entered" from="Blacksmith/Area2D (BlackSmithArea)" to="Blacksmith/Area2D (BlackSmithArea)" method="_on_body_entered"]
+[connection signal="body_exited" from="Blacksmith/Area2D (BlackSmithArea)" to="Blacksmith/Area2D (BlackSmithArea)" method="_on_body_exited"]
