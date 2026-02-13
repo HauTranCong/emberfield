@@ -57,7 +57,18 @@ var invincibility_duration: float = 0.5
 # =============================================================================
 
 func _ready() -> void:
-	# Tạo stats mặc định nếu chưa được assign trong Inspector
+	# Player collision: Layer PLAYER, Mask: WORLD | ENEMY | NPC | ENEMY_HITBOX | INTERACTABLE | PICKUP
+	collision_layer = CollisionLayers.Layer.PLAYER
+	collision_mask = (
+		CollisionLayers.Layer.WORLD |
+		CollisionLayers.Layer.ENEMY |
+		CollisionLayers.Layer.NPC |
+		CollisionLayers.Layer.ENEMY_HITBOX |
+		CollisionLayers.Layer.INTERACTABLE |
+		CollisionLayers.Layer.PICKUP
+	)
+	
+	# Tạo stats mặc định nếu chưa có
 	if stats == null:
 		stats = CharacterStats.new()
 	
@@ -71,8 +82,9 @@ func _ready() -> void:
 	attack_hitbox.monitoring = false
 	attack_hitbox.body_entered.connect(_on_attack_hit)
 	
-	# Setup Hurtbox - nhận damage từ enemy
-	hurtbox.area_entered.connect(_on_hurtbox_area_entered)
+	# Player Attack Hitbox: Layer PLAYER_HITBOX, Mask: ENEMY_HURTBOX
+	attack_hitbox.collision_layer = CollisionLayers.Layer.PLAYER_HITBOX
+	attack_hitbox.collision_mask = CollisionLayers.Layer.ENEMY_HURTBOX
 
 
 func _physics_process(delta: float) -> void:

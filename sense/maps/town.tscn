@@ -4,8 +4,6 @@
 [ext_resource type="Texture2D" uid="uid://bm7mpsp4k10hf" path="res://assets/tilesets/TX Props.png" id="2_33tnl"]
 [ext_resource type="Texture2D" uid="uid://0mq6wkqhqanf" path="res://assets/tilesets/TX Tileset Wall.png" id="2_losal"]
 [ext_resource type="Texture2D" uid="uid://pl8fujjawhjk" path="res://assets/tilesets/TX Struct.png" id="3_ne6dw"]
-[ext_resource type="Script" uid="uid://ldokdrmg45tk" path="res://sense/maps/black_smith_area.gd" id="5_ne6dw"]
-[ext_resource type="Texture2D" uid="uid://d18ul2vflgwdj" path="res://assets/blacksmith/black_smith_objects.png" id="6_hrfw7"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_33tnl"]
 texture = ExtResource("1_m8hca")
@@ -3356,30 +3354,6 @@ custom_data_layer_0/name = ""
 custom_data_layer_0/type = 0
 sources/0 = SubResource("TileSetAtlasSource_cg4b7")
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_hrfw7"]
-size = Vector2(128, 32)
-
-[sub_resource type="GDScript" id="GDScript_lwfh6"]
-script/source = "extends CollisionShape2D
-
-
-# Called when the node enters the scene tree for the first time.
-func _ready() -> void:
-	pass # Replace with function body.
-
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
-"
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_lwfh6"]
-size = Vector2(145.22263, 24.026518)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_lwfh6"]
-atlas = ExtResource("6_hrfw7")
-region = Rect2(599.3791, 33.988243, 391.07123, 435.8207)
-
 [node name="Town" type="Node2D" unique_id=1811788023]
 
 [node name="Grass" type="TileMapLayer" parent="." unique_id=1917425767]
@@ -3401,37 +3375,3 @@ tile_set = SubResource("TileSet_ne6dw")
 [node name="Props" type="TileMapLayer" parent="." unique_id=2126510251]
 tile_map_data = PackedByteArray("AAAjAP3/AAAWAAsAAAAjAP7/AAAWAAwAAAAjAP//AAAWAA0AAAAjAAAAAAAWAA4AAAAjAAEAAAAWAA8AAAAjAAUAAAAaAAwAAAAjAAYAAAAaAA0AAAAjAAcAAAAaAA4AAAAjAAgAAAAaAA8AAAAjAAwAAAAcAAcAAAAjAA0AAAAcAAgAAAAjAA4AAAAcAAkAAAAmAAIAAAAWABEAAAAmAAMAAAAWABIAAAAmAAQAAAAWABMAAAAmAAUAAAAWABQAAAAnAAIAAAAXABEAAAAnAAMAAAAXABIAAAAnAAQAAAAXABMAAAAnAAUAAAAXABQAAAAnAAYAAAAXABUAAAAoAAEAAAAYABAAAAAoAAIAAAAYABEAAAAoAAMAAAAYABIAAAAoAAQAAAAYABMAAAAoAAUAAAAYABQAAAAoAAYAAAAYABUAAAApAAIAAAAZABEAAAApAAMAAAAZABIAAAApAAQAAAAZABMAAAApAAUAAAAZABQAAAApAAYAAAAZABUAAAAqAAIAAAAaABEAAAAqAAMAAAAaABIAAAAqAAQAAAAaABMAAAAqAAUAAAAaABQAAAAtAP7/AAAaAAwAAAAtAP//AAAaAA0AAAAtAAAAAAAaAA4AAAAtAAEAAAAaAA8AAAAtAAQAAAAWAAsAAAAtAAUAAAAWAAwAAAAtAAYAAAAWAA0AAAAtAAcAAAAWAA4AAAAtAAgAAAAWAA8AAAAtAAwAAAAcAAcAAAAtAA0AAAAcAAgAAAAtAA4AAAAcAAkAAAAkAP3/AAAXAAsAAAAkAP7/AAAXAAwAAAAkAP//AAAXAA0AAAAkAAAAAAAXAA4AAAAkAAEAAAAXAA8AAAAkAAUAAAAbAAwAAAAkAAgAAAAbAA8AAAAkAAwAAAAdAAcAAAAkAA0AAAAdAAgAAAAkAA4AAAAdAAkAAAApAAEAAAAZABAAAAAqAAYAAAAaABUAAAArAAIAAAAbABEAAAArAAMAAAAbABIAAAArAAQAAAAbABMAAAArAAUAAAAbABQAAAAuAP7/AAAbAAwAAAAuAP//AAAbAA0AAAAuAAAAAAAbAA4AAAAuAAEAAAAbAA8AAAAuAAQAAAAXAAsAAAAuAAUAAAAXAAwAAAAuAAYAAAAXAA0AAAAuAAcAAAAXAA4AAAAuAAgAAAAXAA8AAAAuAAwAAAAdAAcAAAAuAA0AAAAdAAgAAAAuAA4AAAAdAAkAAAAkAAYAAAAbAA0AAAAkAAcAAAAbAA4AAAA=")
 tile_set = SubResource("TileSet_eu70v")
-
-[node name="Blacksmith" type="Node2D" parent="." unique_id=239271351]
-
-[node name="TileMap_BlacksmithStruct" type="TileMapLayer" parent="Blacksmith" unique_id=1743445647]
-position = Vector2(953, 89)
-
-[node name="Area2D (BlackSmithArea)" type="Area2D" parent="Blacksmith" unique_id=1939832220]
-position = Vector2(0, 5)
-script = ExtResource("5_ne6dw")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Blacksmith/Area2D (BlackSmithArea)" unique_id=1620609331]
-position = Vector2(1116, 149)
-scale = Vector2(0.9, 0.3)
-shape = SubResource("RectangleShape2D_hrfw7")
-script = SubResource("GDScript_lwfh6")
-
-[node name="Hint" type="Label" parent="Blacksmith/Area2D (BlackSmithArea)" unique_id=1033121227]
-offset_right = 40.0
-offset_bottom = 23.0
-
-[node name="StaticBody2D" type="StaticBody2D" parent="Blacksmith" unique_id=1706026999]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Blacksmith/StaticBody2D" unique_id=1922941756]
-position = Vector2(1118, 124)
-scale = Vector2(0.75, 0.9)
-shape = SubResource("RectangleShape2D_lwfh6")
-
-[node name="SmithBuilding" type="Sprite2D" parent="." unique_id=68963082]
-position = Vector2(1120, 96)
-scale = Vector2(0.34894505, 0.29425287)
-texture = SubResource("AtlasTexture_lwfh6")
-
-[connection signal="body_entered" from="Blacksmith/Area2D (BlackSmithArea)" to="Blacksmith/Area2D (BlackSmithArea)" method="_on_body_entered"]
-[connection signal="body_exited" from="Blacksmith/Area2D (BlackSmithArea)" to="Blacksmith/Area2D (BlackSmithArea)" method="_on_body_exited"]

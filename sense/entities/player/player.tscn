@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://e44upqeun2xc"]
 
-[ext_resource type="Script" uid="uid://dj5nhtaj0wm7u" path="res://sense/player/player.gd" id="1_1lvrt"]
-[ext_resource type="Script" uid="uid://bq2dj6s14ogkj" path="res://sense/player/character_stats.gd" id="2_2ln50"]
+[ext_resource type="Script" uid="uid://dj5nhtaj0wm7u" path="res://sense/entities/player/player.gd" id="1_1lvrt"]
+[ext_resource type="Script" uid="uid://bq2dj6s14ogkj" path="res://sense/entities/player/character_stats.gd" id="2_2ln50"]
 [ext_resource type="Texture2D" uid="uid://ch0yj7vxnp8wa" path="res://assets/soldiers/attack/attack1_up.png" id="2_gu5sq"]
 [ext_resource type="Texture2D" uid="uid://cxf1w3yr3fv1v" path="res://assets/soldiers/idle/Idle_Down.png" id="2_q2i2t"]
 [ext_resource type="Texture2D" uid="uid://cyr2y72qg0c1q" path="res://assets/soldiers/attack/attack1_down.png" id="3_2ln50"]
@@ -1253,10 +1253,13 @@ radius = 4.0
 height = 28.0
 
 [node name="Player" type="CharacterBody2D" unique_id=268643816]
+y_sort_enabled = true
 script = ExtResource("1_1lvrt")
 stats = SubResource("Resource_tlyb0")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=379667701]
+y_sort_enabled = true
+position = Vector2(-1, 0)
 sprite_frames = SubResource("SpriteFrames_pnikv")
 animation = &"move_right"
 frame_progress = 0.9187297

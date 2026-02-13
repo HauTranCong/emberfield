@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://db4xj232ats72"]
 
-[ext_resource type="Script" uid="uid://dhvrxlu2dsbah" path="res://sense/hud/hud.gd" id="1_hud"]
-[ext_resource type="Script" uid="uid://8pc4qips1k7a" path="res://sense/hud/pixel_bar.gd" id="2_pixel_bar"]
+[ext_resource type="Script" uid="uid://dhvrxlu2dsbah" path="res://sense/ui/hud/hud.gd" id="1_hud"]
+[ext_resource type="Script" uid="uid://8pc4qips1k7a" path="res://sense/ui/hud/pixel_bar.gd" id="2_pixel_bar"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_icon_speed"]
 bg_color = Color(0.2, 0.8, 0.4, 1)
