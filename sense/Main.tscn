@@ -23,6 +23,3 @@ visible = false
 position = Vector2(278.00003, 207.00002)
 
 [node name="Blacksmith" parent="." unique_id=320432510 instance=ExtResource("6_blacksmith")]
-
-[connection signal="body_entered" from="Blacksmith/Area2D (BlackSmithArea)" to="Blacksmith/Area2D (BlackSmithArea)" method="_on_body_entered"]
-[connection signal="body_exited" from="Blacksmith/Area2D (BlackSmithArea)" to="Blacksmith/Area2D (BlackSmithArea)" method="_on_body_exited"]
