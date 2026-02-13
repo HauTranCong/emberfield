@@ -21,14 +21,23 @@ func _ready() -> void:
 
 
 func _on_area_entered(area: Area2D) -> void:
+	# var parent_name: String = str(area.get_parent().name) if area.get_parent() else "none"
+	# print("[HITBOX] Hit detected! Area: ", area.name, " Parent: ", parent_name)
+	# print("[HITBOX] My layer: ", collision_layer, " My mask: ", collision_mask)
+	# print("[HITBOX] Target layer: ", area.collision_layer, " Target mask: ", area.collision_mask)
 	# Check if it's a HurtboxComponent by checking for the method
 	if area.has_method("take_damage"):
+		# print("[HITBOX] Calling take_damage with damage: ", damage)
 		area.take_damage(damage, knockback_force, global_position)
 		hit_landed.emit(area)
+	else:
+		# print("[HITBOX] Area does NOT have take_damage method!")
+		pass
 
 
 ## Call this to enable hitbox (during attack animation)
 func activate() -> void:
+	# print("[HITBOX] Activated! Layer: ", collision_layer, " Mask: ", collision_mask)
 	monitoring = true
 
 

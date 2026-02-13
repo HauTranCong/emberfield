@@ -20,9 +20,13 @@ func _ready() -> void:
 
 ## Called by HitboxComponent when hit
 func take_damage(amount: int, knockback: float, from_position: Vector2) -> void:
+	# print("[HURTBOX] take_damage called! Amount: ", amount, " can_take_damage: ", can_take_damage)
+	# print("[HURTBOX] My layer: ", collision_layer, " My mask: ", collision_mask)
 	if not can_take_damage:
+		# print("[HURTBOX] Blocked - invincible!")
 		return
 	
+	# print("[HURTBOX] Emitting damage_received signal")
 	damage_received.emit(amount, knockback, from_position)
 	
 	# Start invincibility frames

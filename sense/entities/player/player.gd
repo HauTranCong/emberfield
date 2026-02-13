@@ -1,24 +1,119 @@
 extends CharacterBody2D
 ## Player character controller với hệ thống state machine.
 ## Xử lý di chuyển, tấn công, nhận damage và animations.
+##
+## ╔══════════════════════════════════════════════════════════════════════════════╗
+## ║                           STATE MACHINE DIAGRAM                              ║
+## ╠══════════════════════════════════════════════════════════════════════════════╣
+## ║                                                                              ║
+## ║                         ┌─────────────────────────┐                          ║
+## ║                         │        [DEATH]          │                          ║
+## ║                         │   • HP = 0 → Game Over  │                          ║
+## ║                         │   • Disable all input   │                          ║
+## ║                         └─────────────────────────┘                          ║
+## ║                                    ▲                                         ║
+## ║                                    │ HP <= 0 (từ bất kỳ state)               ║
+## ║    ┌───────────────────────────────┴───────────────────────────────┐         ║
+## ║    │                                                               │         ║
+## ║    │  ┌─────────────┐                      ┌─────────────┐         │         ║
+## ║    │  │    IDLE     │ ◄──── no input ───── │    MOVE     │         │         ║
+## ║    │  │             │ ───── has input ───► │             │         │         ║
+## ║    │  │  • v = 0    │                      │  • v = dir  │         │         ║
+## ║    │  │  • waiting  │                      │    * speed  │         │         ║
+## ║    │  └──────┬──────┘                      └──────┬──────┘         │         ║
+## ║    │         │                                    │                │         ║
+## ║    │         │ attack_pressed                     │ attack_pressed │         ║
+## ║    │         │                                    │                │         ║
+## ║    │         ▼                                    ▼                │         ║
+## ║    │  ┌─────────────────────────────────────────────────────────┐  │         ║
+## ║    │  │                      ATTACK                             │  │         ║
+## ║    │  │   • v = 0 (đứng yên khi đánh)                           │  │         ║
+## ║    │  │   • Bật hitbox theo hướng last_dir                      │  │         ║
+## ║    │  │   • Animation xong → tắt hitbox → về IDLE               │  │         ║
+## ║    │  └─────────────────────────────────────────────────────────┘  │         ║
+## ║    │                                                               │         ║
+## ║    └───────────────────────────────────────────────────────────────┘         ║
+## ║                                                                              ║
+## ╠══════════════════════════════════════════════════════════════════════════════╣
+## ║                         COMPONENT INTERACTION                                ║
+## ╠══════════════════════════════════════════════════════════════════════════════╣
+## ║                                                                              ║
+## ║  [Player Body]           [Hitbox]                [Hurtbox]                   ║
+## ║  Layer 2: PLAYER         Layer 7: PLAYER_HITBOX   Layer 5: PLAYER_HURTBOX    ║
+## ║  Mask: WORLD|NPC|        Mask: ENEMY_HURTBOX      Mask: ENEMY_HITBOX         ║
+## ║        INTERACTABLE|           │                        │                    ║
+## ║        PICKUP                  │                        │                    ║
+## ║       │                        ▼                        ▼                    ║
+## ║       │                  Gây damage cho          Nhận damage từ              ║
+## ║       ▼                  Enemy khi attack       Enemy attack                 ║
+## ║  Va chạm tường,                │                        │                    ║
+## ║  NPC, shop, pickup             ▼                        ▼                    ║
+## ║                        [Enemy Hurtbox]         [Enemy Hitbox]                ║
+## ║                        → damage_received       → _on_hurtbox_damage_received ║
+## ║                        → health -= X           → health -= 15                ║
+## ║                                                → iframe 0.5s                 ║
+## ║                                                                              ║
+## ╚══════════════════════════════════════════════════════════════════════════════╝
 
 # =============================================================================
 # ENUMS & CONSTANTS
 # =============================================================================
 
-## Các trạng thái của nhân vật
+## Các trạng thái của nhân vật:
+## - IDLE: Đứng yên, chờ input. Nếu có move input → MOVE, attack → ATTACK
+## - MOVE: Di chuyển theo input với stats.move_speed. Attack có thể cancel
+## - ATTACK: Đứng yên, chờ animation xong. Bật hitbox gây damage
+## - DEATH: Chết, không xử lý input, chờ respawn
 enum State { IDLE, MOVE, ATTACK, DEATH }
 
-## Offset vị trí hitbox theo từng hướng di chuyển
+# =============================================================================
+# DEBUG VISUALIZATION
+# =============================================================================
+## Bật/tắt debug visualization trong Inspector
+@export var debug_draw_enabled: bool = false
+
+## Màu sắc tương ứng với từng state để dễ nhận biết
+const STATE_COLORS := {
+	State.IDLE: Color.CYAN,       # Xanh dương - đang chờ
+	State.MOVE: Color.GREEN,      # Xanh lá - đang di chuyển
+	State.ATTACK: Color.RED,      # Đỏ - đang tấn công
+	State.DEATH: Color.BLACK      # Đen - đã chết
+}
+
+const STATE_NAMES := {
+	State.IDLE: "IDLE",
+	State.MOVE: "MOVE",
+	State.ATTACK: "ATTACK",
+	State.DEATH: "DEATH"
+}
+
+## ┌─────────────────────────────────────────────────────────────────┐
+## │              HITBOX OFFSET DIAGRAM (8 hướng)                    │
+## │                                                                 │
+## │                  left_up      up      right_up                  │
+## │                   (-15,-15) (0,-15)   (15,-15)                  │
+## │                        \      │      /                          │
+## │                         \     │     /                           │
+## │                          \    │    /                            │
+## │             left ─────────[PLAYER]───────── right               │
+## │           (-20,0)         /    │    \         (20,0)            │
+## │                          /     │     \                          │
+## │                         /      │      \                         │
+## │                  left_down   down   right_down                  │
+## │                   (-15,15)  (0,20)   (15,15)                    │
+## │                                                                 │
+## │  Hitbox sẽ được đặt ở vị trí offset tương ứng với hướng        │
+## │  mà player đang quay mặt khi thực hiện attack                   │
+## └─────────────────────────────────────────────────────────────────┘
 const HITBOX_OFFSETS := {
-	"up": Vector2(0, -15),
-	"down": Vector2(0, 20),
-	"left": Vector2(-20, 0),
-	"right": Vector2(20, 0),
-	"left_up": Vector2(-15, -15),
-	"left_down": Vector2(-15, 15),
-	"right_up": Vector2(15, -15),
-	"right_down": Vector2(15, 15)
+	"up": Vector2(0, -15),         # Tấn công lên trên
+	"down": Vector2(0, 20),        # Tấn công xuống dưới
+	"left": Vector2(-20, 0),       # Tấn công sang trái
+	"right": Vector2(20, 0),       # Tấn công sang phải
+	"left_up": Vector2(-15, -15),  # Tấn công chéo trái-trên
+	"left_down": Vector2(-15, 15), # Tấn công chéo trái-dưới
+	"right_up": Vector2(15, -15),  # Tấn công chéo phải-trên
+	"right_down": Vector2(15, 15)  # Tấn công chéo phải-dưới
 }
 
 # =============================================================================
@@ -51,19 +146,20 @@ var current_state: State = State.IDLE
 var invincibility_timer: float = 0.0
 ## Thời gian bất tử tối đa (giây)
 var invincibility_duration: float = 0.5
+## Theo dõi trạng thái hitbox cho visualization
+var hitbox_active: bool = false
 
 # =============================================================================
 # LIFECYCLE METHODS
 # =============================================================================
 
 func _ready() -> void:
-	# Player collision: Layer PLAYER, Mask: WORLD | ENEMY | NPC | ENEMY_HITBOX | INTERACTABLE | PICKUP
+	# Player collision: Layer PLAYER, Mask: WORLD | NPC | INTERACTABLE | PICKUP
+	# Note: Không mask ENEMY - damage xử lý qua Hitbox/Hurtbox, không qua body collision
 	collision_layer = CollisionLayers.Layer.PLAYER
 	collision_mask = (
 		CollisionLayers.Layer.WORLD |
-		CollisionLayers.Layer.ENEMY |
 		CollisionLayers.Layer.NPC |
-		CollisionLayers.Layer.ENEMY_HITBOX |
 		CollisionLayers.Layer.INTERACTABLE |
 		CollisionLayers.Layer.PICKUP
 	)
@@ -78,13 +174,18 @@ func _ready() -> void:
 	# Kết nối animation signal
 	anim.animation_finished.connect(_on_animation_finished)
 	
-	# Setup Attack Hitbox - mặc định tắt, chỉ bật khi tấn công
-	attack_hitbox.monitoring = false
-	attack_hitbox.body_entered.connect(_on_attack_hit)
-	
-	# Player Attack Hitbox: Layer PLAYER_HITBOX, Mask: ENEMY_HURTBOX
+	# Setup Attack Hitbox - dùng HitboxComponent
 	attack_hitbox.collision_layer = CollisionLayers.Layer.PLAYER_HITBOX
 	attack_hitbox.collision_mask = CollisionLayers.Layer.ENEMY_HURTBOX
+	attack_hitbox.damage = stats.attack_damage if stats else 10
+	attack_hitbox.monitoring = false
+	# print("[PLAYER] Hitbox - Layer: ", attack_hitbox.collision_layer, " Mask: ", attack_hitbox.collision_mask)
+	
+	# Setup Hurtbox - dùng HurtboxComponent, kết nối signal damage_received
+	hurtbox.collision_layer = CollisionLayers.Layer.PLAYER_HURTBOX
+	hurtbox.collision_mask = CollisionLayers.Layer.ENEMY_HITBOX
+	hurtbox.damage_received.connect(_on_hurtbox_damage_received)
+	# print("[PLAYER] Hurtbox - Layer: ", hurtbox.collision_layer, " Mask: ", hurtbox.collision_mask)
 
 
 func _physics_process(delta: float) -> void:
@@ -112,6 +213,10 @@ func _physics_process(delta: float) -> void:
 			_state_move()
 		State.ATTACK:
 			_state_attack()
+	
+	# Request redraw cho debug visualization
+	if debug_draw_enabled:
+		queue_redraw()
 
 
 # =============================================================================
@@ -214,77 +319,66 @@ func _on_animation_finished() -> void:
 # HITBOX (ATTACK) - Vùng gây damage
 # =============================================================================
 
-## Bật hitbox khi bắt đầu tấn công
-## Di chuyển hitbox đến vị trí theo hướng nhân vật đang nhìn
+## ┌─────────────────────────────────────────────────────────────────────────────┐
+## │ ENABLE ATTACK HITBOX                                                        │
+## │ ─────────────────────────────────────────────────────────────────────────── │
+## │ Được gọi khi bắt đầu attack animation                                       │
+## │                                                                             │
+## │ Flow:                                                                       │
+## │ 1. Lấy direction key từ last_dir (8 hướng)                                 │
+## │ 2. Đặt position từ HITBOX_OFFSETS dictionary                               │
+## │ 3. Xoay hitbox theo góc của last_dir                                       │
+## │ 4. Gọi hitbox.activate() để bắt đầu detect collision                       │
+## └─────────────────────────────────────────────────────────────────────────────┘
 func _enable_attack_hitbox() -> void:
 	var key := _direction_to_key(last_dir)
 	
-	# Đặt vị trí hitbox theo hướng
+	# Step 1: Đặt vị trí hitbox theo hướng tấn công
 	if HITBOX_OFFSETS.has(key):
 		attack_hitbox.position = HITBOX_OFFSETS[key]
 	
-	# Xoay hitbox theo hướng (quan trọng cho đòn chéo)
-	var angle := last_dir.angle()
-	attack_hitbox.rotation = angle + PI / 2
+	# Step 2: Xoay hitbox theo hướng (để shape đúng hướng)
+	var angle := last_dir.angle()  # Góc trong radians
+	attack_hitbox.rotation = angle + PI / 2  # +90 độ để align đúng
 	
-	# Bật collision detection
-	attack_hitbox.monitoring = true
+	# Step 3: Kích hoạt hitbox - bắt đầu detect collision với EnemyHurtbox
+	attack_hitbox.activate()
+	hitbox_active = true  # Track cho debug visualization
 
 
-## Tắt hitbox sau khi đòn tấn công kết thúc
+## ┌─────────────────────────────────────────────────────────────────────────────┐
+## │ DISABLE ATTACK HITBOX                                                       │
+## │ ─────────────────────────────────────────────────────────────────────────── │
+## │ Được gọi khi animation attack kết thúc                                      │
+## │ Tắt monitoring để không gây damage nữa                                      │
+## └─────────────────────────────────────────────────────────────────────────────┘
 func _disable_attack_hitbox() -> void:
-	attack_hitbox.monitoring = false
-
-
-## Callback khi hitbox chạm vào target
-## @param body: Node bị hitbox chạm vào
-func _on_attack_hit(body: Node2D) -> void:
-	# Chỉ gây damage nếu target có method take_damage (duck typing)
-	if body.has_method("take_damage"):
-		body.take_damage(stats.attack_damage)
+	attack_hitbox.deactivate()
+	hitbox_active = false  # Track cho debug visualization
 
 
 # =============================================================================
 # HURTBOX (DEFENSE) - Vùng nhận damage
 # =============================================================================
 
-## Callback khi có Area2D (enemy hitbox) chạm vào hurtbox
-## @param area: Area2D của enemy (thường là hitbox của enemy)
-func _on_hurtbox_area_entered(area: Area2D) -> void:
+## Callback khi HurtboxComponent nhận damage từ HitboxComponent
+## @param amount: Số damage nhận vào
+## @param knockback: Lực đẩy lùi  
+## @param from_position: Vị trí nguồn damage
+func _on_hurtbox_damage_received(amount: int, knockback: float, from_position: Vector2) -> void:
+	# print("[PLAYER] _on_hurtbox_damage_received! Amount: ", amount)
 	# Bỏ qua nếu đang bất tử hoặc đã chết
 	if invincibility_timer > 0 or current_state == State.DEATH:
+		# print("[PLAYER] Blocked by invincibility or death state")
 		return
 	
-	# Lấy damage từ enemy (nếu có)
-	var damage := _get_damage_from_area(area)
-	if damage > 0:
-		_apply_damage(damage)
-
-
-## Trích xuất damage từ Area2D của enemy
-## @param area: Area2D chạm vào hurtbox
-## @return: Số damage, 0 nếu không xác định được
-func _get_damage_from_area(area: Area2D) -> int:
-	var parent := area.get_parent()
-	
-	# Cách 1: Parent có property attack_damage
-	if parent and "attack_damage" in parent:
-		return parent.attack_damage
-	
-	# Cách 2: Parent có stats resource với attack_damage
-	if parent and "stats" in parent and parent.stats:
-		return parent.stats.attack_damage
-	
-	# Cách 3: Area có metadata damage
-	if area.has_meta("damage"):
-		return area.get_meta("damage")
-	
-	return 0
+	_apply_damage(amount)
 
 
 ## Áp dụng damage lên nhân vật và kích hoạt iframe
 ## @param damage: Số damage nhận vào
 func _apply_damage(damage: int) -> void:
+	# print("[PLAYER] _apply_damage: ", damage)
 	# Gọi take_damage trong stats (sẽ emit signal health_changed)
 	stats.take_damage(damage)
 	
@@ -461,3 +555,71 @@ func reset_player() -> void:
 	invincibility_timer = 0.0
 	anim.modulate.a = 1.0
 	_change_state(State.IDLE)
+
+
+# =============================================================================
+# DEBUG VISUALIZATION
+# =============================================================================
+## ┌────────────────────────────────────────────────────────────────────────────┐
+## │                      DEBUG DRAW VISUALIZATION                              │
+## │                                                                            │
+## │  Hiển thị khi debug_draw_enabled = true:                                  │
+## │  • Vòng tròn state color: Màu theo state hiện tại                        │
+## │  • Đường chỉ hướng: last_dir (hướng nhìn/di chuyển)                       │
+## │  • Vị trí Hitbox: Hình vuông vàng khi đang attack                        │
+## │  • Iframe indicator: Vòng tròn xanh khi đang bất tử                       │
+## │  • Velocity vector: Đường xanh lá hiển thị hướng di chuyển               │
+## └────────────────────────────────────────────────────────────────────────────┘
+
+func _draw() -> void:
+	if not debug_draw_enabled:
+		return
+	
+	var state_color: Color = STATE_COLORS.get(current_state, Color.WHITE)
+	
+	# Vẽ vòng tròn trạng thái ở trung tâm
+	draw_arc(Vector2.ZERO, 12, 0, TAU, 32, state_color, 2.0)
+	
+	# Vẽ hướng nhìn (last_dir)
+	var direction_line := last_dir * 30
+	draw_line(Vector2.ZERO, direction_line, state_color, 3.0)
+	draw_circle(direction_line, 4, state_color)
+	
+	# Vẽ velocity vector (hướng di chuyển thực tế)
+	if velocity.length() > 1:
+		var vel_normalized := velocity.normalized() * 25
+		draw_line(Vector2.ZERO, vel_normalized, Color.LIME, 2.0)
+		# Mũi tên nhỏ ở cuối
+		var arrow_size := 6.0
+		var arrow_angle := velocity.angle()
+		var arrow_p1 := vel_normalized + Vector2.from_angle(arrow_angle + PI * 0.8) * arrow_size
+		var arrow_p2 := vel_normalized + Vector2.from_angle(arrow_angle - PI * 0.8) * arrow_size
+		draw_line(vel_normalized, arrow_p1, Color.LIME, 2.0)
+		draw_line(vel_normalized, arrow_p2, Color.LIME, 2.0)
+	
+	# Vẽ hitbox position khi attack
+	if hitbox_active and attack_hitbox:
+		var hitbox_pos := attack_hitbox.position
+		# Hình vuông vàng với viền
+		draw_rect(Rect2(hitbox_pos - Vector2(12, 12), Vector2(24, 24)), Color.YELLOW, false, 2.0)
+		# X đỏ ở giữa để đánh dấu điểm tấn công
+		draw_line(hitbox_pos + Vector2(-6, -6), hitbox_pos + Vector2(6, 6), Color.RED, 2.0)
+		draw_line(hitbox_pos + Vector2(6, -6), hitbox_pos + Vector2(-6, 6), Color.RED, 2.0)
+	
+	# Vẽ indicator khi đang bất tử (iframe)
+	if invincibility_timer > 0:
+		# Vòng tròn xanh dương nhấp nháy
+		var alpha := 0.5 + 0.5 * sin(invincibility_timer * 20)
+		var iframe_color := Color(0.3, 0.5, 1.0, alpha)
+		draw_arc(Vector2.ZERO, 18, 0, TAU, 32, iframe_color, 3.0)
+		# Hiển thị thời gian còn lại
+		var time_text := "%.1fs" % invincibility_timer
+		draw_string(ThemeDB.fallback_font, Vector2(-15, -25), time_text, HORIZONTAL_ALIGNMENT_CENTER, -1, 10, iframe_color)
+	
+	# Vẽ các vị trí hitbox có thể (8 hướng) - mờ
+	for key in HITBOX_OFFSETS:
+		var offset: Vector2 = HITBOX_OFFSETS[key]
+		var dot_color := Color(0.5, 0.5, 0.5, 0.3)  # Xám mờ
+		if hitbox_active and attack_hitbox.position == offset:
+			dot_color = Color.YELLOW  # Vàng sáng nếu đang active
+		draw_circle(offset, 3, dot_color)
