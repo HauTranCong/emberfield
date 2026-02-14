@@ -1,7 +1,11 @@
 # GitHub Copilot Instructions for Godot Project
 
 ## Project Context
-This is a Godot 2D game project with strict collision layer and mask standards.
+This is a Godot 2D game project with:
+- Strict collision layer and mask standards
+- Component-based architecture (Hitbox, Hurtbox, Health components)
+- State machine pattern for Player and Enemy AI
+- Debug visualization system
 
 ## Critical Rules for Entity Creation
 
@@ -10,7 +14,7 @@ When creating or modifying ANY game entity (Player, Enemy, NPC, Interactable, Pi
 
 1. **Reference LAYER_AND_MASK_STANDARDS.md** for correct layer configuration
 2. **Apply these exact layer assignments:**
-   - Layer 1: World/Environment (tường, obstacles, terrain)
+   - Layer 1: World/Environment (walls, obstacles, terrain)
    - Layer 2: Player
    - Layer 3: Enemy
    - Layer 4: NPC
@@ -69,9 +73,29 @@ collision_mask = 2
 
 ### When creating GDScript files:
 - Use `extends CharacterBody2D` or `extends Area2D` appropriately
+- **Use `CollisionLayers.Layer` enum** from `sense/globals/collision_layers.gd`
 - Always include collision layer/mask configuration in `_ready()`
-- Use `|` operator for combining masks: `collision_mask = 1 | 2 | 3`
 - Add comments explaining which layers are being used
+
+### Component Architecture
+Entities that can deal/receive damage should have:
+```
+Entity (CharacterBody2D)
+├── AnimatedSprite2D
+├── CollisionShape2D
+├── HealthComponent (Node)
+├── HitboxComponent (Area2D)    # Deals damage
+│   └── CollisionShape2D
+└── HurtboxComponent (Area2D)   # Receives damage
+    └── CollisionShape2D
+```
+
+### State Machine Pattern
+Use enum for states:
+```gdscript
+enum State { IDLE, MOVE, ATTACK, DEATH }  # Player
+enum State { IDLE, PATROL, CHASE, ATTACK, DEATH }  # Enemy
+```
 
 ### When creating .tscn scenes:
 - Set collision_layer and collision_mask properties
@@ -83,17 +107,33 @@ collision_mask = 2
 extends CharacterBody2D
 
 func _ready():
-    # Layer 3 (Enemy), Mask: 1 (World), 2 (Player), 7 (PlayerHitbox)
-    collision_layer = 3
-    collision_mask = 1 | 2 | 7
+    # Use CollisionLayers enum instead of magic numbers
+    collision_layer = CollisionLayers.Layer.ENEMY
+    collision_mask = CollisionLayers.Layer.WORLD
+    
+    # Setup hitbox/hurtbox
+    hitbox.collision_layer = CollisionLayers.Layer.ENEMY_HITBOX
+    hitbox.collision_mask = CollisionLayers.Layer.PLAYER_HURTBOX
 ```
 
+## Combat Rules
+- Hitbox deals damage → Hurtbox receives damage (NOT via body collision)
+- HitboxComponent has `check_line_of_sight` to prevent attacking through walls
+- Player has 0.5s iframe after taking damage
+- Enemy attack has HITBOX_DELAY (0.8s) to sync with animation
+
 ## File Structure Conventions
-- Player scripts: `sense/player/`
-- Enemy scripts: Create in `sense/enemies/` (create if needed)
-- NPC scripts: Create in `sense/npcs/` (create if needed)
-- Map scripts: `sense/maps/`
-- Shop/Interactable: `sense/Town Shop/` or `sense/interactables/`
+```
+sense/
+├── components/     # HitboxComponent, HurtboxComponent, HealthComponent
+├── entities/
+│   ├── player/     # player.gd, character_stats.gd
+│   ├── enemies/    # skeleton/, etc.
+│   └── npcs/       # blacksmith/, merchant/
+├── globals/        # collision_layers.gd, game_manager.gd
+├── maps/           # town.tscn, forest.tscn
+└── ui/             # hud/
+```
 
 ## Naming Conventions
 - Scripts: snake_case (e.g., `goblin_enemy.gd`)
@@ -105,3 +145,9 @@ func _ready():
 - Proper signal connections for collisions
 - Comments explaining layer/mask choices
 - Error handling for null references
+- `@export var debug_draw_enabled: bool` for visualization
+- ASCII diagram in comments explaining state machine
+
+## Documentation Reference
+- `LAYER_AND_MASK_STANDARDS.md` - Collision layer details
+- `docs/COMBAT_SYSTEM.md` - Combat interaction flow
