@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://bpe38u2wv51p1"]
+
+[ext_resource type="FontFile" uid="uid://dymhphlxr6f1o" path="res://assets/Font/Pixellari.ttf" id="1_07bw2"]
+[ext_resource type="Script" uid="uid://2km80k01g75s" path="res://InteractComponent/interaction_manager.gd" id="1_q6lhs"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_q6lhs"]
+font = ExtResource("1_07bw2")
+outline_size = 4
+outline_color = Color(0.0056611504, 0.0056611514, 0.00566115, 1)
+
+[node name="InteractionManager" type="Node2D" unique_id=825600697]
+script = ExtResource("1_q6lhs")
+
+[node name="Label" type="Label" parent="." unique_id=2027611419]
+z_index = 20
+offset_right = 40.0
+offset_bottom = 23.0
+text = "[E] TO INTERACT"
+label_settings = SubResource("LabelSettings_q6lhs")
