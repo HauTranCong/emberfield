@@ -1,7 +1,5 @@
 [gd_scene format=3 uid="uid://e44upqeun2xc"]
 
-[ext_resource type="Script" uid="uid://dj5nhtaj0wm7u" path="res://sense/player/player.gd" id="1_1lvrt"]
-[ext_resource type="Script" uid="uid://bq2dj6s14ogkj" path="res://sense/player/character_stats.gd" id="2_2ln50"]
 [ext_resource type="Texture2D" uid="uid://ch0yj7vxnp8wa" path="res://assets/soldiers/attack/attack1_up.png" id="2_gu5sq"]
 [ext_resource type="Texture2D" uid="uid://cxf1w3yr3fv1v" path="res://assets/soldiers/idle/Idle_Down.png" id="2_q2i2t"]
 [ext_resource type="Texture2D" uid="uid://cyr2y72qg0c1q" path="res://assets/soldiers/attack/attack1_down.png" id="3_2ln50"]
@@ -14,10 +12,8 @@
 [ext_resource type="Texture2D" uid="uid://bmx6k58nr8mox" path="res://assets/soldiers/walk/run_right.png" id="8_2ln50"]
 [ext_resource type="Texture2D" uid="uid://c2nkfd86twrp1" path="res://assets/soldiers/walk/run_left.png" id="9_2ln50"]
 [ext_resource type="Texture2D" uid="uid://co3gm2k2o5ej7" path="res://assets/soldiers/walk/run_up.png" id="9_tlyb0"]
-
-[sub_resource type="Resource" id="Resource_tlyb0"]
-script = ExtResource("2_2ln50")
-metadata/_custom_type_script = "uid://bq2dj6s14ogkj"
+[ext_resource type="Script" uid="uid://dq311i1qjnaed" path="res://sense/components/hitbox_component.gd" id="10_hitbox"]
+[ext_resource type="Script" uid="uid://b3y58plh7x28i" path="res://sense/components/hurtbox_component.gd" id="11_hurtbox"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_8agjn"]
 atlas = ExtResource("3_2ln50")
@@ -686,7 +682,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_fn8tw")
 }],
-"loop": true,
+"loop": false,
 "name": &"attack_down",
 "speed": 5.0
 }, {
@@ -744,7 +740,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_w4kkp")
 }],
-"loop": false,
+"loop": true,
 "name": &"attack_right",
 "speed": 5.0
 }, {
@@ -802,7 +798,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_f7ghd")
 }],
-"loop": false,
+"loop": true,
 "name": &"idle_down",
 "speed": 5.0
 }, {
@@ -831,7 +827,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_xpjgu")
 }],
-"loop": false,
+"loop": true,
 "name": &"idle_left",
 "speed": 5.0
 }, {
@@ -860,7 +856,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_rqdhw")
 }],
-"loop": false,
+"loop": true,
 "name": &"idle_left_down",
 "speed": 5.0
 }, {
@@ -889,7 +885,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_w5mlw")
 }],
-"loop": false,
+"loop": true,
 "name": &"idle_left_up",
 "speed": 5.0
 }, {
@@ -918,7 +914,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_68m5q")
 }],
-"loop": false,
+"loop": true,
 "name": &"idle_right",
 "speed": 5.0
 }, {
@@ -947,7 +943,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_tmd27")
 }],
-"loop": false,
+"loop": true,
 "name": &"idle_right_down",
 "speed": 5.0
 }, {
@@ -976,7 +972,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_d1rpt")
 }],
-"loop": false,
+"loop": true,
 "name": &"idle_right_up",
 "speed": 5.0
 }, {
@@ -1005,7 +1001,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_x2q3k")
 }],
-"loop": false,
+"loop": true,
 "name": &"idle_up",
 "speed": 5.0
 }, {
@@ -1034,7 +1030,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_u5ymd")
 }],
-"loop": false,
+"loop": true,
 "name": &"move_down",
 "speed": 5.0
 }, {
@@ -1063,7 +1059,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_4c0yk")
 }],
-"loop": false,
+"loop": true,
 "name": &"move_left",
 "speed": 5.0
 }, {
@@ -1092,7 +1088,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_rf1dt")
 }],
-"loop": false,
+"loop": true,
 "name": &"move_left_down",
 "speed": 5.0
 }, {
@@ -1121,7 +1117,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_x0m3s")
 }],
-"loop": false,
+"loop": true,
 "name": &"move_left_up",
 "speed": 5.0
 }, {
@@ -1150,7 +1146,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_i6ryh")
 }],
-"loop": false,
+"loop": true,
 "name": &"move_right",
 "speed": 5.0
 }, {
@@ -1179,7 +1175,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_var3u")
 }],
-"loop": false,
+"loop": true,
 "name": &"move_right_down",
 "speed": 5.0
 }, {
@@ -1208,7 +1204,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_erm36")
 }],
-"loop": false,
+"loop": true,
 "name": &"move_right_up",
 "speed": 5.0
 }, {
@@ -1237,7 +1233,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_dqet8")
 }],
-"loop": false,
+"loop": true,
 "name": &"move_up",
 "speed": 5.0
 }]
@@ -1246,55 +1242,21 @@ animations = [{
 radius = 2.0
 height = 14.000001
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_gu5sq"]
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_2ln50"]
 
-[sub_resource type="Animation" id="Animation_q2i2t"]
-length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("AttackHitbox/CollisionShape2D:rotation")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [0.0]
-}
-
-[sub_resource type="Animation" id="Animation_2ln50"]
-resource_name = "attach_down"
-length = 5.0
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("AttackHitbox/CollisionShape2D:rotation")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(-0.1, 2),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [0.0, 1.5707963267948966]
-}
-
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_2ln50"]
-_data = {
-&"RESET": SubResource("Animation_q2i2t"),
-&"attach_down": SubResource("Animation_2ln50")
-}
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_tlyb0"]
+radius = 4.0
+height = 28.0
 
 [node name="Player" type="CharacterBody2D" unique_id=268643816]
 y_sort_enabled = true
-script = ExtResource("1_1lvrt")
-stats = SubResource("Resource_tlyb0")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=379667701]
 y_sort_enabled = true
 position = Vector2(-1, 0)
 sprite_frames = SubResource("SpriteFrames_pnikv")
-animation = &"attack_right"
+animation = &"move_right"
+frame_progress = 0.9187297
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=316279987]
 position = Vector2(0, 17)
@@ -1306,14 +1268,21 @@ zoom = Vector2(2, 2)
 position_smoothing_enabled = true
 position_smoothing_speed = 10.0
 
-[node name="AttackHitbox" type="Area2D" parent="." unique_id=764226218]
-visible = false
-collision_layer = 7
-collision_mask = 2
+[node name="Hitbox" type="Area2D" parent="." unique_id=764226218]
+collision_layer = 64
+collision_mask = 32
 monitoring = false
+script = ExtResource("10_hitbox")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="AttackHitbox" unique_id=1407739155]
-shape = SubResource("CircleShape2D_gu5sq")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox" unique_id=817270203]
+position = Vector2(0, -1)
+shape = SubResource("CapsuleShape2D_2ln50")
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=362436563]
-libraries/ = SubResource("AnimationLibrary_2ln50")
+[node name="Hurtbox" type="Area2D" parent="." unique_id=2089419715]
+collision_layer = 16
+collision_mask = 128
+script = ExtResource("11_hurtbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox" unique_id=1026122835]
+position = Vector2(0, 1)
+shape = SubResource("CapsuleShape2D_tlyb0")

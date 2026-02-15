@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://disa4b4q6hwy2"
-path="res://.godot/imported/Merchant Cart.png-1c5b8cb24edbd69e4534a271be573c35.ctex"
+uid="uid://djjkbleoe7cmj"
+path="res://.godot/imported/death.png-b1df80f93d5b0ad9377e886d0622fa9f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/Shop/General-shop/Merchant Cart.png"
-dest_files=["res://.godot/imported/Merchant Cart.png-1c5b8cb24edbd69e4534a271be573c35.ctex"]
+source_file="res://assets/enemies/skeleton_hammer/death/death.png"
+dest_files=["res://.godot/imported/death.png-b1df80f93d5b0ad9377e886d0622fa9f.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://disa4b4q6hwy2"
-path="res://.godot/imported/Merchant Cart.png-1c5b8cb24edbd69e4534a271be573c35.ctex"
+uid="uid://bxmo6pt0tnwws"
+path="res://.godot/imported/walk_right.png-2b15d5ce0eeadc8e783973ea1bf0b7de.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/Shop/General-shop/Merchant Cart.png"
-dest_files=["res://.godot/imported/Merchant Cart.png-1c5b8cb24edbd69e4534a271be573c35.ctex"]
+source_file="res://assets/enemies/skeleton_hammer/walk/walk_right.png"
+dest_files=["res://.godot/imported/walk_right.png-2b15d5ce0eeadc8e783973ea1bf0b7de.ctex"]
 
 [params]
 
