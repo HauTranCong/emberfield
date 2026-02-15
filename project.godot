@@ -18,7 +18,6 @@ config/icon="res://icon.svg"
 [autoload]
 
 CollisionLayers="*res://sense/globals/collision_layers.gd"
-GameManager="*res://sense/globals/game_manager.gd"
 
 [display]
 
