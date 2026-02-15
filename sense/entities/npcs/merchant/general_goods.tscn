@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://buqa24ev2h77c" path="res://sense/entities/npcs/merchant/general_goods.gd" id="1_0q4i7"]
 [ext_resource type="Texture2D" uid="uid://disa4b4q6hwy2" path="res://assets/Shop/General-shop/Merchant Cart.png" id="1_6xrvg"]
 [ext_resource type="Texture2D" uid="uid://xya4o7ccypjl" path="res://assets/Shop/General-shop/Merchant Man-Sheet.png" id="2_0q4i7"]
+[ext_resource type="PackedScene" uid="uid://bwrtwcf0edx13" path="res://sense/components/interaction_scene.tscn" id="4_sa8sf"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_knsfb"]
 size = Vector2(56, 9.666668)
@@ -60,9 +61,8 @@ position = Vector2(22.666664, -14.333335)
 sprite_frames = SubResource("SpriteFrames_jfna2")
 animation = &"idle"
 
-[node name="InteractArea" type="Area2D" parent="." unique_id=1531978543]
-position = Vector2(-2.9999998, 6.333333)
+[node name="interaction_area" parent="." unique_id=1111473312 instance=ExtResource("4_sa8sf")]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractArea" unique_id=1417347395]
-position = Vector2(3.3333333, -2.9999993)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="interaction_area" unique_id=1417347395]
+position = Vector2(0.3333335, 3.3333337)
 shape = SubResource("RectangleShape2D_0q4i7")
