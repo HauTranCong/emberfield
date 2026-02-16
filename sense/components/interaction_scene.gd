@@ -6,6 +6,9 @@ class_name InteractionArea
 @export var interact: Callable = func() -> void:
 	pass
 
+signal player_entered
+signal player_exited
+
 func _ready() -> void:
 	# Interactable area: Layer INTERACTABLE, Mask: PLAYER
 	collision_layer = CollisionLayers.Layer.INTERACTABLE
@@ -16,9 +19,11 @@ func _on_body_entered(body: Node2D) -> void:
 	InteractionManager.register_area(self)
 	print("InteractionArea ready at global position: ", body.global_position)
 	global_position_area = body.global_position
+	player_entered.emit()
 
 func _on_body_exited(body: Node2D) -> void:
 	InteractionManager.unregister_area(self)
+	player_exited.emit()
 
 func _on_interact() -> void:
 	print("Player is interacting with ", action_name)
