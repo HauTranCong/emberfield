@@ -1,13 +1,10 @@
-extends StaticBody2D
-
-@onready var anim: AnimatedSprite2D = $AnimatedSprite2D
+extends Node2D
 @onready var interaction_area: InteractionArea = $interaction_area
 
-var npc_name: String = "general goods merchant"
+var npc_name: String = "blacksmith"
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	anim.play("idle")
 	interaction_area.interact = Callable(self, "_on_interact")
 
 func _on_interact() -> void:

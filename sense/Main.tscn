@@ -31,4 +31,3 @@ position = Vector2(657, 41)
 script = ExtResource("8_m6a24")
 
 [node name="HUD" parent="." unique_id=9162071 instance=ExtResource("3_hud")]
-[node name="Blacksmith" parent="." unique_id=320432510 instance=ExtResource("6_blacksmith")]
