@@ -5,10 +5,11 @@ extends Node2D
 @onready var hud: CanvasLayer = $HUD
 
 func _ready() -> void:
+	GameEvent.request_ui_pause.connect(_on_request_ui_pause)
 	if town == null or player == null:
 		push_error("Assign town & player in Inspector")
 		return
-	
+
 	# Spawn: ưu tiên Spawn marker, nếu không có thì giữa town
 	var spawn: Node2D = town.get_node_or_null("Spawn") as Node2D
 	if spawn != null:
@@ -75,3 +76,10 @@ func _collect_tilemap_layers(node: Node, out_layers: Array[TileMapLayer]) -> voi
 		if layer != null:
 			out_layers.append(layer)
 		_collect_tilemap_layers(child, out_layers)
+
+#  Signal handler for UI pause request
+func _on_request_ui_pause(is_open: bool) -> void:
+	if is_open:
+		get_tree().paused = true
+	else:
+		get_tree().paused = false

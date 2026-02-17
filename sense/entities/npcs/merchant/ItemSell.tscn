@@ -1,0 +1,63 @@
+[gd_scene format=3 uid="uid://biud1wj5l2xxh"]
+
+[ext_resource type="Texture2D" uid="uid://wartmtfgle7u" path="res://assets/Shop/UI-element/UI-shop-item-background.png" id="1_cgggr"]
+[ext_resource type="Script" uid="uid://bk5ir67u7v5s0" path="res://sense/entities/npcs/merchant/item_sell.gd" id="1_txc7o"]
+[ext_resource type="FontFile" uid="uid://dymhphlxr6f1o" path="res://assets/Font/Pixellari.ttf" id="3_mvn7n"]
+[ext_resource type="Texture2D" uid="uid://d2y1qt64qd37e" path="res://assets/Shop/UI-element/Coin.png" id="4_2w81n"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_mi27r"]
+font = ExtResource("3_mvn7n")
+font_size = 23
+outline_size = 3
+outline_color = Color(0.0035191667, 0.0035191681, 0.0035191672, 1)
+
+[node name="Control" type="Control" unique_id=308969692]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -967.0
+offset_bottom = -664.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_txc7o")
+
+[node name="Outline" type="TextureRect" parent="." unique_id=1058021268]
+self_modulate = Color(18.892157, 18.892157, 18.892157, 1)
+layout_mode = 0
+offset_left = -9.0
+offset_right = 321.0
+offset_bottom = 60.0
+mouse_filter = 2
+texture = ExtResource("1_cgggr")
+
+[node name="BackgroundItem" type="TextureRect" parent="." unique_id=757495292]
+texture_filter = 1
+layout_mode = 0
+offset_left = -7.0
+offset_top = 7.0
+offset_right = 318.0
+offset_bottom = 52.0
+mouse_filter = 2
+texture = ExtResource("1_cgggr")
+
+[node name="Label" type="Label" parent="." unique_id=1473248516]
+layout_mode = 0
+offset_left = 248.0
+offset_top = 18.0
+offset_right = 288.0
+offset_bottom = 41.0
+text = "100"
+label_settings = SubResource("LabelSettings_mi27r")
+
+[node name="TextureRect" type="TextureRect" parent="Label" unique_id=203863273]
+layout_mode = 0
+offset_left = -32.0
+offset_top = -9.0
+offset_right = 8.0
+offset_bottom = 31.0
+mouse_filter = 2
+texture = ExtResource("4_2w81n")
+
+[connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="." to="." method="_on_mouse_exited"]
