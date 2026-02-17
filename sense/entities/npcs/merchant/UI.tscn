@@ -1,0 +1,73 @@
+[gd_scene format=3 uid="uid://ci7e83v1xwa0i"]
+
+[ext_resource type="Script" uid="uid://cgrgw88j4pmu0" path="res://sense/entities/npcs/merchant/ui_general_shop.gd" id="1_jwfcq"]
+[ext_resource type="Texture2D" uid="uid://bw3mw428gypwd" path="res://assets/Shop/UI-element/UI-background.png" id="1_p5i6e"]
+[ext_resource type="PackedScene" uid="uid://biud1wj5l2xxh" path="res://sense/entities/npcs/merchant/ItemSell.tscn" id="2_gvbko"]
+[ext_resource type="FontFile" uid="uid://dymhphlxr6f1o" path="res://assets/Font/Pixellari.ttf" id="2_h661b"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_jwfcq"]
+line_spacing = 0.5
+font = ExtResource("2_h661b")
+font_color = Color(0.056291588, 0.056291603, 0.056291595, 1)
+outline_color = Color(0.22797623, 0.2362418, 0.2498992, 1)
+shadow_size = 0
+shadow_color = Color(0.19973177, 0.19973174, 0.19973174, 0)
+
+[node name="Control" type="Control" unique_id=210540919]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_jwfcq")
+
+[node name="Shopbackground" type="TextureRect" parent="." unique_id=2080989792]
+texture_filter = 1
+layout_mode = 0
+offset_left = 198.0
+offset_top = -15.0
+offset_right = 1043.0
+offset_bottom = 737.0
+mouse_filter = 2
+texture = ExtResource("1_p5i6e")
+
+[node name="Label" type="Label" parent="." unique_id=1741721120]
+custom_minimum_size = Vector2(190, 98)
+layout_mode = 0
+offset_left = 649.0
+offset_top = 335.0
+offset_right = 839.0
+offset_bottom = 429.0
+text = "Welcome to Tho Ty Nam Son General Good"
+label_settings = SubResource("LabelSettings_jwfcq")
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+text_overrun_behavior = 5
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=605791598]
+layout_mode = 0
+offset_left = 270.0
+offset_top = 162.0
+offset_right = 608.0
+offset_bottom = 422.0
+mouse_filter = 0
+
+[node name="Control" parent="VBoxContainer" unique_id=308969692 instance=ExtResource("2_gvbko")]
+custom_minimum_size = Vector2(300, 60)
+layout_mode = 2
+
+[node name="Button" type="Button" parent="." unique_id=653491228]
+layout_mode = 0
+offset_left = 615.0
+offset_top = 117.0
+offset_right = 640.0
+offset_bottom = 148.0
+text = "X"
+
+[connection signal="mouse_entered" from="VBoxContainer/Control" to="." method="_on_control_mouse_entered"]
+[connection signal="mouse_exited" from="VBoxContainer/Control" to="." method="_on_control_mouse_exited"]
+[connection signal="pressed" from="Button" to="." method="_on_button_pressed"]
