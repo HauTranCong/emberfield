@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://c2nqjdd7ux3v1" path="res://sense/maps/portal/portal.gd" id="1_4i61p"]
 [ext_resource type="Texture2D" uid="uid://bm7mpsp4k10hf" path="res://assets/tilesets/TX Props.png" id="1_8uu2a"]
-[ext_resource type="Script" uid="uid://bhtccbhxcmclr" path="res://sense/components/interaction_scene.gd" id="3_sdd16"]
+[ext_resource type="PackedScene" uid="uid://bwrtwcf0edx13" path="res://sense/components/interaction_scene.tscn" id="3_sdd16"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_4i61p"]
 texture = ExtResource("1_8uu2a")
@@ -1289,8 +1289,7 @@ tile_set = SubResource("TileSet_52iul")
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=656754598]
 libraries/ = SubResource("AnimationLibrary_4i61p")
 
-[node name="interaction_area" type="Area2D" parent="." unique_id=298093381]
-script = ExtResource("3_sdd16")
+[node name="interaction_area" parent="." unique_id=1111473312 instance=ExtResource("3_sdd16")]
 
 [node name="CollisionShape2D" type="CollisionPolygon2D" parent="interaction_area" unique_id=1689467245]
 polygon = PackedVector2Array(-47, -9, -45, -11, -41, -11, -41, -12, -39, -16, -36, -19, -33, -22, -30, -24, -28, -25, -26, -26, -23, -27, -22, -28, -19, -29, -16, -30, -11, -30, -11, -34, -10, -35, 9, -35, 11, -33, 11, -30, 16, -30, 19, -29, 22, -28, 23, -27, 27, -25, 30, -24, 33, -22, 34, -21, 36, -19, 39, -16, 40, -14, 41, -12, 41, -11, 46, -11, 47, -10, 47, 11, 46, 12, 43, 12, 43, 13, 42, 15, 41, 17, 40, 18, 39, 20, 38, 21, 37, 22, 36, 23, 33, 26, 30, 28, 26, 30, 22, 32, 20, 33, 16, 34, 11, 34, 11, 36, 10, 37, -10, 37, -11, 36, -11, 34, -16, 34, -20, 33, -30, 28, -33, 26, -39, 20, -41, 17, -43, 13, -43, 12, -46, 12, -47, 11)
@@ -1323,8 +1322,3 @@ tile_set = SubResource("TileSet_4i61p")
 visible = false
 tile_map_data = PackedByteArray("AAD6//v/AAAQAAEAAAD6//z/AAAQAAIAAAD6//3/AAAQAAMAAAD7//v/AAARAAEAAAD7//z/AAARAAIAAAD7//3/AAARAAMAAAD6/wEAAAAQAAYAAAD6/wIAAAAQAAcAAAD6/wMAAAAQAAgAAAD6/wQAAAAQAAkAAAD7/wEAAAARAAYAAAD7/wIAAAARAAcAAAD7/wMAAAARAAgAAAD7/wQAAAARAAkAAAAEAAMAAAAQAAwAAAAEAAQAAAAQAA0AAAAFAAMAAAARAAwAAAAFAAQAAAARAA0AAAAEAPr/AAAQAAYAAAAEAPv/AAAQAAcAAAAEAPz/AAAQAAgAAAAEAP3/AAAQAAkAAAAFAPr/AAARAAYAAAAFAPv/AAARAAcAAAAFAPz/AAARAAgAAAAFAP3/AAARAAkAAAA=")
 tile_set = SubResource("TileSet_07w1b")
-
-[connection signal="body_entered" from="interaction_area" to="." method="_on_interaction_area_body_entered"]
-[connection signal="body_entered" from="interaction_area" to="interaction_area" method="_on_body_entered"]
-[connection signal="body_exited" from="interaction_area" to="." method="_on_interaction_area_body_exited"]
-[connection signal="body_exited" from="interaction_area" to="interaction_area" method="_on_body_exited"]
