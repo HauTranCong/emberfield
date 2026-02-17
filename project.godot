@@ -19,7 +19,7 @@ config/icon="res://icon.svg"
 
 CollisionLayers="*res://sense/globals/collision_layers.gd"
 InteractionManager="*res://sense/components/interaction_manager.tscn"
-GameEvent="*uid://668vk41hli18"
+GameEvent="*res://sense/globals/game_event.gd"
 
 [display]
 
