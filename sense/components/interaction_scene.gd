@@ -5,9 +5,9 @@ class_name InteractionArea
 @export var global_position_area: Vector2
 @export var interact: Callable = func() -> void:
 	pass
-@export var on_enter: Callable = func() -> void:
+@export var on_enter: Callable = func(_body: Node2D) -> void:
 	pass
-@export var on_exit: Callable = func() -> void:
+@export var on_exit: Callable = func(_body: Node2D) -> void:
 	pass
 
 func _ready() -> void:
