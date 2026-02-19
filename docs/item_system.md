@@ -1,5 +1,252 @@
 # Hệ Thống Item - Emberfield
 
+## Sequence Diagrams
+
+### 1. Item Pickup Flow
+
+```mermaid
+sequenceDiagram
+    participant P as Player
+    participant GI as GameItem (Area2D)
+    participant IS as ItemSpawner
+    participant IDB as ItemDatabase
+    participant ID as InventoryData
+    participant IP as InventoryPanel
+
+    Note over GI,P: AUTO/MAGNET Pickup Mode
+    GI->>GI: body_entered(Player)
+    GI->>GI: _collect_item()
+    
+    alt ContentType.ITEM
+        GI->>IDB: get_item(item_id)
+        IDB-->>GI: ItemData
+        GI->>P: inventory.add_item(ItemData, qty)
+        P->>ID: add_item(item, quantity)
+        ID->>ID: Find empty slot or stack
+        ID-->>ID: inventory_changed.emit()
+        ID-->>IP: Signal received
+        IP->>IP: _refresh_inventory()
+    else ContentType.GOLD
+        GI->>ID: gold += amount
+        ID-->>ID: gold_changed.emit(amount)
+    else ContentType.HEALTH
+        GI->>P: stats.heal(amount)
+    end
+    
+    GI->>GI: collected.emit()
+    GI->>GI: queue_free()
+```
+
+### 2. Enemy Loot Drop Flow
+
+```mermaid
+sequenceDiagram
+    participant E as Enemy
+    participant HC as HealthComponent
+    participant LT as LootTable
+    participant IS as ItemSpawner
+    participant IDB as ItemDatabase
+    participant GI as GameItem
+
+    E->>HC: take_damage(amount)
+    HC->>HC: current_health <= 0
+    HC-->>E: died.emit()
+    
+    E->>IS: spawn_enemy_drops(loot_table, xp)
+    IS->>LT: roll_drops()
+    
+    loop For each drop_count
+        LT->>LT: Calculate weighted random
+        LT-->>IS: {item_id, quantity}
+    end
+    
+    LT-->>IS: Array[drops]
+    
+    loop For each drop
+        IS->>IDB: get_item(item_id)
+        IDB-->>IS: ItemData (with atlas icon)
+        IS->>GI: instantiate GameItem.tscn
+        IS->>GI: setup(item_id, qty, pickup_mode)
+        GI->>GI: Set collision_layer = PICKUP
+        GI->>GI: Set collision_mask = PLAYER
+        IS->>IS: Add scatter effect from death position
+    end
+    
+    opt Has gold_range
+        IS->>GI: spawn_gold(random amount)
+    end
+    
+    opt Has XP
+        IS->>GI: spawn_xp(xp_amount)
+    end
+```
+
+### 3. Equip Item Flow
+
+```mermaid
+sequenceDiagram
+    participant U as User Input
+    participant IP as InventoryPanel
+    participant SUI as InventorySlotUI
+    participant ID as InventoryData
+    participant CS as CharacterStats
+
+    U->>SUI: Right-click on equipment item
+    SUI-->>IP: slot_right_clicked(index)
+    IP->>IP: _on_inventory_slot_right_clicked(index)
+    IP->>ID: get_item_at(index)
+    ID-->>IP: {item: ItemData, quantity: int}
+    
+    alt item.is_equippable()
+        IP->>ID: equip_item(index)
+        ID->>ID: Determine slot_type from item_type
+        
+        opt Already has equipped item
+            ID->>ID: Swap with inventory slot
+        end
+        
+        ID->>ID: _set_equipped(slot_type, item)
+        ID->>ID: Remove from inventory[index]
+        ID-->>ID: equipment_changed.emit(slot_type)
+        ID-->>ID: inventory_changed.emit()
+        
+        ID-->>IP: Signal received
+        IP->>IP: _refresh_equipment_slots()
+        IP->>IP: _refresh_inventory()
+        IP->>IP: _refresh_stats()
+        
+        IP->>CS: get_total_attack_bonus()
+        IP->>CS: get_total_defense_bonus()
+    end
+```
+
+### 4. Use Consumable Flow
+
+```mermaid
+sequenceDiagram
+    participant U as User Input
+    participant IP as InventoryPanel
+    participant ID as InventoryData
+    participant P as Player
+    participant CS as CharacterStats
+
+    U->>IP: Right-click on consumable
+    IP->>ID: get_item_at(index)
+    ID-->>IP: {item: ItemData, quantity: int}
+    
+    alt item.is_consumable()
+        IP->>ID: use_item(index)
+        ID->>ID: Check quantity > 0
+        ID->>ID: Build result Dictionary
+        
+        Note over ID: result = {<br/>heal_amount,<br/>stamina_restore,<br/>effect_duration<br/>}
+        
+        ID->>ID: remove_item_at(index, 1)
+        ID-->>ID: inventory_changed.emit()
+        ID-->>IP: return result
+        
+        IP-->>P: item_used.emit(result)
+        
+        P->>P: _on_item_used(result)
+        
+        alt result.heal_amount > 0
+            P->>CS: heal(heal_amount)
+            CS->>CS: current_health += amount
+            CS->>CS: Clamp to max_health
+        end
+        
+        alt result.stamina_restore > 0
+            P->>CS: restore_stamina(amount)
+        end
+    end
+```
+
+### 5. Drag & Drop Flow
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant SRC as Source Slot (UI)
+    participant DST as Destination Slot (UI)
+    participant IP as InventoryPanel
+    participant ID as InventoryData
+
+    U->>SRC: Start drag
+    SRC->>SRC: _get_drag_data()
+    SRC-->>U: Preview with item icon
+    
+    U->>DST: Hover over destination
+    DST->>DST: _can_drop_data()
+    
+    alt Inventory to Inventory
+        DST-->>U: Valid (green border)
+        U->>DST: Drop
+        DST-->>IP: slot_dropped(from, to)
+        IP->>ID: swap_slots(from, to)
+        ID-->>ID: inventory_changed.emit()
+        
+    else Inventory to Equipment
+        DST->>DST: Check _item_fits_slot()
+        DST-->>U: Valid if compatible
+        U->>DST: Drop
+        DST-->>IP: inventory_to_equipment_dropped(idx, slot_type)
+        IP->>ID: equip_item(index)
+        ID-->>ID: equipment_changed.emit()
+        
+    else Equipment to Inventory
+        U->>DST: Drop
+        DST-->>IP: equipment_to_inventory_dropped(slot_type, idx)
+        IP->>ID: unequip_item(slot_type, target_index)
+        ID-->>ID: equipment_changed.emit()
+        ID-->>ID: inventory_changed.emit()
+    end
+    
+    IP->>IP: _refresh_all()
+```
+
+### 6. Complete Item Lifecycle
+
+```mermaid
+sequenceDiagram
+    participant W as World/Enemy
+    participant IS as ItemSpawner
+    participant GI as GameItem
+    participant P as Player
+    participant ID as InventoryData
+    participant IP as InventoryPanel
+    participant CS as CharacterStats
+
+    Note over W,CS: PHASE 1: Item Creation
+    W->>IS: spawn_item() or spawn_enemy_drops()
+    IS->>GI: Create & configure GameItem
+    GI->>GI: Set visual style (BOB/SPARKLE)
+    GI->>GI: Set pickup mode (AUTO/MAGNET)
+    
+    Note over W,CS: PHASE 2: Item Pickup
+    P->>GI: Enter collision area
+    GI->>ID: add_item(ItemData, qty)
+    ID-->>IP: inventory_changed
+    GI->>GI: queue_free()
+    
+    Note over W,CS: PHASE 3: Item Management
+    
+    alt Equip
+        P->>ID: equip_item(index)
+        ID-->>IP: equipment_changed
+        IP->>CS: Recalculate bonuses
+        CS->>P: Apply attack/defense/speed
+    else Use Consumable
+        P->>ID: use_item(index)
+        ID-->>P: Effect result
+        P->>CS: Apply heal/stamina
+    else Drop
+        P->>ID: remove_item_at(index)
+        P->>IS: spawn_world_item()
+    end
+```
+
+---
+
 ## Tổng Quan
 
 Hệ thống item thống nhất với **một scene duy nhất** (`GameItem`) có thể cấu hình thành nhiều loại:
