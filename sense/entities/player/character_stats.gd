@@ -26,6 +26,8 @@ signal died
 var max_health: int:
 	get:
 		return base_max_health + equipment_health_bonus
+
+# === HEALTH ===
 var current_health: int:
 	set(value):
 		current_health = clampi(value, 0, max_health)

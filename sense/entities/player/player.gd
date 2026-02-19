@@ -173,6 +173,9 @@ func _ready() -> void:
 		CollisionLayers.Layer.PICKUP
 	)
 	
+	# Add to player group for easy reference
+	add_to_group("player")
+	
 	# Tạo stats mặc định nếu chưa có
 	if stats == null:
 		stats = CharacterStats.new()

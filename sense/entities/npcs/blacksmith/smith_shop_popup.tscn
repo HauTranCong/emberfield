@@ -1,0 +1,73 @@
+[gd_scene format=3 uid="uid://bkbh40qgu3oxn"]
+
+[ext_resource type="Script" uid="uid://bych2423c6r63" path="res://sense/entities/npcs/blacksmith/smith_shop_popup.gd" id="1_p2ngm"]
+[ext_resource type="Script" path="res://sense/ui/dim_background.gd" id="2_dim"]
+
+[node name="SmithShopPopup" type="Control" unique_id=1723710890]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_p2ngm")
+
+[node name="Dim" type="ColorRect" parent="." unique_id=655285671]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_dim")
+
+[node name="Panel" type="Panel" parent="." unique_id=1623341362]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -200.0
+offset_right = 250.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="Panel" unique_id=713197938]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TitleRow" type="HBoxContainer" parent="Panel/VBox" unique_id=1506066440]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Panel/VBox/TitleRow" unique_id=1464175471]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Blacksmith Shop"
+
+[node name="Close" type="Button" parent="Panel/VBox/TitleRow" unique_id=1060449895]
+layout_mode = 2
+text = "X"
+
+[node name="ItemsScroll" type="ScrollContainer" parent="Panel/VBox" unique_id=35454512]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ItemsList" type="VBoxContainer" parent="Panel/VBox/ItemsScroll" unique_id=436700578]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Hint" type="Label" parent="Panel/VBox" unique_id=487278669]
+layout_mode = 2
+text = "Click an item to purchase"
+horizontal_alignment = 1
