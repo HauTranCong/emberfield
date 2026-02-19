@@ -5,6 +5,9 @@
 [ext_resource type="Texture2D" uid="uid://btx7c74tkb87x" path="res://assets/blacksmith/fire_frames.png" id="3_k5pvp"]
 [ext_resource type="Script" uid="uid://dtw4k6hscviwg" path="res://sense/entities/npcs/blacksmith/furnace_fire.gd" id="4_k5pvp"]
 [ext_resource type="PackedScene" uid="uid://bwrtwcf0edx13" path="res://sense/components/interaction_scene.tscn" id="5_4py4b"]
+[ext_resource type="Script" path="res://sense/components/ui_popup_component.gd" id="6_popup"]
+[ext_resource type="PackedScene" uid="uid://bkbh40qgu3oxn" path="res://sense/entities/npcs/blacksmith/smith_shop_popup.tscn" id="7_shop"]
+[ext_resource type="Script" path="res://sense/components/shop_component.gd" id="8_shop_component"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_static"]
 size = Vector2(145.22263, 12.01326)
@@ -104,3 +107,11 @@ script = ExtResource("4_k5pvp")
 position = Vector2(1120.267, 137)
 scale = Vector2(1.1, 0.4)
 shape = SubResource("RectangleShape2D_area")
+
+[node name="UIPopupComponent" type="Node" parent="."]
+script = ExtResource("6_popup")
+ui_scene = ExtResource("7_shop")
+ui_node_name = "BlacksmithUI"
+
+[node name="ShopComponent" type="Node" parent="."]
+script = ExtResource("8_shop_component")
