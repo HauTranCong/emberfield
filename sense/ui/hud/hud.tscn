@@ -132,7 +132,6 @@ layout_mode = 2
 theme_override_constants/separation = 6
 
 [node name="SpeedIcon" type="Panel" parent="StatusIconsContainer/IconsFlow" unique_id=172569764]
-visible = false
 custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 size_flags_vertical = 4
@@ -155,7 +154,6 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="HealIcon" type="Panel" parent="StatusIconsContainer/IconsFlow" unique_id=455512952]
-visible = false
 custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 size_flags_vertical = 4
@@ -178,7 +176,6 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="ShieldIcon" type="Panel" parent="StatusIconsContainer/IconsFlow" unique_id=880498466]
-visible = false
 custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 size_flags_vertical = 4
@@ -201,7 +198,6 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="PoisonIcon" type="Panel" parent="StatusIconsContainer/IconsFlow" unique_id=1887017882]
-visible = false
 custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 size_flags_vertical = 4
@@ -224,7 +220,6 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="BurnIcon" type="Panel" parent="StatusIconsContainer/IconsFlow" unique_id=588718962]
-visible = false
 custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 size_flags_vertical = 4
@@ -247,7 +242,6 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="FreezeIcon" type="Panel" parent="StatusIconsContainer/IconsFlow" unique_id=153690644]
-visible = false
 custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 size_flags_vertical = 4

@@ -1,0 +1,465 @@
+[gd_scene format=3 uid="uid://j38hmfce73b"]
+
+[ext_resource type="Script" uid="uid://hgyj1b7xs3gh" path="res://sense/ui/inventory/inventory_panel.gd" id="1_panel"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_main_panel"]
+bg_color = Color(0.16, 0.14, 0.18, 1)
+border_width_left = 6
+border_width_top = 6
+border_width_right = 6
+border_width_bottom = 6
+border_color = Color(0.45, 0.4, 0.35, 1)
+expand_margin_left = 2.0
+expand_margin_top = 2.0
+expand_margin_right = 2.0
+expand_margin_bottom = 2.0
+shadow_size = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_equipment_panel"]
+bg_color = Color(0.12, 0.11, 0.14, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.35, 0.32, 0.28, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_preview"]
+bg_color = Color(0.08, 0.07, 0.1, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.2, 0.18, 0.22, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slot_empty"]
+bg_color = Color(0.1, 0.09, 0.12, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.25, 0.23, 0.28, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_inventory_grid"]
+bg_color = Color(0.12, 0.11, 0.14, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.35, 0.32, 0.28, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tab_active"]
+bg_color = Color(0.22, 0.2, 0.26, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_color = Color(0.5, 0.45, 0.38, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tab_hover"]
+bg_color = Color(0.18, 0.16, 0.2, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_color = Color(0.45, 0.4, 0.35, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tab_inactive"]
+bg_color = Color(0.1, 0.09, 0.12, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_color = Color(0.28, 0.25, 0.22, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tooltip"]
+bg_color = Color(0.14, 0.12, 0.16, 0.98)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.5, 0.45, 0.38, 1)
+
+[node name="InventoryPanel" type="CanvasLayer" unique_id=416836775]
+process_mode = 3
+layer = 100
+script = ExtResource("1_panel")
+
+[node name="Overlay" type="ColorRect" parent="." unique_id=1465787470]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.5)
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=184502372]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MainPanel" type="Panel" parent="CenterContainer" unique_id=1561455466]
+custom_minimum_size = Vector2(700, 450)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_main_panel")
+
+[node name="MainMargin" type="MarginContainer" parent="CenterContainer/MainPanel" unique_id=867972509]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="MainHBox" type="HBoxContainer" parent="CenterContainer/MainPanel/MainMargin" unique_id=1011527719]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="EquipmentPanel" type="Panel" parent="CenterContainer/MainPanel/MainMargin/MainHBox" unique_id=39514076]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_equipment_panel")
+
+[node name="EquipMargin" type="MarginContainer" parent="CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel" unique_id=1182717691]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="EquipVBox" type="VBoxContainer" parent="CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin" unique_id=1731110763]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox" unique_id=11998304]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.58, 0.65, 1)
+text = "EQUIPMENT"
+horizontal_alignment = 1
+
+[node name="CharacterPreview" type="Panel" parent="CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox" unique_id=156763872]
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_preview")
+
+[node name="Label" type="Label" parent="CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox/CharacterPreview" unique_id=1325271685]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.4, 0.4, 0.4, 1)
+text = "Character
+Preview"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="EquipGrid" type="GridContainer" parent="CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox" unique_id=1003040494]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+columns = 3
+
+[node name="Spacer1" type="Control" parent="CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox/EquipGrid" unique_id=1673981007]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+
+[node name="HelmetSlot" type="Panel" parent="CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox/EquipGrid" unique_id=299492127]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_slot_empty")
+
+[node name="Icon" type="TextureRect" parent="CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox/EquipGrid/HelmetSlot" unique_id=94445256]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Spacer2" type="Control" parent="CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox/EquipGrid" unique_id=949149848]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+
+[node name="WeaponSlot" type="Panel" parent="CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox/EquipGrid" unique_id=1229723388]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_slot_empty")
+
+[node name="Icon" type="TextureRect" parent="CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox/EquipGrid/WeaponSlot" unique_id=125508291]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ArmorSlot" type="Panel" parent="CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox/EquipGrid" unique_id=1191451847]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_slot_empty")
+
+[node name="Icon" type="TextureRect" parent="CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox/EquipGrid/ArmorSlot" unique_id=1521632822]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ShieldSlot" type="Panel" parent="CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox/EquipGrid" unique_id=788828489]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_slot_empty")
+
+[node name="Icon" type="TextureRect" parent="CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox/EquipGrid/ShieldSlot" unique_id=124790976]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Accessory1Slot" type="Panel" parent="CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox/EquipGrid" unique_id=606239389]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_slot_empty")
+
+[node name="Icon" type="TextureRect" parent="CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox/EquipGrid/Accessory1Slot" unique_id=897380109]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BootsSlot" type="Panel" parent="CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox/EquipGrid" unique_id=1678751003]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_slot_empty")
+
+[node name="Icon" type="TextureRect" parent="CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox/EquipGrid/BootsSlot" unique_id=285863612]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Accessory2Slot" type="Panel" parent="CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox/EquipGrid" unique_id=1123843863]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_slot_empty")
+
+[node name="Icon" type="TextureRect" parent="CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox/EquipGrid/Accessory2Slot" unique_id=1036221112]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HSeparator" type="HSeparator" parent="CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox" unique_id=49444279]
+layout_mode = 2
+
+[node name="StatsGrid" type="GridContainer" parent="CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox" unique_id=650489937]
+layout_mode = 2
+theme_override_constants/h_separation = 20
+theme_override_constants/v_separation = 4
+columns = 2
+
+[node name="AtkLabel" type="Label" parent="CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox/StatsGrid" unique_id=716651848]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.6, 0.6, 1)
+text = "⚔️ ATK:"
+
+[node name="AtkValue" type="Label" parent="CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox/StatsGrid" unique_id=1514684895]
+layout_mode = 2
+text = "0"
+
+[node name="DefLabel" type="Label" parent="CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox/StatsGrid" unique_id=1165644925]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.8, 1, 1)
+text = "🛡️ DEF:"
+
+[node name="DefValue" type="Label" parent="CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox/StatsGrid" unique_id=2038876621]
+layout_mode = 2
+text = "0"
+
+[node name="GoldLabel" type="Label" parent="CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox/StatsGrid" unique_id=1194652754]
+layout_mode = 2
+text = "💰"
+
+[node name="GoldValue" type="Label" parent="CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox/StatsGrid" unique_id=1320250831]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+text = "0"
+
+[node name="InventoryVBox" type="VBoxContainer" parent="CenterContainer/MainPanel/MainMargin/MainHBox" unique_id=881648756]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox" unique_id=1658725800]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.58, 0.65, 1)
+text = "INVENTORY"
+horizontal_alignment = 1
+
+[node name="InventoryGrid" type="Panel" parent="CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox" unique_id=2005520295]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_inventory_grid")
+
+[node name="GridMargin" type="MarginContainer" parent="CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox/InventoryGrid" unique_id=623386605]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="SlotsGrid" type="GridContainer" parent="CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox/InventoryGrid/GridMargin" unique_id=1879923429]
+layout_mode = 2
+theme_override_constants/h_separation = 4
+theme_override_constants/v_separation = 4
+columns = 8
+
+[node name="TabsContainer" type="HBoxContainer" parent="CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox" unique_id=1224119151]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TabAll" type="Button" parent="CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox/TabsContainer" unique_id=72837067]
+custom_minimum_size = Vector2(80, 28)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_tab_active")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_tab_active")
+theme_override_styles/hover = SubResource("StyleBoxFlat_tab_hover")
+text = "All"
+
+[node name="TabEquip" type="Button" parent="CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox/TabsContainer" unique_id=2124347187]
+custom_minimum_size = Vector2(80, 28)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_tab_inactive")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_tab_active")
+theme_override_styles/hover = SubResource("StyleBoxFlat_tab_hover")
+text = "Equip"
+
+[node name="TabMaterial" type="Button" parent="CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox/TabsContainer" unique_id=1499573775]
+custom_minimum_size = Vector2(80, 28)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_tab_inactive")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_tab_active")
+theme_override_styles/hover = SubResource("StyleBoxFlat_tab_hover")
+text = "Material"
+
+[node name="TooltipPanel" type="Panel" parent="CenterContainer/MainPanel" unique_id=391891090]
+visible = false
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 1
+offset_right = 200.0
+offset_bottom = 100.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_tooltip")
+
+[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/MainPanel/TooltipPanel" unique_id=1531264353]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="TooltipContent" type="VBoxContainer" parent="CenterContainer/MainPanel/TooltipPanel/MarginContainer" unique_id=391105419]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="ItemName" type="Label" parent="CenterContainer/MainPanel/TooltipPanel/MarginContainer/TooltipContent" unique_id=334556669]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Item Name"
+
+[node name="ItemType" type="Label" parent="CenterContainer/MainPanel/TooltipPanel/MarginContainer/TooltipContent" unique_id=1208387822]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Type"
+
+[node name="HSeparator" type="HSeparator" parent="CenterContainer/MainPanel/TooltipPanel/MarginContainer/TooltipContent" unique_id=1354631731]
+layout_mode = 2
+
+[node name="ItemDesc" type="Label" parent="CenterContainer/MainPanel/TooltipPanel/MarginContainer/TooltipContent" unique_id=392670467]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 11
+text = "Item description goes here."
+autowrap_mode = 2
+
+[node name="ItemStats" type="Label" parent="CenterContainer/MainPanel/TooltipPanel/MarginContainer/TooltipContent" unique_id=1588658553]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11

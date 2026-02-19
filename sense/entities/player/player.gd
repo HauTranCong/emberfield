@@ -124,6 +124,15 @@ const HITBOX_OFFSETS := {
 @export var stats: CharacterStats
 
 # =============================================================================
+# INVENTORY
+# =============================================================================
+
+## Player's inventory data
+var inventory: InventoryData
+## Inventory panel UI reference
+var inventory_panel: Node = null
+
+# =============================================================================
 # NODE REFERENCES
 # =============================================================================
 
@@ -168,6 +177,9 @@ func _ready() -> void:
 	if stats == null:
 		stats = CharacterStats.new()
 	
+	# Initialize inventory system
+	_setup_inventory()
+	
 	# Kết nối signals từ stats
 	stats.died.connect(_on_died)
 	
@@ -192,6 +204,15 @@ func _physics_process(delta: float) -> void:
 	# Không xử lý gì nếu đã chết
 	if current_state == State.DEATH:
 		_state_death()
+		return
+	
+	# Check inventory toggle input
+	if Input.is_action_just_pressed("open_inventory"):
+		_toggle_inventory()
+		return
+	
+	# Skip other processing if inventory is open
+	if inventory_panel != null and inventory_panel.visible:
 		return
 	
 	# Hồi stamina theo thời gian
@@ -555,6 +576,118 @@ func reset_player() -> void:
 	invincibility_timer = 0.0
 	anim.modulate.a = 1.0
 	_change_state(State.IDLE)
+
+
+# =============================================================================
+# INVENTORY FUNCTIONS
+# =============================================================================
+
+## Initialize inventory system
+func _setup_inventory() -> void:
+	# Create inventory data
+	inventory = InventoryData.new()
+	inventory.gold = 500  # Starting gold
+	
+	# Connect equipment change signal to update stats
+	inventory.equipment_changed.connect(_on_equipment_changed)
+	
+	# Load inventory panel scene
+	var inventory_scene := preload("res://sense/ui/inventory/inventory_panel.tscn")
+	inventory_panel = inventory_scene.instantiate()
+	add_child(inventory_panel)
+	inventory_panel.setup(inventory)
+	
+	# Connect item use signal from inventory panel
+	if inventory_panel.has_signal("item_used"):
+		inventory_panel.item_used.connect(_on_item_used)
+	
+	# Add some starter items for testing
+	_add_starter_items()
+
+
+## Add starter items for testing
+func _add_starter_items() -> void:
+	# Get items from ItemDatabase (which has atlas icons configured)
+	var health_potion := ItemDatabase.get_item("health_potion")
+	if health_potion:
+		inventory.add_item(health_potion, 5)
+	
+	var iron_sword := ItemDatabase.get_item("iron_sword")
+	if iron_sword:
+		inventory.add_item(iron_sword, 1)
+	
+	var leather_armor := ItemDatabase.get_item("leather_armor")
+	if leather_armor:
+		inventory.add_item(leather_armor, 1)
+	
+	var iron_ore := ItemDatabase.get_item("iron_ore")
+	if iron_ore:
+		inventory.add_item(iron_ore, 23)
+
+
+## Toggle inventory panel visibility
+func _toggle_inventory() -> void:
+	if inventory_panel != null:
+		inventory_panel.toggle_inventory()
+
+
+## Get player's inventory data (for external access)
+func get_inventory() -> InventoryData:
+	return inventory
+
+
+## Add item to player inventory
+func add_to_inventory(item: ItemData, quantity: int = 1) -> int:
+	if inventory != null:
+		return inventory.add_item(item, quantity)
+	return quantity
+
+
+## Add gold to player
+func add_gold(amount: int) -> void:
+	if inventory != null:
+		inventory.gold += amount
+
+
+## Called when equipment changes - update player stats
+func _on_equipment_changed(_slot_type: String) -> void:
+	if stats != null and inventory != null:
+		stats.apply_equipment_bonuses(inventory)
+		# Update hitbox damage with new attack stat
+		if attack_hitbox != null:
+			attack_hitbox.damage = stats.attack_damage
+
+
+## Called when player uses an item from inventory
+func _on_item_used(result: Dictionary) -> void:
+	if result.success and stats != null:
+		# Apply heal
+		if result.heal_amount > 0:
+			stats.heal(result.heal_amount)
+			print("[PLAYER] Used item: healed ", result.heal_amount, " HP")
+		
+		# Apply stamina restore
+		if result.stamina_restore > 0:
+			stats.restore_stamina(result.stamina_restore)
+			print("[PLAYER] Used item: restored ", result.stamina_restore, " stamina")
+
+
+## Heal player from pickup
+func heal_from_pickup(amount: int) -> void:
+	if stats != null:
+		stats.heal(amount)
+
+
+## Restore stamina from pickup
+func restore_stamina_from_pickup(amount: float) -> void:
+	if stats != null:
+		stats.restore_stamina(amount)
+
+
+## Add XP from pickup
+func add_xp(amount: int) -> void:
+	# TODO: Implement XP/leveling system
+	print("[PLAYER] Gained ", amount, " XP")
 
 
 # =============================================================================
