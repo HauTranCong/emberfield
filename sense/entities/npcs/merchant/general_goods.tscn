@@ -3,7 +3,10 @@
 [ext_resource type="Script" uid="uid://buqa24ev2h77c" path="res://sense/entities/npcs/merchant/general_goods.gd" id="1_0q4i7"]
 [ext_resource type="Texture2D" uid="uid://disa4b4q6hwy2" path="res://assets/Shop/General-shop/Merchant Cart.png" id="1_6xrvg"]
 [ext_resource type="Texture2D" uid="uid://xya4o7ccypjl" path="res://assets/Shop/General-shop/Merchant Man-Sheet.png" id="2_0q4i7"]
+[ext_resource type="Script" path="res://sense/components/ui_popup_component.gd" id="3_popup"]
 [ext_resource type="PackedScene" uid="uid://bwrtwcf0edx13" path="res://sense/components/interaction_scene.tscn" id="4_sa8sf"]
+[ext_resource type="PackedScene" path="res://sense/entities/npcs/merchant/UI.tscn" id="5_ui"]
+[ext_resource type="Script" path="res://sense/components/shop_component.gd" id="6_shop_component"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_knsfb"]
 size = Vector2(56, 9.666668)
@@ -66,3 +69,11 @@ animation = &"idle"
 [node name="CollisionShape2D" type="CollisionShape2D" parent="interaction_area" unique_id=1417347395]
 position = Vector2(0.3333335, 3.3333337)
 shape = SubResource("RectangleShape2D_0q4i7")
+
+[node name="UIPopupComponent" type="Node" parent="."]
+script = ExtResource("3_popup")
+ui_scene = ExtResource("5_ui")
+ui_node_name = "ShopUI"
+
+[node name="ShopComponent" type="Node" parent="."]
+script = ExtResource("6_shop_component")

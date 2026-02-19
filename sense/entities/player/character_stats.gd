@@ -3,7 +3,14 @@ extends Resource
 
 signal health_changed(current: int, maximum: int)
 signal stamina_changed(current: float, maximum: float)
+signal gold_changed(amount: int)
 signal died
+
+# === CURRENCY ===
+@export var gold: int = 100:
+	set(value):
+		gold = maxi(value, 0)
+		gold_changed.emit(gold)
 
 # === HEALTH ===
 @export var max_health: int = 100
