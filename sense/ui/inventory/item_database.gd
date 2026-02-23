@@ -253,8 +253,7 @@ func _create_sample_items() -> void:
 	monster_bone.buy_price = 15
 	monster_bone.sell_price = 7
 	monster_bone.use_atlas_icon = true
-	monster_bone.atlas_row = 2  # Same as bone
-	monster_bone.atlas_col = 2
+	monster_bone.atlas_icon_name = "bone"  # Uses ICONS["bone"] = Vector2i(17, 9)
 	items["monster_bone"] = monster_bone
 	
 	var bone := ItemData.new()
@@ -268,8 +267,7 @@ func _create_sample_items() -> void:
 	bone.buy_price = 5
 	bone.sell_price = 2
 	bone.use_atlas_icon = true
-	bone.atlas_row = 2  # Row 2 has bone icon
-	bone.atlas_col = 2
+	bone.atlas_icon_name = "bone"  # Uses ICONS["bone"] = Vector2i(17, 9)
 	items["bone"] = bone
 	
 	# === CURRENCY (for visual drops) ===

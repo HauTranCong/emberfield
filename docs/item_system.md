@@ -557,6 +557,30 @@ const ICON_SHEET_PATH := "res://assets/items/item_icons.png"
 ItemIconAtlas.init(sheet, Vector2i(32, 32), 16)
 ```
 
+### Predefined Icon Names (ICONS Dictionary)
+
+| Icon Name | Position (Row, Col) | Description |
+|-----------|---------------------|-------------|
+| `default` | (0, 2) | Default bag icon for missing items |
+| `helmet_horned` | (0, 0) | Horned helmet |
+| `scroll` | (0, 1) | Scroll |
+| `bag` | (0, 2) | Bag (default icon) |
+| `heart` | (0, 4) | Health heart |
+| `gamepad` | (0, 5) | Gamepad |
+| `brain` | (0, 6) | Brain |
+| `skull` | (0, 8) | Skull |
+| `arrow` | (1, 0) | Arrow projectile |
+| `boot_green` | (1, 1) | Green boots |
+| `gem_green` | (1, 2) | Green gem |
+| `cape_red` | (1, 3) | Red cape |
+| `cape_blue` | (1, 4) | Blue cape |
+| `sword_iron` | (5, 1) | Iron sword |
+| `leather_armor` | (7, 5) | Leather armor |
+| `potion_red` | (9, 0) | Red health potion |
+| `gold_coin` | (12, 7) | Gold coin currency |
+| `iron_ore` | (17, 1) | Iron ore material |
+| `bone` | (17, 9) | Bone drop |
+
 ### Sử Dụng Atlas Icon
 
 ```gdscript
@@ -565,14 +589,42 @@ item.use_atlas_icon = true
 item.atlas_row = 2
 item.atlas_col = 5
 
-# Hoặc dùng tên preset
-item.atlas_icon_name = "iron_sword"  # Nếu đã định nghĩa trong ICON_POSITIONS
+# Hoặc dùng tên preset (RECOMMENDED)
+item.atlas_icon_name = "iron_sword"  # Uses ICONS dictionary lookup
+```
+
+### Default Icon Fallback
+
+Khi một item không có icon được định nghĩa trong ICONS dictionary, hệ thống sẽ tự động sử dụng **default icon** (bag icon tại vị trí row=0, col=2).
+
+```gdscript
+# ItemIconAtlas.gd
+const DEFAULT_ICON := Vector2i(0, 2)  # bag icon
+
+## Get a predefined icon by name (returns default if not found)
+static func get_named_icon(icon_name: String) -> AtlasTexture:
+    if not ICONS.has(icon_name):
+        push_warning("ItemIconAtlas: Unknown icon name '%s', using default" % icon_name)
+        return get_icon(DEFAULT_ICON.x, DEFAULT_ICON.y)
+    var pos: Vector2i = ICONS[icon_name]
+    return get_icon(pos.x, pos.y)
+
+## Get the default icon directly
+static func get_default_icon() -> AtlasTexture:
+    return get_icon(DEFAULT_ICON.x, DEFAULT_ICON.y)
 ```
 
 ### Lấy Icon
 
 ```gdscript
 var texture := item.get_icon()  # Tự động dùng atlas hoặc icon thường
+
+# Hoặc lấy trực tiếp từ atlas
+var icon := ItemIconAtlas.get_named_icon("sword_iron")
+var default_icon := ItemIconAtlas.get_default_icon()
+
+# Xem danh sách tất cả icons có sẵn
+var available := ItemIconAtlas.get_available_icons()
 ```
 
 ## Collision Layers
@@ -654,15 +706,416 @@ signal inventory_closed
 signal item_used(result: Dictionary)
 ```
 
-## Debug
+---
 
-Enable debug visualization trong Inspector:
+## Implementation Guide: Spawning Items from Enemy & Chest
 
-```gdscript
-@export var debug_draw_enabled: bool = true
+### 🎯 Overview
+
+This guide explains how to implement item drops from **Enemies** and **Chests** using the `ItemSpawner` and `LootTable` systems.
+
+```
+╔═══════════════════════════════════════════════════════════════════════════════════╗
+║                       ITEM SPAWN INTEGRATION FLOW                                  ║
+╠═══════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                   ║
+║  ┌─────────────┐                    ┌─────────────┐                               ║
+║  │    Enemy    │                    │    Chest    │                               ║
+║  │  (dies)     │                    │ (interact)  │                               ║
+║  └──────┬──────┘                    └──────┬──────┘                               ║
+║         │                                  │                                      ║
+║         │ HealthComponent.died             │ Player presses interact              ║
+║         ▼                                  ▼                                      ║
+║  ┌──────────────────┐            ┌──────────────────────┐                         ║
+║  │ LootTable.roll() │            │ GameItem.open_chest()│                         ║
+║  │ - weighted items │            │ - fixed contents     │                         ║
+║  │ - gold range     │            │ - gold amount        │                         ║
+║  └────────┬─────────┘            └──────────┬───────────┘                         ║
+║           │                                 │                                     ║
+║           ▼                                 ▼                                     ║
+║  ┌───────────────────────────────────────────────────────────────┐                ║
+║  │                    ItemSpawner                                 │                ║
+║  │  spawn_item() / spawn_gold() / spawn_enemy_drops()            │                ║
+║  └───────────────────────────────────────────────────────────────┘                ║
+║           │                                                                       ║
+║           ▼                                                                       ║
+║  ┌───────────────────────────────────────────────────────────────┐                ║
+║  │                    GameItem (Area2D)                          │                ║
+║  │  - Layer 10 (PICKUP), Mask 2 (PLAYER)                         │                ║
+║  │  - pickup_mode: AUTO/MAGNET/INTERACT                          │                ║
+║  └───────────────────────────────────────────────────────────────┘                ║
+║           │                                                                       ║
+║           │ Player touches / interacts                                            ║
+║           ▼                                                                       ║
+║  ┌───────────────────────────────────────────────────────────────┐                ║
+║  │                    InventoryData                               │                ║
+║  │  add_item() / add gold / heal player                          │                ║
+║  └───────────────────────────────────────────────────────────────┘                ║
+║                                                                                   ║
+╚═══════════════════════════════════════════════════════════════════════════════════╝
 ```
 
-Hiển thị:
-- Pickup range (circle)
-- Magnet range (larger circle)
-- Current state info
+---
+
+### 🦴 Enemy Loot Drops - Step by Step
+
+#### Step 1: Create LootTable for Enemy
+
+```gdscript
+# In your enemy script (e.g., skeleton.gd)
+extends CharacterBody2D
+
+@export var loot_table: LootTable
+@export var xp_reward: int = 25
+
+func _ready():
+    # Create default loot table if not set in inspector
+    if loot_table == null:
+        loot_table = _create_loot_table()
+    
+    # Connect health component death signal
+    $HealthComponent.died.connect(_on_died)
+
+func _create_loot_table() -> LootTable:
+    var table := LootTable.new()
+    
+    # === BASIC SETTINGS ===
+    table.drop_count = 2          # Roll 2 times for items
+    table.nothing_weight = 40     # 40% chance to drop nothing per roll
+    table.gold_range = Vector2i(5, 20)  # Drop 5-20 gold
+    
+    # === ADD ITEM ENTRIES ===
+    # add_entry(item_id, weight, min_quantity, max_quantity)
+    table.add_entry("bone", 100, 1, 3)           # Common drop
+    table.add_entry("health_potion", 30, 1, 1)   # Uncommon drop
+    table.add_entry("iron_ore", 20, 1, 2)        # Rare drop
+    
+    # === GUARANTEED DROPS (always drop these) ===
+    table.guaranteed_drops = ["monster_bone"]    # Always drops 1
+    
+    return table
+```
+
+#### Step 2: Spawn Drops on Death
+
+```gdscript
+func _on_died() -> void:
+    # Spawn all drops (items + gold + XP)
+    var drops := ItemSpawner.spawn_enemy_drops(
+        get_tree(),
+        global_position,
+        loot_table,
+        xp_reward
+    )
+    
+    # Optional: Log what was dropped
+    print("Enemy dropped %d items, %d gold, %d XP" % [
+        drops.items.size(),
+        drops.gold_amount,
+        drops.xp_amount
+    ])
+    
+    # Play death animation then remove
+    queue_free()
+```
+
+#### Step 3: Understanding LootTable Weights
+
+```
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                      LOOT TABLE WEIGHT CALCULATION                        ║
+╠═══════════════════════════════════════════════════════════════════════════╣
+║                                                                           ║
+║  Example: drop_count = 1, nothing_weight = 40                             ║
+║                                                                           ║
+║  entries:                                                                 ║
+║    - bone: weight = 100                                                   ║
+║    - health_potion: weight = 30                                           ║
+║    - diamond: weight = 10                                                 ║
+║                                                                           ║
+║  Total weight = 40 + 100 + 30 + 10 = 180                                  ║
+║                                                                           ║
+║  Probabilities:                                                           ║
+║    - Nothing:       40/180 = 22.2%                                        ║
+║    - Bone:         100/180 = 55.6%                                        ║
+║    - Health Potion: 30/180 = 16.7%                                        ║
+║    - Diamond:       10/180 = 5.5%                                         ║
+║                                                                           ║
+║  With drop_count = 3: Rolls 3 times independently!                        ║
+║                                                                           ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+```
+
+---
+
+### 📦 Chest Implementation - Step by Step
+
+#### Option A: Pre-defined Chest (Fixed Contents)
+
+```gdscript
+# Spawn a chest with specific items
+func spawn_treasure_chest(position: Vector2) -> void:
+    var chest := ItemSpawner.spawn_chest(
+        get_tree(),
+        position,
+        ["iron_sword", "health_potion", "health_potion"],  # Fixed items
+        100,        # Gold amount
+        false,      # requires_key
+        ""          # key_item_id
+    )
+
+# Spawn a locked chest (requires key)
+func spawn_locked_chest(position: Vector2) -> void:
+    var chest := ItemSpawner.spawn_chest(
+        get_tree(),
+        position,
+        ["diamond", "rare_armor"],
+        500,
+        true,           # requires_key = true
+        "golden_key"    # Player needs this item
+    )
+```
+
+#### Option B: Random Chest (Using LootTable)
+
+```gdscript
+# Create a chest that uses LootTable for random rewards
+func spawn_random_chest(position: Vector2) -> void:
+    # Create loot table for chest
+    var chest_loot := LootTable.new()
+    chest_loot.drop_count = 3
+    chest_loot.nothing_weight = 0  # Chests should always give something!
+    chest_loot.gold_range = Vector2i(50, 200)
+    
+    # Add rare items for chest
+    chest_loot.add_entry("iron_sword", 30, 1, 1)
+    chest_loot.add_entry("leather_armor", 30, 1, 1)
+    chest_loot.add_entry("health_potion", 50, 1, 3)
+    chest_loot.add_entry("diamond", 10, 1, 1)
+    
+    # Roll the loot table
+    var drops := chest_loot.roll()
+    var gold := chest_loot.roll_gold()
+    
+    # Convert to item_ids array
+    var item_ids: Array = []
+    for drop in drops:
+        for i in range(drop.quantity):
+            item_ids.append(drop.item_id)
+    
+    # Spawn the chest
+    ItemSpawner.spawn_chest(get_tree(), position, item_ids, gold)
+```
+
+#### Option C: Chest Entity Script
+
+```gdscript
+# chest.gd - Standalone chest entity
+extends Area2D
+
+@export var contents: Array[String] = []  # Item IDs
+@export var gold_amount: int = 0
+@export var requires_key: bool = false
+@export var key_item_id: String = ""
+@export var one_time_only: bool = true
+
+var is_opened: bool = false
+
+func _ready():
+    # Setup collision for interaction
+    collision_layer = CollisionLayers.Layer.INTERACTABLE
+    collision_mask = CollisionLayers.Layer.PLAYER
+
+func interact(player: Node2D) -> bool:
+    if is_opened and one_time_only:
+        return false
+    
+    # Check for key if required
+    if requires_key and not key_item_id.is_empty():
+        var inventory := player.get_inventory()
+        if inventory == null or not inventory.has_item(key_item_id):
+            # Show "need key" message
+            return false
+        # Consume the key
+        inventory.remove_item_by_id(key_item_id, 1)
+    
+    # Spawn contents
+    _spawn_contents()
+    
+    is_opened = true
+    $AnimatedSprite2D.play("open")
+    return true
+
+func _spawn_contents() -> void:
+    # Spawn items
+    for item_id in contents:
+        var offset := Vector2(randf_range(-20, 20), randf_range(-10, 10))
+        ItemSpawner.spawn_item(
+            get_tree(),
+            global_position + offset,
+            item_id,
+            1,
+            global_position,  # scatter_origin
+            GameItem.PickupMode.AUTO
+        )
+    
+    # Spawn gold
+    if gold_amount > 0:
+        ItemSpawner.spawn_gold(
+            get_tree(),
+            global_position,
+            gold_amount,
+            global_position
+        )
+```
+
+---
+
+### 🔧 Complete Enemy Example
+
+```gdscript
+# skeleton_enemy.gd
+extends CharacterBody2D
+
+enum State { IDLE, PATROL, CHASE, ATTACK, DEATH }
+
+@export var max_health: int = 50
+@export var xp_reward: int = 25
+@export var loot_table: LootTable
+
+var current_state: State = State.IDLE
+
+@onready var health_component: HealthComponent = $HealthComponent
+@onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
+
+func _ready():
+    # Setup health
+    health_component.max_health = max_health
+    health_component.current_health = max_health
+    health_component.died.connect(_on_died)
+    
+    # Setup loot table
+    if loot_table == null:
+        loot_table = _create_default_loot_table()
+
+func _create_default_loot_table() -> LootTable:
+    var table := LootTable.new()
+    table.drop_count = 2
+    table.nothing_weight = 30
+    table.gold_range = Vector2i(10, 30)
+    
+    # Common drops
+    table.add_entry("bone", 100, 1, 3)
+    
+    # Uncommon drops
+    table.add_entry("health_potion", 40, 1, 1)
+    table.add_entry("iron_ore", 25, 1, 2)
+    
+    # Rare drops
+    table.add_entry("iron_sword", 5, 1, 1)
+    
+    return table
+
+func _on_died() -> void:
+    # Change to death state
+    current_state = State.DEATH
+    
+    # Disable collision
+    $CollisionShape2D.set_deferred("disabled", true)
+    $HurtboxComponent/CollisionShape2D.set_deferred("disabled", true)
+    
+    # Spawn loot
+    ItemSpawner.spawn_enemy_drops(
+        get_tree(),
+        global_position,
+        loot_table,
+        xp_reward
+    )
+    
+    # Play death animation
+    animated_sprite.play("death")
+    await animated_sprite.animation_finished
+    
+    queue_free()
+```
+
+---
+
+### 📋 Quick Reference: ItemSpawner Methods
+
+| Method | Use Case | Pickup Mode |
+|--------|----------|-------------|
+| `spawn_item()` | Single item drop | AUTO |
+| `spawn_gold()` | Currency drops (splits into piles) | MAGNET |
+| `spawn_health()` | Health orb pickup | AUTO |
+| `spawn_stamina()` | Stamina orb pickup | AUTO |
+| `spawn_xp()` | Experience orb | MAGNET |
+| `spawn_from_loot_table()` | Multiple items from LootTable | AUTO |
+| `spawn_enemy_drops()` | Items + Gold + XP (full enemy death) | Mixed |
+| `spawn_chest()` | Chest with contents | INTERACT |
+| `spawn_world_item()` | Static item in world | INTERACT |
+
+---
+
+### 📋 Quick Reference: LootTable Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `entries` | Array[Dictionary] | Items with weights |
+| `guaranteed_drops` | Array[String] | Always drop these items |
+| `drop_count` | int | How many times to roll |
+| `nothing_weight` | int | Chance to drop nothing (0-100+) |
+| `gold_range` | Vector2i | (min, max) gold amount |
+
+### LootTable Entry Format
+
+```gdscript
+{
+    "item_id": "health_potion",  # Must exist in ItemDatabase
+    "weight": 100,               # Higher = more likely
+    "min_quantity": 1,           # Minimum amount
+    "max_quantity": 3            # Maximum amount
+}
+```
+
+---
+
+### ⚠️ Common Mistakes
+
+1. **Item not in ItemDatabase**
+   ```gdscript
+   # ❌ Wrong - item_id doesn't exist
+   table.add_entry("unknown_item", 100, 1, 1)
+   
+   # ✅ Correct - use existing item from ItemDatabase
+   table.add_entry("health_potion", 100, 1, 1)
+   ```
+
+2. **Spawning before scene is ready**
+   ```gdscript
+   # ❌ Wrong - may cause errors
+   func _init():
+       ItemSpawner.spawn_item(...)
+   
+   # ✅ Correct - wait for scene tree
+   func _on_died():
+       ItemSpawner.spawn_item(get_tree(), ...)
+   ```
+
+3. **Missing get_tree() parameter**
+   ```gdscript
+   # ❌ Wrong
+   ItemSpawner.spawn_item(position, "sword", 1)
+   
+   # ✅ Correct
+   ItemSpawner.spawn_item(get_tree(), position, "sword", 1)
+   ```
+
+4. **Forgetting scatter_origin for nice visual**
+   ```gdscript
+   # Items spawn in place (boring)
+   ItemSpawner.spawn_item(get_tree(), pos, "item", 1)
+   
+   # Items scatter outward from enemy (better!)
+   ItemSpawner.spawn_item(get_tree(), pos, "item", 1, enemy_pos)
+   ```

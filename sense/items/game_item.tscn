@@ -1,11 +1,6 @@
 [gd_scene format=3 uid="uid://cikd2ju30vrcp"]
 
 [ext_resource type="Script" uid="uid://d7ut8jqubvod" path="res://sense/items/game_item.gd" id="1_game_item"]
-[ext_resource type="Texture2D" uid="uid://4v1w86ilkfs4" path="res://assets/items/item_icons.png" id="2_0tkqs"]
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_y55dm"]
-atlas = ExtResource("2_0tkqs")
-region = Rect2(227, 389, 25, 21)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_y55dm"]
 
@@ -16,7 +11,6 @@ script = ExtResource("1_game_item")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=2069056255]
 z_index = 1
-texture = SubResource("AtlasTexture_y55dm")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=768954267]
 shape = SubResource("CircleShape2D_y55dm")

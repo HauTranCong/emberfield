@@ -1,5 +1,361 @@
 # Inventory System Documentation
 
+## Sequence Diagrams
+
+### 1. Open/Close Inventory Flow
+
+```mermaid
+sequenceDiagram
+    participant U as User Input
+    participant P as Player
+    participant IP as InventoryPanel
+    participant ID as InventoryData
+    participant SUI as InventorySlotUI[]
+
+    U->>P: Press "open_inventory" (B key)
+    P->>IP: toggle_inventory()
+    
+    alt Inventory is closed
+        IP->>IP: show()
+        IP->>IP: _refresh_inventory()
+        
+        loop For each slot (0..31)
+            IP->>ID: get_item_at(index)
+            ID-->>IP: {item, quantity}
+            IP->>SUI: set_item(item, quantity)
+            SUI->>SUI: queue_redraw()
+        end
+        
+        IP->>IP: _refresh_equipment_slots()
+        IP->>IP: _refresh_stats()
+        IP->>P: get_tree().paused = true
+        
+    else Inventory is open
+        IP->>IP: hide()
+        IP->>IP: _clear_selection()
+        IP->>IP: _hide_tooltip()
+        IP-->>P: inventory_closed.emit()
+        IP->>P: get_tree().paused = false
+    end
+```
+
+### 2. Add Item to Inventory Flow
+
+```mermaid
+sequenceDiagram
+    participant SRC as Source (Pickup/Shop/Chest)
+    participant ID as InventoryData
+    participant IP as InventoryPanel
+    participant SUI as InventorySlotUI
+
+    SRC->>ID: add_item(ItemData, quantity)
+    
+    ID->>ID: Check if item.stackable
+    
+    alt Stackable Item
+        loop Find existing stack
+            ID->>ID: Check inventory[i].item.id == item.id
+            alt Found & stack not full
+                ID->>ID: Add to existing stack
+                ID->>ID: Calculate overflow
+                Note over ID: remaining = qty - (max_stack - current)
+            end
+        end
+    end
+    
+    alt Has remaining quantity
+        loop Find empty slot
+            ID->>ID: Check inventory[i].item == null
+            alt Found empty
+                ID->>ID: inventory[i] = {item, qty}
+                ID->>ID: remaining -= qty
+            end
+        end
+    end
+    
+    ID-->>ID: inventory_changed.emit()
+    ID-->>SRC: return remaining (0 = success)
+    
+    Note over IP: Signal received
+    IP->>IP: _refresh_inventory()
+    
+    loop For each visible slot
+        IP->>ID: get_item_at(index)
+        IP->>SUI: set_item(item, quantity)
+        SUI->>SUI: queue_redraw()
+    end
+```
+
+### 3. Tab Filtering Flow
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant IP as InventoryPanel
+    participant TB as Tab Buttons
+    participant ID as InventoryData
+    participant SUI as InventorySlotUI[]
+
+    U->>TB: Click "Equip" tab
+    TB-->>IP: _on_tab_pressed(TabFilter.EQUIP)
+    IP->>IP: current_filter = TabFilter.EQUIP
+    IP->>IP: _refresh_inventory()
+    
+    loop For each slot index (0..31)
+        IP->>ID: get_item_at(index)
+        ID-->>IP: {item, quantity}
+        
+        IP->>IP: _item_matches_filter(item)
+        
+        alt TabFilter.ALL
+            IP-->>IP: return true
+        else TabFilter.EQUIP
+            IP->>IP: Check item.is_equippable()
+            Note over IP: WEAPON, ARMOR, HELMET,<br/>BOOTS, SHIELD, ACCESSORY
+        else TabFilter.MATERIAL
+            IP->>IP: Check MATERIAL or QUEST type
+        end
+        
+        alt Item matches filter
+            IP->>SUI: set_item(item, quantity)
+            IP->>SUI: show()
+        else Item doesn't match
+            IP->>SUI: set_item(null, 0)
+            Note over SUI: Show empty slot or hide
+        end
+    end
+    
+    IP->>IP: _update_tab_visuals()
+```
+
+### 4. Tooltip Display Flow
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant SUI as InventorySlotUI
+    participant IP as InventoryPanel
+    participant TP as TooltipPanel
+    participant ITM as ItemData
+
+    U->>SUI: Mouse enter slot
+    SUI-->>IP: slot_hovered(index, true)
+    IP->>IP: _on_slot_hovered(index, true)
+    
+    IP->>IP: get_item_at(index)
+    
+    alt Has item
+        IP->>ITM: Access item properties
+        IP->>TP: _show_tooltip(item)
+        
+        TP->>TP: Set name_label.text = item.name
+        TP->>TP: Set name color = item.get_rarity_color()
+        TP->>TP: Set type_label.text = ItemType name
+        TP->>TP: Set description_label.text
+        
+        alt item.is_equippable()
+            TP->>TP: Show stats (ATK, DEF, HP, SPD)
+        else item.is_consumable()
+            TP->>TP: Show effects (Heal, Stamina)
+        end
+        
+        TP->>TP: Set price_label (Buy/Sell)
+        TP->>TP: Position near mouse
+        TP->>TP: show()
+        
+    else Empty slot
+        IP->>TP: hide()
+    end
+    
+    Note over U,SUI: Mouse leave
+    U->>SUI: Mouse exit slot
+    SUI-->>IP: slot_hovered(index, false)
+    IP->>TP: _hide_tooltip()
+    TP->>TP: hide()
+```
+
+### 5. Swap Inventory Slots Flow
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant SRC as Source SlotUI
+    participant DST as Destination SlotUI
+    participant IP as InventoryPanel
+    participant ID as InventoryData
+
+    U->>SRC: Start drag from slot[3]
+    SRC->>SRC: _get_drag_data()
+    
+    Note over SRC: Create drag preview
+    SRC->>SRC: Create TextureRect with item.icon
+    SRC-->>U: Return {type: "inventory", index: 3, item: ItemData}
+    
+    U->>DST: Drag over slot[7]
+    DST->>DST: _can_drop_data(data)
+    DST->>DST: Check data.type == "inventory"
+    DST-->>U: return true
+    DST->>DST: is_drop_target = true
+    DST->>DST: queue_redraw() (green border)
+    
+    U->>DST: Drop on slot[7]
+    DST->>DST: _drop_data(data)
+    DST-->>IP: slot_dropped(from: 3, to: 7)
+    
+    IP->>IP: _on_slot_dropped(3, 7)
+    IP->>ID: swap_slots(3, 7)
+    
+    ID->>ID: temp = inventory[3]
+    ID->>ID: inventory[3] = inventory[7]
+    ID->>ID: inventory[7] = temp
+    ID-->>ID: inventory_changed.emit()
+    
+    IP->>IP: _refresh_inventory()
+```
+
+### 6. Equipment Stats Calculation Flow
+
+```mermaid
+sequenceDiagram
+    participant IP as InventoryPanel
+    participant ID as InventoryData
+    participant EQ as Equipment Slots
+    participant ITM as ItemData
+    participant UI as Stats Labels
+
+    IP->>IP: _refresh_stats()
+    
+    IP->>ID: get_total_attack_bonus()
+    
+    ID->>ID: total = 0
+    
+    loop For each equipment slot
+        ID->>EQ: Get equipped_weapon
+        alt Has item
+            EQ-->>ID: ItemData
+            ID->>ITM: item.attack_bonus
+            ID->>ID: total += attack_bonus
+        end
+        
+        ID->>EQ: Get equipped_armor
+        ID->>EQ: Get equipped_helmet
+        ID->>EQ: Get equipped_boots
+        ID->>EQ: Get equipped_shield
+        ID->>EQ: Get equipped_accessory_1
+        ID->>EQ: Get equipped_accessory_2
+    end
+    
+    ID-->>IP: return total_attack
+    
+    IP->>ID: get_total_defense_bonus()
+    ID-->>IP: return total_defense
+    
+    IP->>ID: get_total_health_bonus()
+    ID-->>IP: return total_health
+    
+    IP->>UI: attack_label.text = "ATK: " + str(attack)
+    IP->>UI: defense_label.text = "DEF: " + str(defense)
+    IP->>UI: gold_label.text = "Gold: " + str(inventory.gold)
+```
+
+### 7. Right-Click Context Actions Flow
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant SUI as InventorySlotUI
+    participant IP as InventoryPanel
+    participant ID as InventoryData
+    participant P as Player
+
+    U->>SUI: Right-click on slot[5]
+    SUI-->>IP: slot_right_clicked(5)
+    IP->>IP: _on_inventory_slot_right_clicked(5)
+    
+    IP->>ID: get_item_at(5)
+    ID-->>IP: {item: ItemData, quantity: int}
+    
+    alt item == null
+        Note over IP: Do nothing
+    else item.is_equippable()
+        IP->>ID: equip_item(5)
+        
+        ID->>ID: Determine slot_type from item.item_type
+        Note over ID: WEAPON→"weapon"<br/>ARMOR→"armor"<br/>etc.
+        
+        ID->>ID: currently_equipped = get_equipped(slot_type)
+        
+        alt Has equipped item
+            ID->>ID: Swap: inventory[5] = currently_equipped
+        else No equipped item
+            ID->>ID: inventory[5] = {item: null, quantity: 0}
+        end
+        
+        ID->>ID: _set_equipped(slot_type, item)
+        ID-->>ID: equipment_changed.emit(slot_type)
+        ID-->>ID: inventory_changed.emit()
+        
+        ID-->>P: Signal propagates
+        P->>P: _on_equipment_changed()
+        P->>P: stats.apply_equipment_bonuses(inventory)
+        
+    else item.is_consumable()
+        IP->>ID: use_item(5)
+        
+        ID->>ID: Build result dict
+        ID->>ID: remove_item_at(5, 1)
+        ID-->>ID: inventory_changed.emit()
+        ID-->>IP: return {heal_amount, stamina_restore, ...}
+        
+        IP-->>P: item_used.emit(result)
+        P->>P: _on_item_used(result)
+        P->>P: Apply heal/stamina effects
+    end
+    
+    IP->>IP: _refresh_inventory()
+    IP->>IP: _refresh_equipment_slots()
+    IP->>IP: _refresh_stats()
+```
+
+### 8. Equipment Drag & Drop Validation Flow
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant SRC as Inventory SlotUI
+    participant DST as Equipment SlotUI
+    participant IP as InventoryPanel
+
+    U->>SRC: Drag HELMET item from inventory
+    SRC->>SRC: _get_drag_data()
+    SRC-->>U: {type: "inventory", index: 2, item: HelmetItem}
+    
+    U->>DST: Hover over "weapon" equipment slot
+    DST->>DST: _can_drop_data(data)
+    DST->>DST: _item_fits_slot(item, "weapon")
+    
+    Note over DST: Check item.item_type compatibility
+    DST->>DST: item.item_type == HELMET
+    DST->>DST: slot_type == "weapon"
+    DST-->>U: return false (incompatible)
+    DST->>DST: Show red/invalid visual
+    
+    U->>DST: Hover over "helmet" equipment slot
+    DST->>DST: _can_drop_data(data)
+    DST->>DST: _item_fits_slot(item, "helmet")
+    DST->>DST: item.item_type == HELMET ✓
+    DST->>DST: slot_type == "helmet" ✓
+    DST-->>U: return true (compatible)
+    DST->>DST: is_drop_target = true
+    DST->>DST: queue_redraw() (green border)
+    
+    U->>DST: Drop item
+    DST->>DST: _drop_data(data)
+    DST-->>IP: inventory_to_equipment_dropped(2, "helmet")
+    IP->>IP: _on_inventory_to_equipment_dropped(2, "helmet")
+    IP->>IP: inventory.equip_item(2)
+```
+
 ## Overview
 
 The Emberfield inventory system is a pixel-art styled RPG inventory with equipment slots, item management, drag & drop functionality, and tab filtering. It follows a **data-driven architecture** separating data management from UI rendering.

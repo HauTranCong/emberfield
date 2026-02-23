@@ -107,8 +107,14 @@ static func to_row_col(index: int) -> Vector2i:
 ## │  ...                                                                   │
 ## └─────────────────────────────────────────────────────────────────────────┘
 
+## Default icon position for items without defined icons
+const DEFAULT_ICON := Vector2i(0, 2)  # bag icon as default
+
 ## Predefined icon positions (row, col) - customize based on your sheet
 const ICONS := {
+	# === DEFAULT ===
+	"default": Vector2i(0, 2),  # bag icon
+	
 	# === ROW 0: Status/Misc ===
 	"helmet_horned": Vector2i(0, 0),
 	"scroll": Vector2i(0, 1),
@@ -117,7 +123,7 @@ const ICONS := {
 	"gamepad": Vector2i(0, 5),
 	"skull": Vector2i(0, 8),
 	"brain": Vector2i(0, 6),
-	
+
 	# === ROW 1: Arrows/Misc ===
 	"arrow": Vector2i(1, 0),
 	"boot_green": Vector2i(1, 1),
@@ -125,6 +131,8 @@ const ICONS := {
 	"cape_red": Vector2i(1, 3),
 	"cape_blue": Vector2i(1, 4),
 	
+	"bone": Vector2i(17, 9),
+
 	"iron_ore": Vector2i(17, 1),
 	
 	# === ROW 3: Weapons (Swords) ===
@@ -141,14 +149,19 @@ const ICONS := {
 }
 
 
-## Get a predefined icon by name
+## Get a predefined icon by name (returns default if not found)
 static func get_named_icon(icon_name: String) -> AtlasTexture:
 	if not ICONS.has(icon_name):
-		push_warning("ItemIconAtlas: Unknown icon name '%s'" % icon_name)
-		return null
+		push_warning("ItemIconAtlas: Unknown icon name '%s', using default" % icon_name)
+		return get_icon(DEFAULT_ICON.x, DEFAULT_ICON.y)
 	
 	var pos: Vector2i = ICONS[icon_name]
 	return get_icon(pos.x, pos.y)
+
+
+## Get the default icon
+static func get_default_icon() -> AtlasTexture:
+	return get_icon(DEFAULT_ICON.x, DEFAULT_ICON.y)
 
 
 ## Helper: Print all available icon names

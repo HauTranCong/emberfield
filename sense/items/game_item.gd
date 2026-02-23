@@ -447,26 +447,58 @@ func _update_icon() -> void:
 	if sprite == null:
 		return
 	
+	# Reset scale and modulate
+	sprite.scale = Vector2.ONE
+	sprite.modulate = Color.WHITE
+	
 	match content_type:
 		ContentType.ITEM:
+			var icon: Texture2D = null
 			if not item_id.is_empty() and ItemDatabase:
 				var item: ItemData = ItemDatabase.get_item(item_id)
 				if item:
-					var icon: Texture2D = item.get_icon()
-					if icon:
-						sprite.texture = icon
+					icon = item.get_icon()
+			
+			# Use default icon if item not found or has no icon
+			if icon == null:
+				icon = ItemIconAtlas.get_default_icon()
+				push_warning("GameItem: Using default icon for item_id '%s'" % item_id)
+			
+			if icon:
+				sprite.texture = icon
+				sprite.scale = Vector2(0.5, 0.5)  # Scale down items
 		
 		ContentType.GOLD:
-			sprite.modulate = Color(1.0, 0.85, 0.0)  # Gold color
+			# Get gold coin icon from atlas
+			var gold_icon := ItemIconAtlas.get_named_icon("gold_coin")
+			if gold_icon:
+				sprite.texture = gold_icon
+			sprite.scale = Vector2(0.5, 0.5)  # Scale down gold
+			sprite.modulate = Color(1.0, 0.95, 0.7)  # Subtle gold tint
 		
 		ContentType.HEALTH:
-			sprite.modulate = Color(1.0, 0.3, 0.3)  # Red
+			# Get heart icon from atlas
+			var health_icon := ItemIconAtlas.get_named_icon("heart")
+			if health_icon:
+				sprite.texture = health_icon
+			sprite.scale = Vector2(0.5, 0.5)  # Scale down
+			sprite.modulate = Color(1.0, 0.4, 0.4)  # Red tint
 		
 		ContentType.STAMINA:
-			sprite.modulate = Color(0.3, 0.8, 1.0)  # Blue
+			# Get stamina icon from atlas (using gem for now)
+			var stamina_icon := ItemIconAtlas.get_named_icon("gem_green")
+			if stamina_icon:
+				sprite.texture = stamina_icon
+			sprite.scale = Vector2(0.5, 0.5)  # Scale down
+			sprite.modulate = Color(0.4, 0.9, 1.0)  # Blue tint
 		
 		ContentType.XP:
-			sprite.modulate = Color(0.3, 1.0, 0.5)  # Green
+			# Get XP icon from atlas (using brain for now)
+			var xp_icon := ItemIconAtlas.get_named_icon("brain")
+			if xp_icon:
+				sprite.texture = xp_icon
+			sprite.scale = Vector2(0.5, 0.5)  # Scale down
+			sprite.modulate = Color(0.5, 1.0, 0.6)  # Green tint
 
 
 func _setup_label() -> void:
@@ -539,9 +571,9 @@ func _respawn() -> void:
 	_can_pickup = true
 	visible = true
 	if sprite:
-		sprite.scale = Vector2.ONE
 		sprite.modulate.a = 1.0
 		sprite.position = Vector2.ZERO
+	_update_icon()  # Restore correct scale and icon
 	if shadow:
 		shadow.modulate.a = 0.3
 
