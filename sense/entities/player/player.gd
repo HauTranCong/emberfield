@@ -209,15 +209,6 @@ func _physics_process(delta: float) -> void:
 		_state_death()
 		return
 	
-	# Check inventory toggle input
-	if Input.is_action_just_pressed("open_inventory"):
-		_toggle_inventory()
-		return
-	
-	# Skip other processing if inventory is open
-	if inventory_panel != null and inventory_panel.visible:
-		return
-	
 	# Hồi stamina theo thời gian
 	stats.regen_stamina(delta)
 	
@@ -238,6 +229,11 @@ func _physics_process(delta: float) -> void:
 		State.ATTACK:
 			_state_attack()
 	
+	# Check inventory toggle input (B key)
+	if Input.is_action_just_pressed("open_inventory"):
+		_toggle_inventory()
+		return
+
 	# Request redraw cho debug visualization
 	if debug_draw_enabled:
 		queue_redraw()
