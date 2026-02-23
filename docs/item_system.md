@@ -1,5 +1,395 @@
 # Hệ Thống Item - Emberfield
 
+## Tổng Quan
+
+Hệ thống item thống nhất với **một scene duy nhất** (`GameItem`) có thể cấu hình thành nhiều loại:
+- Item drops từ enemy
+- Gold coins
+- Health/Stamina/XP pickups
+- Treasure chests
+- World items (tương tác)
+
+---
+
+## Kiến Trúc
+
+```mermaid
+flowchart TB
+    subgraph GameItem["GameItem (Area2D)"]
+        direction TB
+        subgraph Modes["Configuration"]
+            PM["PickupMode<br/>• AUTO<br/>• INTERACT<br/>• PROXIMITY<br/>• MAGNET"]
+            VS["VisualStyle<br/>• STATIC<br/>• BOB<br/>• SPARKLE<br/>• ROTATE"]
+            CT["ContentType<br/>• ITEM<br/>• GOLD<br/>• HEALTH<br/>• STAMINA<br/>• XP<br/>• MULTI_ITEM"]
+        end
+    end
+    
+    style GameItem fill:#2d2d2d,stroke:#4ecdc4
+    style Modes fill:#1a1a1a
+```
+
+---
+
+## Cấu Trúc File
+
+```
+sense/
+├── items/
+│   ├── game_item.gd        # Script chính - unified item system
+│   ├── game_item.tscn      # Scene duy nhất cho mọi loại item
+│   ├── item_spawner.gd     # Utility class để spawn items
+│   ├── item_icon_atlas.gd  # Extract icons từ sprite sheet
+│   ├── loot_table.gd       # Drop rate system
+│   ├── debug_icon_atlas.gd # Debug tool xem sprite sheet
+│   └── debug_icon_atlas.tscn
+│
+├── ui/inventory/
+│   ├── item_data.gd        # Resource định nghĩa item
+│   ├── item_database.gd    # Autoload chứa tất cả items
+│   ├── inventory_data.gd   # Quản lý inventory + equipment
+│   └── inventory_panel.gd  # UI hiển thị
+
+assets/items/
+└── item_icons.png          # Sprite sheet (512x867, 32x32 icons)
+```
+
+---
+
+## Enums
+
+### PickupMode - Cách nhặt item
+
+| Mode | Mô tả |
+|------|-------|
+| `AUTO` | Tự động nhặt khi chạm vào |
+| `INTERACT` | Cần nhấn phím tương tác |
+| `PROXIMITY` | Tự động nhặt khi đến gần |
+| `MAGNET` | Item tự bay về phía player |
+
+### VisualStyle - Hiệu ứng visual
+
+| Style | Mô tả |
+|-------|-------|
+| `STATIC` | Đứng yên |
+| `BOB` | Nhấp nhô lên xuống |
+| `SPARKLE` | Lấp lánh (cho quest items) |
+| `ROTATE` | Xoay tròn |
+
+### ContentType - Loại nội dung
+
+| Type | Mô tả |
+|------|-------|
+| `ITEM` | Item thêm vào inventory |
+| `GOLD` | Tiền tệ |
+| `HEALTH` | Hồi máu |
+| `STAMINA` | Hồi stamina |
+| `XP` | Kinh nghiệm |
+| `MULTI_ITEM` | Rương chứa nhiều item |
+
+---
+
+## Collision Layers
+
+| Layer | Giá trị | Mô tả |
+|-------|---------|-------|
+| PICKUP | 10 (512) | Item có thể nhặt |
+| PLAYER | 2 (2) | Player body |
+
+GameItem setup:
+```gdscript
+collision_layer = CollisionLayers.Layer.PICKUP  # Layer 10
+collision_mask = CollisionLayers.Layer.PLAYER   # Mask 2
+```
+
+---
+
+## Signals
+
+### GameItem Signals
+
+```gdscript
+signal collected(content_type: ContentType, item_id: String, quantity: int)
+signal chest_opened(contents: Array[Dictionary])
+```
+
+### InventoryData Signals
+
+```gdscript
+signal inventory_changed
+signal equipment_changed(slot_type: String)
+signal gold_changed(amount: int)
+```
+
+### InventoryPanel Signals
+
+```gdscript
+signal inventory_closed
+signal item_used(result: Dictionary)
+```
+
+---
+
+## Item Icons từ Sprite Sheet
+
+### Cấu Hình Atlas
+
+Atlas được khởi tạo bởi `ItemDatabase` khi game chạy:
+
+```gdscript
+# Trong item_database.gd _init_icon_atlas()
+const ICON_SHEET_PATH := "res://assets/items/item_icons.png"
+# Sprite sheet: 512x867 pixels, 32x32 icons, 16 columns
+ItemIconAtlas.init(sheet, Vector2i(32, 32), 16)
+```
+
+### Predefined Icon Names (ICONS Dictionary)
+
+| Icon Name | Position (Row, Col) | Description |
+|-----------|---------------------|-------------|
+| `default` | (0, 2) | Default bag icon for missing items |
+| `helmet_horned` | (0, 0) | Horned helmet |
+| `scroll` | (0, 1) | Scroll |
+| `bag` | (0, 2) | Bag (default icon) |
+| `heart` | (0, 4) | Health heart |
+| `gamepad` | (0, 5) | Gamepad |
+| `brain` | (0, 6) | Brain |
+| `skull` | (0, 8) | Skull |
+| `arrow` | (1, 0) | Arrow projectile |
+| `boot_green` | (1, 1) | Green boots |
+| `gem_green` | (1, 2) | Green gem |
+| `cape_red` | (1, 3) | Red cape |
+| `cape_blue` | (1, 4) | Blue cape |
+| `sword_iron` | (5, 1) | Iron sword |
+| `leather_armor` | (7, 5) | Leather armor |
+| `potion_red` | (9, 0) | Red health potion |
+| `gold_coin` | (12, 7) | Gold coin currency |
+| `iron_ore` | (17, 1) | Iron ore material |
+| `bone` | (17, 9) | Bone drop |
+
+### Sử Dụng Atlas Icon
+
+```gdscript
+var item := ItemData.new()
+item.use_atlas_icon = true
+item.atlas_row = 2
+item.atlas_col = 5
+
+# Hoặc dùng tên preset (RECOMMENDED)
+item.atlas_icon_name = "iron_sword"  # Uses ICONS dictionary lookup
+```
+
+### Default Icon Fallback
+
+Khi một item không có icon được định nghĩa trong ICONS dictionary, hệ thống sẽ tự động sử dụng **default icon** (bag icon tại vị trí row=0, col=2).
+
+```gdscript
+# ItemIconAtlas.gd
+const DEFAULT_ICON := Vector2i(0, 2)  # bag icon
+
+## Get a predefined icon by name (returns default if not found)
+static func get_named_icon(icon_name: String) -> AtlasTexture:
+    if not ICONS.has(icon_name):
+        push_warning("ItemIconAtlas: Unknown icon name '%s', using default" % icon_name)
+        return get_icon(DEFAULT_ICON.x, DEFAULT_ICON.y)
+    var pos: Vector2i = ICONS[icon_name]
+    return get_icon(pos.x, pos.y)
+
+## Get the default icon directly
+static func get_default_icon() -> AtlasTexture:
+    return get_icon(DEFAULT_ICON.x, DEFAULT_ICON.y)
+```
+
+### Lấy Icon
+
+```gdscript
+var texture := item.get_icon()  # Tự động dùng atlas hoặc icon thường
+
+# Hoặc lấy trực tiếp từ atlas
+var icon := ItemIconAtlas.get_named_icon("sword_iron")
+var default_icon := ItemIconAtlas.get_default_icon()
+
+# Xem danh sách tất cả icons có sẵn
+var available := ItemIconAtlas.get_available_icons()
+```
+
+---
+
+## Loot Table
+
+### Tạo Loot Table
+
+```gdscript
+var loot := LootTable.new()
+loot.drop_count = 3          # Roll 3 lần
+loot.nothing_weight = 40     # 40% không drop gì
+
+# Gold range
+loot.gold_range = Vector2i(10, 50)
+
+# Add entries: item_id, weight, min_qty, max_qty
+loot.add_entry("health_potion", 100, 1, 2)  # Common
+loot.add_entry("iron_ore", 50, 1, 5)        # Uncommon
+loot.add_entry("diamond", 5, 1, 1)          # Rare
+```
+
+### Sử Dụng Trong Enemy
+
+```gdscript
+# skeleton.gd
+@export var loot_table: LootTable
+
+func _ready():
+    if loot_table == null:
+        loot_table = _create_default_loot_table()
+
+func _create_default_loot_table() -> LootTable:
+    var table := LootTable.new()
+    table.drop_count = 2
+    table.nothing_weight = 40
+    table.gold_range = Vector2i(5, 15)
+    table.add_entry("bone", 100, 1, 3)
+    table.add_entry("health_potion", 30, 1, 1)
+    return table
+```
+
+---
+
+## Equipment System
+
+### Equip Item
+
+```gdscript
+# Right-click in inventory to equip
+inventory_data.equip_item(slot_index)
+
+# Equipment slot types:
+# "helmet", "armor", "weapon", "shield", "boots"
+# "accessory_1", "accessory_2"
+```
+
+### Unequip Item
+
+```gdscript
+inventory_data.unequip_item("weapon")
+```
+
+### Get Equipment Bonuses
+
+```gdscript
+var total_attack := inventory.get_total_attack_bonus()
+var total_defense := inventory.get_total_defense_bonus()
+var total_health := inventory.get_total_health_bonus()
+var total_speed := inventory.get_total_speed_bonus()
+```
+
+### Auto-Apply to Player Stats
+
+Player tự động nhận equipment bonuses khi trang bị thay đổi:
+
+```gdscript
+# Trong player.gd
+func _on_equipment_changed(_slot_type: String):
+    stats.apply_equipment_bonuses(inventory)
+```
+
+---
+
+## Consumable Items
+
+### Sử Dụng Consumable
+
+```gdscript
+# Right-click consumable in inventory
+var result := inventory_data.use_item(slot_index)
+
+# result = {
+#   "success": true,
+#   "heal_amount": 50,
+#   "stamina_restore": 0,
+#   "effect_duration": 0
+# }
+```
+
+### Player Nhận Effects
+
+```gdscript
+# Trong player.gd
+func _on_item_used(result: Dictionary):
+    if result.success:
+        if result.heal_amount > 0:
+            stats.heal(result.heal_amount)
+        if result.stamina_restore > 0:
+            stats.restore_stamina(result.stamina_restore)
+```
+
+---
+
+## Character Stats với Equipment
+
+```gdscript
+# character_stats.gd
+# Base stats
+@export var base_attack_damage: int = 10
+@export var base_defense: int = 0
+@export var base_max_health: int = 100
+@export var base_move_speed: float = 120.0
+
+# Equipment bonuses
+var equipment_attack_bonus: int = 0
+var equipment_defense_bonus: int = 0
+var equipment_health_bonus: int = 0
+var equipment_speed_bonus: float = 0.0
+
+# Final stats (computed)
+var attack_damage: int:
+    get: return base_attack_damage + equipment_attack_bonus
+
+var defense: int:
+    get: return base_defense + equipment_defense_bonus
+```
+
+---
+
+## Factory Methods
+
+GameItem cung cấp static factory methods:
+
+```gdscript
+# Tạo item instance trực tiếp
+var item := GameItem.create_item("health_potion", 5)
+
+# Tạo gold
+var gold := GameItem.create_gold(100)
+
+# Tạo health pickup
+var health := GameItem.create_health(25)
+
+# Tạo chest (contents array + gold amount)
+var chest := GameItem.create_chest([{"item_id": "sword", "quantity": 1}], 50)
+```
+
+---
+
+## ⚠️ Quan Trọng: Sử Dụng ItemDatabase
+
+**LUÔN** lấy item từ `ItemDatabase` thay vì tạo `ItemData.new()`:
+
+```gdscript
+# ✅ ĐÚNG - Item có icon từ atlas
+var sword := ItemDatabase.get_item("iron_sword")
+if sword:
+    inventory.add_item(sword, 1)
+
+# ❌ SAI - Item sẽ không có icon!
+var sword := ItemData.new()
+sword.id = "iron_sword"
+# ... icon sẽ bị thiếu vì use_atlas_icon = false
+```
+
+Items trong `ItemDatabase` đã được cấu hình `use_atlas_icon = true` và tọa độ atlas.
+
+---
+
 ## Sequence Diagrams
 
 ### 1. Item Pickup Flow
@@ -247,113 +637,7 @@ sequenceDiagram
 
 ---
 
-## Tổng Quan
-
-Hệ thống item thống nhất với **một scene duy nhất** (`GameItem`) có thể cấu hình thành nhiều loại:
-- Item drops từ enemy
-- Gold coins
-- Health/Stamina/XP pickups
-- Treasure chests
-- World items (tương tác)
-
-## Kiến Trúc
-
-```
-╔═══════════════════════════════════════════════════════════════════════════════════╗
-║                           UNIFIED GAME ITEM SYSTEM                                ║
-╠═══════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                   ║
-║  ┌──────────────────────────────────────────────────────────────────────────────┐ ║
-║  │                           GameItem (Area2D)                                  │ ║
-║  │                                                                              │ ║
-║  │  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────────────────────┐ │ ║
-║  │  │   PickupMode    │ │   VisualStyle   │ │        ContentType              │ │ ║
-║  │  ├─────────────────┤ ├─────────────────┤ ├─────────────────────────────────┤ │ ║
-║  │  │ • AUTO          │ │ • STATIC        │ │ • ITEM      (inventory item)    │ │ ║
-║  │  │ • INTERACT      │ │ • BOB           │ │ • GOLD      (currency)          │ │ ║
-║  │  │ • PROXIMITY     │ │ • SPARKLE       │ │ • HEALTH    (heal pickup)       │ │ ║
-║  │  │ • MAGNET        │ │ • ROTATE        │ │ • STAMINA   (stamina pickup)    │ │ ║
-║  │  │                 │ │                 │ │ • XP        (experience orb)    │ │ ║
-║  │  │                 │ │                 │ │ • MULTI_ITEM (chest contents)   │ │ ║
-║  │  └─────────────────┘ └─────────────────┘ └─────────────────────────────────┘ │ ║
-║  └──────────────────────────────────────────────────────────────────────────────┘ ║
-║                                                                                   ║
-╚═══════════════════════════════════════════════════════════════════════════════════╝
-```
-
-## Cấu Trúc File
-
-```
-sense/
-├── items/
-│   ├── game_item.gd        # Script chính - unified item system
-│   ├── game_item.tscn      # Scene duy nhất cho mọi loại item
-│   ├── item_spawner.gd     # Utility class để spawn items
-│   ├── item_icon_atlas.gd  # Extract icons từ sprite sheet
-│   ├── loot_table.gd       # Drop rate system
-│   ├── debug_icon_atlas.gd # Debug tool xem sprite sheet
-│   └── debug_icon_atlas.tscn
-│
-├── ui/inventory/
-│   ├── item_data.gd        # Resource định nghĩa item
-│   ├── item_database.gd    # Autoload chứa tất cả items
-│   ├── inventory_data.gd   # Quản lý inventory + equipment
-│   └── inventory_panel.gd  # UI hiển thị
-
-assets/items/
-└── item_icons.png          # Sprite sheet (512x867, 32x32 icons)
-```
-
-## Enums
-
-### PickupMode - Cách nhặt item
-
-| Mode | Mô tả |
-|------|-------|
-| `AUTO` | Tự động nhặt khi chạm vào |
-| `INTERACT` | Cần nhấn phím tương tác |
-| `PROXIMITY` | Tự động nhặt khi đến gần |
-| `MAGNET` | Item tự bay về phía player |
-
-### VisualStyle - Hiệu ứng visual
-
-| Style | Mô tả |
-|-------|-------|
-| `STATIC` | Đứng yên |
-| `BOB` | Nhấp nhô lên xuống |
-| `SPARKLE` | Lấp lánh (cho quest items) |
-| `ROTATE` | Xoay tròn |
-
-### ContentType - Loại nội dung
-
-| Type | Mô tả |
-|------|-------|
-| `ITEM` | Item thêm vào inventory |
-| `GOLD` | Tiền tệ |
-| `HEALTH` | Hồi máu |
-| `STAMINA` | Hồi stamina |
-| `XP` | Kinh nghiệm |
-| `MULTI_ITEM` | Rương chứa nhiều item |
-
-## ⚠️ Quan Trọng: Sử Dụng ItemDatabase
-
-**LUÔN** lấy item từ `ItemDatabase` thay vì tạo `ItemData.new()`:
-
-```gdscript
-# ✅ ĐÚNG - Item có icon từ atlas
-var sword := ItemDatabase.get_item("iron_sword")
-if sword:
-    inventory.add_item(sword, 1)
-
-# ❌ SAI - Item sẽ không có icon!
-var sword := ItemData.new()
-sword.id = "iron_sword"
-# ... icon sẽ bị thiếu vì use_atlas_icon = false
-```
-
-Items trong `ItemDatabase` đã được cấu hình `use_atlas_icon = true` và tọa độ atlas.
-
-## Sử Dụng
+## Hướng Dẫn Sử Dụng
 
 ### 1. Spawn Item Thường
 
@@ -440,272 +724,6 @@ ItemSpawner.spawn_world_item(
 )
 ```
 
-## Loot Table
-
-### Tạo Loot Table
-
-```gdscript
-var loot := LootTable.new()
-loot.drop_count = 3          # Roll 3 lần
-loot.nothing_weight = 40     # 40% không drop gì
-
-# Gold range
-loot.gold_range = Vector2i(10, 50)
-
-# Add entries: item_id, weight, min_qty, max_qty
-loot.add_entry("health_potion", 100, 1, 2)  # Common
-loot.add_entry("iron_ore", 50, 1, 5)        # Uncommon
-loot.add_entry("diamond", 5, 1, 1)          # Rare
-```
-
-### Sử Dụng Trong Enemy
-
-```gdscript
-# skeleton.gd
-@export var loot_table: LootTable
-
-func _ready():
-    if loot_table == null:
-        loot_table = _create_default_loot_table()
-
-func _create_default_loot_table() -> LootTable:
-    var table := LootTable.new()
-    table.drop_count = 2
-    table.nothing_weight = 40
-    table.gold_range = Vector2i(5, 15)
-    table.add_entry("bone", 100, 1, 3)
-    table.add_entry("health_potion", 30, 1, 1)
-    return table
-```
-
-## Equipment System
-
-### Equip Item
-
-```gdscript
-# Right-click in inventory to equip
-inventory_data.equip_item(slot_index)
-
-# Equipment slot types:
-# "helmet", "armor", "weapon", "shield", "boots"
-# "accessory_1", "accessory_2"
-```
-
-### Unequip Item
-
-```gdscript
-inventory_data.unequip_item("weapon")
-```
-
-### Get Equipment Bonuses
-
-```gdscript
-var total_attack := inventory.get_total_attack_bonus()
-var total_defense := inventory.get_total_defense_bonus()
-var total_health := inventory.get_total_health_bonus()
-var total_speed := inventory.get_total_speed_bonus()
-```
-
-### Auto-Apply to Player Stats
-
-Player tự động nhận equipment bonuses khi trang bị thay đổi:
-
-```gdscript
-# Trong player.gd
-func _on_equipment_changed(_slot_type: String):
-    stats.apply_equipment_bonuses(inventory)
-```
-
-## Consumable Items
-
-### Sử Dụng Consumable
-
-```gdscript
-# Right-click consumable in inventory
-var result := inventory_data.use_item(slot_index)
-
-# result = {
-#   "success": true,
-#   "heal_amount": 50,
-#   "stamina_restore": 0,
-#   "effect_duration": 0
-# }
-```
-
-### Player Nhận Effects
-
-```gdscript
-# Trong player.gd
-func _on_item_used(result: Dictionary):
-    if result.success:
-        if result.heal_amount > 0:
-            stats.heal(result.heal_amount)
-        if result.stamina_restore > 0:
-            stats.restore_stamina(result.stamina_restore)
-```
-
-## Item Icons từ Sprite Sheet
-
-### Cấu Hình Atlas
-
-Atlas được khởi tạo bởi `ItemDatabase` khi game chạy:
-
-```gdscript
-# Trong item_database.gd _init_icon_atlas()
-const ICON_SHEET_PATH := "res://assets/items/item_icons.png"
-# Sprite sheet: 512x867 pixels, 32x32 icons, 16 columns
-ItemIconAtlas.init(sheet, Vector2i(32, 32), 16)
-```
-
-### Predefined Icon Names (ICONS Dictionary)
-
-| Icon Name | Position (Row, Col) | Description |
-|-----------|---------------------|-------------|
-| `default` | (0, 2) | Default bag icon for missing items |
-| `helmet_horned` | (0, 0) | Horned helmet |
-| `scroll` | (0, 1) | Scroll |
-| `bag` | (0, 2) | Bag (default icon) |
-| `heart` | (0, 4) | Health heart |
-| `gamepad` | (0, 5) | Gamepad |
-| `brain` | (0, 6) | Brain |
-| `skull` | (0, 8) | Skull |
-| `arrow` | (1, 0) | Arrow projectile |
-| `boot_green` | (1, 1) | Green boots |
-| `gem_green` | (1, 2) | Green gem |
-| `cape_red` | (1, 3) | Red cape |
-| `cape_blue` | (1, 4) | Blue cape |
-| `sword_iron` | (5, 1) | Iron sword |
-| `leather_armor` | (7, 5) | Leather armor |
-| `potion_red` | (9, 0) | Red health potion |
-| `gold_coin` | (12, 7) | Gold coin currency |
-| `iron_ore` | (17, 1) | Iron ore material |
-| `bone` | (17, 9) | Bone drop |
-
-### Sử Dụng Atlas Icon
-
-```gdscript
-var item := ItemData.new()
-item.use_atlas_icon = true
-item.atlas_row = 2
-item.atlas_col = 5
-
-# Hoặc dùng tên preset (RECOMMENDED)
-item.atlas_icon_name = "iron_sword"  # Uses ICONS dictionary lookup
-```
-
-### Default Icon Fallback
-
-Khi một item không có icon được định nghĩa trong ICONS dictionary, hệ thống sẽ tự động sử dụng **default icon** (bag icon tại vị trí row=0, col=2).
-
-```gdscript
-# ItemIconAtlas.gd
-const DEFAULT_ICON := Vector2i(0, 2)  # bag icon
-
-## Get a predefined icon by name (returns default if not found)
-static func get_named_icon(icon_name: String) -> AtlasTexture:
-    if not ICONS.has(icon_name):
-        push_warning("ItemIconAtlas: Unknown icon name '%s', using default" % icon_name)
-        return get_icon(DEFAULT_ICON.x, DEFAULT_ICON.y)
-    var pos: Vector2i = ICONS[icon_name]
-    return get_icon(pos.x, pos.y)
-
-## Get the default icon directly
-static func get_default_icon() -> AtlasTexture:
-    return get_icon(DEFAULT_ICON.x, DEFAULT_ICON.y)
-```
-
-### Lấy Icon
-
-```gdscript
-var texture := item.get_icon()  # Tự động dùng atlas hoặc icon thường
-
-# Hoặc lấy trực tiếp từ atlas
-var icon := ItemIconAtlas.get_named_icon("sword_iron")
-var default_icon := ItemIconAtlas.get_default_icon()
-
-# Xem danh sách tất cả icons có sẵn
-var available := ItemIconAtlas.get_available_icons()
-```
-
-## Collision Layers
-
-| Layer | Giá trị | Mô tả |
-|-------|---------|-------|
-| PICKUP | 10 (512) | Item có thể nhặt |
-| PLAYER | 2 (2) | Player body |
-
-GameItem setup:
-```gdscript
-collision_layer = CollisionLayers.Layer.PICKUP  # Layer 10
-collision_mask = CollisionLayers.Layer.PLAYER   # Mask 2
-```
-
-## Factory Methods
-
-GameItem cung cấp static factory methods:
-
-```gdscript
-# Tạo item instance trực tiếp
-var item := GameItem.create_item("health_potion", 5)
-
-# Tạo gold
-var gold := GameItem.create_gold(100)
-
-# Tạo health pickup
-var health := GameItem.create_health(25)
-
-# Tạo chest (contents array + gold amount)
-var chest := GameItem.create_chest([{"item_id": "sword", "quantity": 1}], 50)
-```
-
-## Character Stats với Equipment
-
-```gdscript
-# character_stats.gd
-# Base stats
-@export var base_attack_damage: int = 10
-@export var base_defense: int = 0
-@export var base_max_health: int = 100
-@export var base_move_speed: float = 120.0
-
-# Equipment bonuses
-var equipment_attack_bonus: int = 0
-var equipment_defense_bonus: int = 0
-var equipment_health_bonus: int = 0
-var equipment_speed_bonus: float = 0.0
-
-# Final stats (computed)
-var attack_damage: int:
-    get: return base_attack_damage + equipment_attack_bonus
-
-var defense: int:
-    get: return base_defense + equipment_defense_bonus
-```
-
-## Signals
-
-### GameItem Signals
-
-```gdscript
-signal collected(content_type: ContentType, item_id: String, quantity: int)
-signal chest_opened(contents: Array[Dictionary])
-```
-
-### InventoryData Signals
-
-```gdscript
-signal inventory_changed
-signal equipment_changed(slot_type: String)
-signal gold_changed(amount: int)
-```
-
-### InventoryPanel Signals
-
-```gdscript
-signal inventory_closed
-signal item_used(result: Dictionary)
-```
-
 ---
 
 ## Implementation Guide: Spawning Items from Enemy & Chest
@@ -714,45 +732,26 @@ signal item_used(result: Dictionary)
 
 This guide explains how to implement item drops from **Enemies** and **Chests** using the `ItemSpawner` and `LootTable` systems.
 
-```
-╔═══════════════════════════════════════════════════════════════════════════════════╗
-║                       ITEM SPAWN INTEGRATION FLOW                                  ║
-╠═══════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                   ║
-║  ┌─────────────┐                    ┌─────────────┐                               ║
-║  │    Enemy    │                    │    Chest    │                               ║
-║  │  (dies)     │                    │ (interact)  │                               ║
-║  └──────┬──────┘                    └──────┬──────┘                               ║
-║         │                                  │                                      ║
-║         │ HealthComponent.died             │ Player presses interact              ║
-║         ▼                                  ▼                                      ║
-║  ┌──────────────────┐            ┌──────────────────────┐                         ║
-║  │ LootTable.roll() │            │ GameItem.open_chest()│                         ║
-║  │ - weighted items │            │ - fixed contents     │                         ║
-║  │ - gold range     │            │ - gold amount        │                         ║
-║  └────────┬─────────┘            └──────────┬───────────┘                         ║
-║           │                                 │                                     ║
-║           ▼                                 ▼                                     ║
-║  ┌───────────────────────────────────────────────────────────────┐                ║
-║  │                    ItemSpawner                                 │                ║
-║  │  spawn_item() / spawn_gold() / spawn_enemy_drops()            │                ║
-║  └───────────────────────────────────────────────────────────────┘                ║
-║           │                                                                       ║
-║           ▼                                                                       ║
-║  ┌───────────────────────────────────────────────────────────────┐                ║
-║  │                    GameItem (Area2D)                          │                ║
-║  │  - Layer 10 (PICKUP), Mask 2 (PLAYER)                         │                ║
-║  │  - pickup_mode: AUTO/MAGNET/INTERACT                          │                ║
-║  └───────────────────────────────────────────────────────────────┘                ║
-║           │                                                                       ║
-║           │ Player touches / interacts                                            ║
-║           ▼                                                                       ║
-║  ┌───────────────────────────────────────────────────────────────┐                ║
-║  │                    InventoryData                               │                ║
-║  │  add_item() / add gold / heal player                          │                ║
-║  └───────────────────────────────────────────────────────────────┘                ║
-║                                                                                   ║
-╚═══════════════════════════════════════════════════════════════════════════════════╝
+```mermaid
+flowchart TB
+    subgraph Sources["Sources"]
+        Enemy["Enemy<br/>(dies)"]
+        Chest["Chest<br/>(interact)"]
+    end
+    
+    Enemy -->|"HealthComponent.died"| LootTable["LootTable.roll()<br/>- weighted items<br/>- gold range"]
+    Chest -->|"Player presses interact"| ChestOpen["GameItem.open_chest()<br/>- fixed contents<br/>- gold amount"]
+    
+    LootTable --> ItemSpawner["ItemSpawner<br/>spawn_item() / spawn_gold() / spawn_enemy_drops()"]
+    ChestOpen --> ItemSpawner
+    
+    ItemSpawner --> GameItem["GameItem (Area2D)<br/>- Layer 10 (PICKUP), Mask 2 (PLAYER)<br/>- pickup_mode: AUTO/MAGNET/INTERACT"]
+    
+    GameItem -->|"Player touches / interacts"| InventoryData["InventoryData<br/>add_item() / add gold / heal player"]
+    
+    style Sources fill:#2d2d2d
+    style ItemSpawner fill:#4ecdc4,color:#000
+    style GameItem fill:#ff6b6b,color:#000
 ```
 
 ---
@@ -821,30 +820,24 @@ func _on_died() -> void:
 
 #### Step 3: Understanding LootTable Weights
 
+**Example:** `drop_count = 1`, `nothing_weight = 40`
+
+**Entries:**
+- bone: weight = 100
+- health_potion: weight = 30
+- diamond: weight = 10
+
+**Total weight** = 40 + 100 + 30 + 10 = **180**
+
+```mermaid
+pie title Drop Probabilities
+    "Nothing (22.2%)" : 40
+    "Bone (55.6%)" : 100
+    "Health Potion (16.7%)" : 30
+    "Diamond (5.5%)" : 10
 ```
-╔═══════════════════════════════════════════════════════════════════════════╗
-║                      LOOT TABLE WEIGHT CALCULATION                        ║
-╠═══════════════════════════════════════════════════════════════════════════╣
-║                                                                           ║
-║  Example: drop_count = 1, nothing_weight = 40                             ║
-║                                                                           ║
-║  entries:                                                                 ║
-║    - bone: weight = 100                                                   ║
-║    - health_potion: weight = 30                                           ║
-║    - diamond: weight = 10                                                 ║
-║                                                                           ║
-║  Total weight = 40 + 100 + 30 + 10 = 180                                  ║
-║                                                                           ║
-║  Probabilities:                                                           ║
-║    - Nothing:       40/180 = 22.2%                                        ║
-║    - Bone:         100/180 = 55.6%                                        ║
-║    - Health Potion: 30/180 = 16.7%                                        ║
-║    - Diamond:       10/180 = 5.5%                                         ║
-║                                                                           ║
-║  With drop_count = 3: Rolls 3 times independently!                        ║
-║                                                                           ║
-╚═══════════════════════════════════════════════════════════════════════════╝
-```
+
+> **Note:** With `drop_count = 3`, the system rolls 3 times independently!
 
 ---
 
