@@ -64,9 +64,6 @@ func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
 		close_inventory()
 		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("ui_inventory"):
-		toggle_inventory()
-		get_viewport().set_input_as_handled()
 
 
 func _setup_tabs() -> void:
