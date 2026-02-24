@@ -4,6 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://bm7mpsp4k10hf" path="res://assets/tilesets/TX Props.png" id="2_33tnl"]
 [ext_resource type="Texture2D" uid="uid://0mq6wkqhqanf" path="res://assets/tilesets/TX Tileset Wall.png" id="2_losal"]
 [ext_resource type="Texture2D" uid="uid://pl8fujjawhjk" path="res://assets/tilesets/TX Struct.png" id="3_ne6dw"]
+[ext_resource type="Script" path="res://sense/maps/town/town.gd" id="4_town_script"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_33tnl"]
 texture = ExtResource("1_m8hca")
@@ -3355,6 +3356,7 @@ custom_data_layer_0/type = 0
 sources/0 = SubResource("TileSetAtlasSource_cg4b7")
 
 [node name="Town" type="Node2D" unique_id=1811788023]
+script = ExtResource("4_town_script")
 
 [node name="Grass" type="TileMapLayer" parent="." unique_id=1917425767]
 position = Vector2(0, 2)
