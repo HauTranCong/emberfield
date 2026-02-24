@@ -447,8 +447,14 @@ sense/
 │
 ├── items/
 │   ├── game_item.gd           # Pickup item class
+│   ├── game_item.tscn
 │   ├── item_spawner.gd        # Spawn items
-│   └── loot_table.gd          # Drop rates
+│   ├── loot_table.gd          # Drop rates
+│   ├── item_data.gd           # Item resource
+│   ├── item_database.gd       # Item registry (Autoload)
+│   ├── item_icon_atlas.gd     # Sprite sheet icon extraction
+│   ├── debug_icon_atlas.gd    # Debug tool for sprite sheet
+│   └── debug_icon_atlas.tscn
 │
 ├── ui/
 │   ├── hud/
@@ -458,8 +464,8 @@ sense/
 │   └── inventory/
 │       ├── inventory_data.gd   # Data model
 │       ├── inventory_panel.gd  # UI controller
-│       ├── item_data.gd        # Item resource
-│       └── item_database.gd    # Item registry
+│       ├── inventory_panel.tscn
+│       └── inventory_slot_ui.gd # Slot rendering
 │
 └── maps/
     └── town.tscn              # Game world

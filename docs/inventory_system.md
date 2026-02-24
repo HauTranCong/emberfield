@@ -52,14 +52,14 @@ flowchart TB
 
 ```
 sense/ui/inventory/
-├── item_data.gd           # Item resource definition
 ├── inventory_data.gd      # Inventory data manager
 ├── inventory_slot_ui.gd   # Individual slot rendering
 ├── inventory_panel.gd     # Main panel controller
-├── inventory_panel.tscn   # Panel scene file
-└── item_database.gd       # Pre-defined items (Autoload)
+└── inventory_panel.tscn   # Panel scene file
 
 sense/items/
+├── item_data.gd           # Item resource definition
+├── item_database.gd       # Pre-defined items (Autoload)
 ├── item_icon_atlas.gd     # Sprite sheet icon extraction
 ├── game_item.gd           # Droppable item scene script
 ├── game_item.tscn         # Droppable item scene
@@ -750,7 +750,7 @@ Create `res://items/my_item.tres`:
 ```
 [gd_resource type="Resource" script_class="ItemData" load_steps=2]
 
-[ext_resource type="Script" path="res://sense/ui/inventory/item_data.gd" id="1"]
+[ext_resource type="Script" path="res://sense/items/item_data.gd" id="1"]
 
 [resource]
 script = ExtResource("1")

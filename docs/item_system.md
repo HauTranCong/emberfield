@@ -41,11 +41,11 @@ sense/
 │   ├── item_icon_atlas.gd  # Extract icons từ sprite sheet
 │   ├── loot_table.gd       # Drop rate system
 │   ├── debug_icon_atlas.gd # Debug tool xem sprite sheet
-│   └── debug_icon_atlas.tscn
+│   ├── debug_icon_atlas.tscn
+│   ├── item_data.gd        # Resource định nghĩa item
+│   └── item_database.gd    # Autoload chứa tất cả items
 │
 ├── ui/inventory/
-│   ├── item_data.gd        # Resource định nghĩa item
-│   ├── item_database.gd    # Autoload chứa tất cả items
 │   ├── inventory_data.gd   # Quản lý inventory + equipment
 │   └── inventory_panel.gd  # UI hiển thị
 
