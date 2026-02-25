@@ -1,37 +1,13 @@
 [gd_scene format=3 uid="uid://dams7sdefx3c0"]
 
 [ext_resource type="Script" uid="uid://cpr2qlm0axfo2" path="res://sense/main.gd" id="1_irjbn"]
-[ext_resource type="PackedScene" uid="uid://e44upqeun2xc" path="res://sense/entities/player/player.tscn" id="2_1bue1"]
-[ext_resource type="PackedScene" path="res://sense/maps/town/town.tscn" id="2_fj542"]
+[ext_resource type="PackedScene" uid="uid://e44upqeun2xc" path="res://sense/entities/player/player.tscn" id="2_player"]
 [ext_resource type="PackedScene" uid="uid://db4xj232ats72" path="res://sense/ui/hud/hud.tscn" id="3_hud"]
-[ext_resource type="PackedScene" uid="uid://cglc5bcw27ldd" path="res://sense/maps/portal/portal.tscn" id="5_fj542"]
-[ext_resource type="PackedScene" uid="uid://2q84aiy734et" path="res://sense/entities/npcs/merchant/general_goods.tscn" id="5_uhpmu"]
-[ext_resource type="PackedScene" uid="uid://cq3v8yw1234ab" path="res://sense/entities/npcs/blacksmith/blacksmith.tscn" id="6_blacksmith"]
-[ext_resource type="Script" uid="uid://dj5nhtaj0wm7u" path="res://sense/entities/player/player.gd" id="6_gu1sn"]
-[ext_resource type="PackedScene" uid="uid://cuso6tdwpv85j" path="res://sense/entities/enemies/skeleton/skeleton.tscn" id="6_pmvho"]
-[ext_resource type="Script" uid="uid://inskdgfcrhcm" path="res://sense/entities/enemies/skeleton/skeleton.gd" id="8_m6a24"]
 
-[node name="Main" type="Node2D" unique_id=657329077]
+[node name="Main" type="Node2D" unique_id=1998532174]
 y_sort_enabled = true
 script = ExtResource("1_irjbn")
 
-[node name="Town" parent="." unique_id=1811788023 instance=ExtResource("2_fj542")]
+[node name="Player" parent="." unique_id=1248582685 groups=["player"] instance=ExtResource("2_player")]
 
-[node name="Merchant" parent="Town" unique_id=1657154273 instance=ExtResource("5_uhpmu")]
-position = Vector2(278.00003, 207.00002)
-
-[node name="Blacksmith" parent="Town" unique_id=1878179868 instance=ExtResource("6_blacksmith")]
-
-[node name="Portal" parent="Town" unique_id=1347967226 instance=ExtResource("5_fj542")]
-position = Vector2(656, 64)
-
-[node name="Player" parent="." unique_id=268643816 groups=["player"] instance=ExtResource("2_1bue1")]
-texture_filter = 1
-position = Vector2(0, 1)
-script = ExtResource("6_gu1sn")
-
-[node name="Skeleton" parent="." unique_id=501015317 instance=ExtResource("6_pmvho")]
-position = Vector2(74, 565)
-script = ExtResource("8_m6a24")
-
-[node name="HUD" parent="." unique_id=9162071 instance=ExtResource("3_hud")]
+[node name="HUD" parent="." unique_id=1073179994 instance=ExtResource("3_hud")]
