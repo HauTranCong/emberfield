@@ -175,6 +175,15 @@ classDiagram
         +signal request_ui_pause(is_open)
     }
     
+    class CameraService {
+        <<Autoload>>
+        +enum Mode: FOLLOW, STATIC, ROOM
+        +Camera2D active_camera
+        +use_player_camera(player)
+        +use_custom_camera(camera, target, mode)
+        +restore_player_camera()
+    }
+    
     class CharacterStats {
         <<Resource>>
         +int max_health
@@ -443,7 +452,8 @@ sense/
 │
 ├── globals/                   # Autoloads
 │   ├── collision_layers.gd    # Layer enum
-│   └── game_event.gd          # Global signals
+│   ├── game_event.gd          # Global signals
+│   └── camera_service.gd      # Camera management
 │
 ├── items/
 │   ├── game_item.gd           # Pickup item class
