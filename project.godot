@@ -21,6 +21,7 @@ CollisionLayers="*res://sense/globals/collision_layers.gd"
 InteractionManager="*res://sense/components/interaction_manager.tscn"
 GameEvent="*res://sense/globals/game_event.gd"
 ItemDatabase="*res://sense/items/item_database.gd"
+SceneTransitionService="*res://sense/globals/scene_transition_service.gd"
 
 [display]
 

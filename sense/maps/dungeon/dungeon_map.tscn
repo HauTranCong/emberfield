@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://bpyfxlc3ox06l"]
+
+[ext_resource type="PackedScene" path="res://sense/maps/dungeon/return_portal.tscn" id="1_return_portal"]
+
+[node name="DungeonMap" type="Node2D" unique_id=1932359661]
+
+[node name="DungeonGround" type="TileMapLayer" parent="." unique_id=128966373]
+
+[node name="DungeonSpawn" type="Marker2D" parent="." unique_id=1410829224]
+position = Vector2(128, 128)
+
+[node name="ReturnPortal" parent="." unique_id=1578941775 instance=ExtResource("1_return_portal")]
+position = Vector2(192, 128)
