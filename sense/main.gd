@@ -11,6 +11,9 @@ extends Node2D
 
 
 func _ready() -> void:
+	# Initialize camera service with player
+	CameraService.use_player_camera(player)
+	
 	# Initialize scene transition service
 	SceneTransitionService.initialize(self, player)
 	
