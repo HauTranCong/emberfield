@@ -9,6 +9,7 @@ class_name DungeonLevel
 
 const TILE_SIZE := 16
 const RETURN_PORTAL_SCENE := preload("res://sense/maps/dungeon/return_portal.tscn")
+const SKELETON_SCENE := preload("res://sense/entities/enemies/skeleton/skeleton.tscn")
 
 ## Room size settings (adjustable in Inspector)
 @export_group("Room Settings")
@@ -32,6 +33,7 @@ var _hud: CanvasLayer = null
 var generator: DungeonGenerator
 var current_room_pos: Vector2i
 var return_portal: Node2D = null
+var end_room_skeleton: Node2D = null
 
 ## Dynamic room size
 var room_width: int
@@ -103,6 +105,7 @@ func _render_room(pos: Vector2i) -> void:
 	floor_layer.clear()
 	wall_layer.clear()
 	_clear_return_portal()
+	_clear_end_room_skeleton()
 	
 	var room = generator.rooms[pos] as DungeonGenerator.Room
 	
@@ -117,6 +120,7 @@ func _render_room(pos: Vector2i) -> void:
 	# Set room tint based on type
 	_apply_room_tint(room.type)
 	_spawn_return_portal_if_end_room(room)
+	_spawn_end_room_skeleton_if_needed(room)
 
 
 func _draw_walls(doors: Array) -> void:
@@ -183,6 +187,21 @@ func _spawn_return_portal_if_end_room(room: DungeonGenerator.Room) -> void:
 	return_portal = RETURN_PORTAL_SCENE.instantiate() as Node2D
 	add_child(return_portal)
 	return_portal.global_position = _room_center() + Vector2(0, TILE_SIZE * 4)
+
+
+func _clear_end_room_skeleton() -> void:
+	if end_room_skeleton != null and is_instance_valid(end_room_skeleton):
+		end_room_skeleton.queue_free()
+	end_room_skeleton = null
+
+
+func _spawn_end_room_skeleton_if_needed(room: DungeonGenerator.Room) -> void:
+	if room.type != DungeonGenerator.RoomType.BOSS:
+		return
+	
+	end_room_skeleton = SKELETON_SCENE.instantiate() as Node2D
+	add_child(end_room_skeleton)
+	end_room_skeleton.global_position = _room_center()
 
 
 func _process(_delta: float) -> void:
