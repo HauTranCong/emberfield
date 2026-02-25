@@ -8,17 +8,18 @@ class_name DungeonLevel
 ## 3. Player walks into door → transition to adjacent room
 
 const TILE_SIZE := 16
+const RETURN_PORTAL_SCENE := preload("res://sense/maps/dungeon/return_portal.tscn")
 
 ## Room size settings (adjustable in Inspector)
 @export_group("Room Settings")
-@export var use_viewport_size := false  ## If true, room fills screen. If false, use custom size
-@export var custom_room_width := 50     ## Room width in tiles (when use_viewport_size=false)
-@export var custom_room_height := 35    ## Room height in tiles (when use_viewport_size=false)
+@export var use_viewport_size := false ## If true, room fills screen. If false, use custom size
+@export var custom_room_width := 50 ## Room width in tiles (when use_viewport_size=false)
+@export var custom_room_height := 35 ## Room height in tiles (when use_viewport_size=false)
 
 ## Door dimensions (centered on each wall)
 @export_group("Door Settings")
-@export var door_width := 4   ## tiles wide for top/bottom doors
-@export var door_height := 4  ## tiles tall for left/right doors
+@export var door_width := 4 ## tiles wide for top/bottom doors
+@export var door_height := 4 ## tiles tall for left/right doors
 
 @onready var floor_layer: TileMapLayer = $FloorLayer
 @onready var wall_layer: TileMapLayer = $WallLayer
@@ -30,6 +31,7 @@ var _hud: CanvasLayer = null
 
 var generator: DungeonGenerator
 var current_room_pos: Vector2i
+var return_portal: Node2D = null
 
 ## Dynamic room size
 var room_width: int
@@ -100,6 +102,7 @@ func _exit_tree() -> void:
 func _render_room(pos: Vector2i) -> void:
 	floor_layer.clear()
 	wall_layer.clear()
+	_clear_return_portal()
 	
 	var room = generator.rooms[pos] as DungeonGenerator.Room
 	
@@ -113,6 +116,7 @@ func _render_room(pos: Vector2i) -> void:
 	
 	# Set room tint based on type
 	_apply_room_tint(room.type)
+	_spawn_return_portal_if_end_room(room)
 
 
 func _draw_walls(doors: Array) -> void:
@@ -155,15 +159,30 @@ func _apply_room_tint(type: DungeonGenerator.RoomType) -> void:
 		DungeonGenerator.RoomType.START:
 			modulate = Color.WHITE
 		DungeonGenerator.RoomType.BOSS:
-			modulate = Color(1.0, 0.7, 0.7)  # Red tint
+			modulate = Color(1.0, 0.7, 0.7) # Red tint
 		DungeonGenerator.RoomType.TREASURE:
-			modulate = Color(1.0, 1.0, 0.7)  # Yellow tint
+			modulate = Color(1.0, 1.0, 0.7) # Yellow tint
 		_:
 			modulate = Color.WHITE
 
 
 func _room_center() -> Vector2:
 	return Vector2(room_width * TILE_SIZE / 2.0, room_height * TILE_SIZE / 2.0)
+
+
+func _clear_return_portal() -> void:
+	if return_portal != null and is_instance_valid(return_portal):
+		return_portal.queue_free()
+	return_portal = null
+
+
+func _spawn_return_portal_if_end_room(room: DungeonGenerator.Room) -> void:
+	if room.type != DungeonGenerator.RoomType.BOSS:
+		return
+	
+	return_portal = RETURN_PORTAL_SCENE.instantiate() as Node2D
+	add_child(return_portal)
+	return_portal.global_position = _room_center() + Vector2(0, TILE_SIZE * 4)
 
 
 func _process(_delta: float) -> void:
