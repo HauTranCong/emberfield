@@ -117,6 +117,9 @@ func _render_room(pos: Vector2i) -> void:
 	# Draw walls with doors
 	_draw_walls(room.doors)
 	
+	# Place structures inside the room
+	_place_structures(room)
+	
 	# Set room tint based on type
 	_apply_room_tint(room.type)
 	_spawn_return_portal_if_end_room(room)
@@ -156,6 +159,80 @@ func _draw_walls(doors: Array) -> void:
 		var is_door = DungeonGenerator.Dir.RIGHT in door_dirs and y >= door_y_start and y <= door_y_end
 		if not is_door:
 			wall_layer.set_cell(Vector2i(room_width - 1, y), 0, wall_atlas)
+
+
+# ── Structure Placement ─────────────────────────────────────────────
+
+## Source IDs must match dungeon_map.tscn TileSet configuration
+const WALL_SOURCE_ID := 0   # WallLayer → TX Tileset Wall.png
+const FLOOR_SOURCE_ID := 1  # FloorLayer → TX Tileset Stone Ground.png
+
+
+func _place_structures(room: DungeonGenerator.Room) -> void:
+	## Place random structures in NORMAL rooms only
+	## START, BOSS, TREASURE rooms stay clean
+	if room.type != DungeonGenerator.RoomType.NORMAL:
+		return
+	
+	# Safe area: 3 tiles away from walls to avoid blocking doors
+	var safe_bounds := Rect2i(3, 3, room_width - 6, room_height - 6)
+	
+	# Place 1-2 random structures
+	var count := randi_range(1, 2)
+	var placed_rects: Array[Rect2i] = []
+	
+	for i in range(count):
+		var structure := DungeonTileStructure.get_random_wall_structure()
+		_try_place_structure(structure, safe_bounds, placed_rects)
+
+
+func _try_place_structure(
+	structure: TilesetStructure,
+	bounds: Rect2i,
+	placed_rects: Array[Rect2i],
+	max_attempts: int = 20,
+) -> bool:
+	## Try to place a structure randomly without overlapping others
+	var max_x := bounds.size.x - structure.size.x
+	var max_y := bounds.size.y - structure.size.y
+	
+	if max_x <= 0 or max_y <= 0:
+		return false  # Structure too big for bounds
+	
+	for _attempt in range(max_attempts):
+		var pos := Vector2i(
+			bounds.position.x + randi() % max_x,
+			bounds.position.y + randi() % max_y,
+		)
+		
+		# Check overlap with already-placed structures (1 tile padding)
+		var rect := Rect2i(pos, structure.size)
+		var overlaps := false
+		for existing in placed_rects:
+			if rect.intersects(existing.grow(1)):
+				overlaps = true
+				break
+		
+		if not overlaps:
+			_stamp_structure(structure, pos)
+			placed_rects.append(rect)
+			return true
+	
+	return false  # Could not find valid position
+
+
+func _stamp_structure(structure: TilesetStructure, world_pos: Vector2i) -> void:
+	## Stamp all tiles of a structure onto the correct TileMapLayer
+	for x in range(structure.size.x):
+		for y in range(structure.size.y):
+			var atlas_coord := structure.get_atlas_at(Vector2i(x, y))
+			var tile_pos := world_pos + Vector2i(x, y)
+			
+			match structure.layer:
+				TilesetStructure.Layer.FLOOR:
+					floor_layer.set_cell(tile_pos, FLOOR_SOURCE_ID, atlas_coord)
+				TilesetStructure.Layer.WALL:
+					wall_layer.set_cell(tile_pos, WALL_SOURCE_ID, atlas_coord)
 
 
 func _apply_room_tint(type: DungeonGenerator.RoomType) -> void:
