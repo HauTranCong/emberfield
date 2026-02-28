@@ -1,0 +1,49 @@
+name: PR Build (Windows)
+
+on:
+  pull_request:
+    branches: ["main"]
+
+concurrency:
+  group: pr-build-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: "4.6.0"
+  EXPORT_DIR: "build"
+
+jobs:
+  build-windows:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Cache Godot
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/share/godot
+            ~/.config/godot
+            ~/.cache/godot
+          key: godot-${{ env.GODOT_VERSION }}-${{ runner.os }}
+
+      - name: Setup Godot (Editor + Export Templates)
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: ${{ env.GODOT_VERSION }}
+          include-templates: true
+          use-dotnet: false
+
+      # Import để đảm bảo .import được tạo & tránh lỗi export thiếu import
+      - name: Import project (headless)
+        run: |
+          godot --headless --editor --quit-after 120 --path .
+
+      - name: Export Windows (release)
+        run: |
+          mkdir -p "$EXPORT_DIR/windows"
+          godot --headless --path . --export-release "Windows Desktop" "$EXPORT_DIR/windows/game.exe"
