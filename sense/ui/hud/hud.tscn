@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dhvrxlu2dsbah" path="res://sense/ui/hud/hud.gd" id="1_hud"]
 [ext_resource type="Script" uid="uid://8pc4qips1k7a" path="res://sense/ui/hud/pixel_bar.gd" id="2_pixel_bar"]
+[ext_resource type="Script" path="res://sense/ui/hud/dungeon_minimap.gd" id="3_dungeon_minimap"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_icon_speed"]
 bg_color = Color(0.2, 0.8, 0.4, 1)
@@ -87,7 +88,7 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
-[node name="HUD" type="CanvasLayer" unique_id=1290521304]
+[node name="HUD" type="CanvasLayer" unique_id=1290521304 groups=["hud"]]
 layer = 10
 script = ExtResource("1_hud")
 
@@ -303,3 +304,9 @@ zoom = Vector2(0.25, 0.25)
 layout_mode = 2
 mouse_filter = 2
 color = Color(1, 0.9, 0.1, 1)
+
+[node name="DungeonMinimap" type="Control" parent="MinimapContainer/MarginContainer"]
+visible = false
+custom_minimum_size = Vector2(126, 126)
+layout_mode = 2
+script = ExtResource("3_dungeon_minimap")

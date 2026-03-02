@@ -13,6 +13,7 @@ func _ready() -> void:
 
 func _on_interact() -> void:
 	print("Player is interacting with ", npc_name)
+	SceneTransitionService.go_to_dungeon()
 
 
 func _on_interaction_area_body_entered(body: Node2D) -> void:

@@ -4,6 +4,10 @@
 [ext_resource type="Texture2D" uid="uid://bm7mpsp4k10hf" path="res://assets/tilesets/TX Props.png" id="2_33tnl"]
 [ext_resource type="Texture2D" uid="uid://0mq6wkqhqanf" path="res://assets/tilesets/TX Tileset Wall.png" id="2_losal"]
 [ext_resource type="Texture2D" uid="uid://pl8fujjawhjk" path="res://assets/tilesets/TX Struct.png" id="3_ne6dw"]
+[ext_resource type="Script" uid="uid://bvwlktupxugvr" path="res://sense/maps/town/town.gd" id="4_town_script"]
+[ext_resource type="PackedScene" uid="uid://cglc5bcw27ldd" path="res://sense/maps/portal/portal.tscn" id="5_portal"]
+[ext_resource type="PackedScene" uid="uid://2q84aiy734et" path="res://sense/entities/npcs/merchant/general_goods.tscn" id="6_merchant"]
+[ext_resource type="PackedScene" uid="uid://cq3v8yw1234ab" path="res://sense/entities/npcs/blacksmith/blacksmith.tscn" id="7_blacksmith"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_33tnl"]
 texture = ExtResource("1_m8hca")
@@ -3355,6 +3359,7 @@ custom_data_layer_0/type = 0
 sources/0 = SubResource("TileSetAtlasSource_cg4b7")
 
 [node name="Town" type="Node2D" unique_id=1811788023]
+script = ExtResource("4_town_script")
 
 [node name="Grass" type="TileMapLayer" parent="." unique_id=1917425767]
 position = Vector2(0, 2)
@@ -3375,3 +3380,14 @@ tile_set = SubResource("TileSet_ne6dw")
 [node name="Props" type="TileMapLayer" parent="." unique_id=2126510251]
 tile_map_data = PackedByteArray("AAAjAAwAAAAcAAcAAAAjAA0AAAAcAAgAAAAjAA4AAAAcAAkAAAAtAAwAAAAcAAcAAAAtAA0AAAAcAAgAAAAtAA4AAAAcAAkAAAAkAAwAAAAdAAcAAAAkAA0AAAAdAAgAAAAkAA4AAAAdAAkAAAAuAAwAAAAdAAcAAAAuAA0AAAAdAAgAAAAuAA4AAAAdAAkAAAA=")
 tile_set = SubResource("TileSet_eu70v")
+
+[node name="PlayerSpawn" type="Marker2D" parent="." unique_id=1977623597]
+position = Vector2(660, 354)
+
+[node name="Portal" parent="." unique_id=1627609807 instance=ExtResource("5_portal")]
+position = Vector2(656, 64)
+
+[node name="Merchant" parent="." unique_id=809270779 instance=ExtResource("6_merchant")]
+position = Vector2(278, 207)
+
+[node name="Blacksmith" parent="." unique_id=1614567472 instance=ExtResource("7_blacksmith")]

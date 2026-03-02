@@ -1,85 +1,48 @@
 extends Node2D
+## Main scene - Entry point and orchestrator
+##
+## Responsibilities:
+##   - Register all maps with SceneTransitionService
+##   - Initialize services
+##   - Setup HUD
 
-@onready var town: Node2D = $Town
-@onready var player: Node2D = $Player
+@onready var player: CharacterBody2D = $Player
 @onready var hud: CanvasLayer = $HUD
 
-func _ready() -> void:
-	GameEvent.request_ui_pause.connect(_on_request_ui_pause)
-	if town == null or player == null:
-		push_error("Assign town & player in Inspector")
-		return
 
-	# Spawn: ưu tiên Spawn marker, nếu không có thì giữa town
-	var spawn: Node2D = town.get_node_or_null("Spawn") as Node2D
-	if spawn != null:
-		player.global_position = spawn.global_position
-	else:
-		var town_rect: Rect2 = _get_town_world_rect(town)
-		if town_rect.size != Vector2.ZERO:
-			player.global_position = town_rect.get_center()
+func _ready() -> void:
+	# Initialize camera service with player
+	CameraService.use_player_camera(player)
 	
-	# Setup HUD với player stats
-	if hud != null and player.has_method("get") and player.get("stats") != null:
+	# Initialize scene transition service
+	SceneTransitionService.initialize(self, player)
+	
+	# Register all maps (add new maps here)
+	SceneTransitionService.register_map("town", "res://sense/maps/town/town.tscn")
+	SceneTransitionService.register_map("dungeon", "res://sense/maps/dungeon/dungeon_map.tscn")
+	# Future maps:
+	# SceneTransitionService.register_map("forest", "res://sense/maps/forest/forest.tscn")
+	# SceneTransitionService.register_map("boss_arena", "res://sense/maps/boss/boss_arena.tscn")
+	
+	# Load initial map
+	SceneTransitionService.load_initial_map("town")
+	
+	# Setup HUD
+	_setup_hud()
+	
+	# Connect pause event
+	GameEvent.request_ui_pause.connect(_on_request_ui_pause)
+
+
+func _setup_hud() -> void:
+	if hud == null:
+		return
+	
+	if player.has_method("get") and player.get("stats") != null:
 		hud.setup(player.stats)
 	
-	# Setup minimap - pass self to share the same world_2d
-	if hud != null:
-		hud.setup_minimap(player, self)
+	hud.setup_minimap(player, self)
 
 
-func _get_town_world_rect(root: Node) -> Rect2:
-	var found: bool = false
-	var union_world: Rect2 = Rect2()
-
-	var layers: Array[TileMapLayer] = []
-	_collect_tilemap_layers(root, layers)
-
-	for layer: TileMapLayer in layers:
-		var used: Rect2i = layer.get_used_rect()
-		if used.size == Vector2i.ZERO:
-			continue
-
-		var cell: Vector2i = layer.tile_set.tile_size
-
-		var left: float = float(used.position.x * cell.x)
-		var top: float = float(used.position.y * cell.y)
-		var right: float = float((used.position.x + used.size.x) * cell.x)
-		var bottom: float = float((used.position.y + used.size.y) * cell.y)
-
-		var r_local: Rect2 = Rect2(Vector2(left, top), Vector2(right - left, bottom - top))
-
-		var p1: Vector2 = layer.to_global(r_local.position)
-		var p2: Vector2 = layer.to_global(r_local.position + Vector2(r_local.size.x, 0.0))
-		var p3: Vector2 = layer.to_global(r_local.position + Vector2(0.0, r_local.size.y))
-		var p4: Vector2 = layer.to_global(r_local.position + r_local.size)
-
-		var min_x: float = min(p1.x, p2.x, p3.x, p4.x)
-		var max_x: float = max(p1.x, p2.x, p3.x, p4.x)
-		var min_y: float = min(p1.y, p2.y, p3.y, p4.y)
-		var max_y: float = max(p1.y, p2.y, p3.y, p4.y)
-
-		var r_world: Rect2 = Rect2(Vector2(min_x, min_y), Vector2(max_x - min_x, max_y - min_y))
-
-		if not found:
-			union_world = r_world
-			found = true
-		else:
-			union_world = union_world.merge(r_world)
-
-	return union_world if found else Rect2()
-
-
-func _collect_tilemap_layers(node: Node, out_layers: Array[TileMapLayer]) -> void:
-	for child: Node in node.get_children():
-		var layer: TileMapLayer = child as TileMapLayer
-		if layer != null:
-			out_layers.append(layer)
-		_collect_tilemap_layers(child, out_layers)
-
-#  Signal handler for UI pause request
 func _on_request_ui_pause(is_open: bool) -> void:
-	if is_open:
-		get_tree().paused = true
-	else:
-		get_tree().paused = false
+	get_tree().paused = is_open

@@ -11,9 +11,13 @@ extends CanvasLayer
 @onready var icon_burn: Control = $StatusIconsContainer/IconsFlow/BurnIcon
 @onready var icon_freeze: Control = $StatusIconsContainer/IconsFlow/FreezeIcon
 
-# Minimap
+# World Minimap (SubViewport-based)
 @onready var minimap_camera: Camera2D = $MinimapContainer/MarginContainer/SubViewportContainer/SubViewport/MinimapCamera
 @onready var minimap_viewport: SubViewport = $MinimapContainer/MarginContainer/SubViewportContainer/SubViewport
+@onready var world_minimap_container: SubViewportContainer = $MinimapContainer/MarginContainer/SubViewportContainer
+
+# Dungeon Minimap (room-layout based)
+@onready var dungeon_minimap: DungeonMinimap = $MinimapContainer/MarginContainer/DungeonMinimap
 
 var stats: CharacterStats
 var player: Node2D  # Reference to player for minimap
@@ -116,6 +120,34 @@ func setup_minimap(player_node: Node2D, world: Node2D) -> void:
 	# This avoids duplicating nodes which causes infinite loops
 	if world != null and minimap_viewport != null:
 		minimap_viewport.world_2d = world.get_world_2d()
+
+
+## Switch to world minimap mode (for open-world maps like town)
+func show_world_minimap() -> void:
+	if world_minimap_container:
+		world_minimap_container.visible = true
+	if dungeon_minimap:
+		dungeon_minimap.hide_minimap()
+
+
+## Switch to dungeon minimap mode (for room-based dungeons)
+func show_dungeon_minimap() -> void:
+	if world_minimap_container:
+		world_minimap_container.visible = false
+	if dungeon_minimap:
+		dungeon_minimap.show_minimap()
+
+
+## Update dungeon minimap with room data
+func update_dungeon_minimap(rooms: Dictionary, current_room: Vector2i) -> void:
+	if dungeon_minimap:
+		dungeon_minimap.update_dungeon(rooms, current_room)
+
+
+## Update only current room position on dungeon minimap
+func update_dungeon_current_room(pos: Vector2i) -> void:
+	if dungeon_minimap:
+		dungeon_minimap.update_current_room(pos)
 
 
 func _process(_delta: float) -> void:
