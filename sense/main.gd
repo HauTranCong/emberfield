@@ -1,16 +1,80 @@
 extends Node2D
+## Main scene controller — manages game state flow:
+##   TITLE  →  LOADING  →  GAMEPLAY
+## No tree pausing; each phase shows/hides the appropriate layers.
 
+# ── Game State ─────────────────────────────────────────
+enum GameState { TITLE, LOADING, GAMEPLAY }
+var current_state: GameState = GameState.TITLE
+
+# ── Gameplay nodes (always in scene tree for easy get_node) ──
 @onready var town: Node2D = $Town
 @onready var player: Node2D = $Player
 @onready var hud: CanvasLayer = $HUD
+@onready var skeleton: Node2D = $Skeleton
+
+# ── UI layers ──────────────────────────────────────────
+@onready var title_layer: CanvasLayer = $TitleLayer
+@onready var title_screen: Control = $TitleLayer/TitleScreen
+@onready var loading_screen: CanvasLayer = $LoadingScreen
 
 func _ready() -> void:
 	GameEvent.request_ui_pause.connect(_on_request_ui_pause)
+
+	# Wire signals
+	title_screen.play_online_requested.connect(_on_play_online_requested)
+	loading_screen.loading_finished.connect(_on_loading_finished)
+
+	# Start in TITLE state
+	_enter_state(GameState.TITLE)
+
+
+# ── State Machine ──────────────────────────────────────
+
+func _enter_state(new_state: GameState) -> void:
+	current_state = new_state
+	match new_state:
+		GameState.TITLE:
+			_set_gameplay_visible(false)
+			title_layer.visible = true
+			loading_screen.visible = false
+
+		GameState.LOADING:
+			_set_gameplay_visible(false)
+			title_layer.visible = false
+			loading_screen.start_loading()
+
+		GameState.GAMEPLAY:
+			title_layer.visible = false
+			loading_screen.visible = false
+			_start_gameplay()
+
+
+# ── Signal Handlers ────────────────────────────────────
+
+func _on_play_online_requested() -> void:
+	if current_state != GameState.TITLE:
+		return
+	_enter_state(GameState.LOADING)
+
+func _on_loading_finished() -> void:
+	if current_state != GameState.LOADING:
+		return
+	# Apply backend data to player stats before entering gameplay
+	_apply_user_data(BackendService.user_data)
+	_enter_state(GameState.GAMEPLAY)
+
+
+# ── Gameplay Setup ─────────────────────────────────────
+
+func _start_gameplay() -> void:
+	_set_gameplay_visible(true)
+
 	if town == null or player == null:
 		push_error("Assign town & player in Inspector")
 		return
 
-	# Spawn: ưu tiên Spawn marker, nếu không có thì giữa town
+	# Spawn: prioritize Spawn marker, otherwise center of town
 	var spawn: Node2D = town.get_node_or_null("Spawn") as Node2D
 	if spawn != null:
 		player.global_position = spawn.global_position
@@ -18,14 +82,43 @@ func _ready() -> void:
 		var town_rect: Rect2 = _get_town_world_rect(town)
 		if town_rect.size != Vector2.ZERO:
 			player.global_position = town_rect.get_center()
-	
-	# Setup HUD với player stats
+
+	# Setup HUD with player stats
 	if hud != null and player.has_method("get") and player.get("stats") != null:
 		hud.setup(player.stats)
-	
-	# Setup minimap - pass self to share the same world_2d
+
+	# Setup minimap — pass self to share the same world_2d
 	if hud != null:
 		hud.setup_minimap(player, self)
+
+
+func _apply_user_data(data: Dictionary) -> void:
+	if data.is_empty():
+		return
+	# Apply backend-provided stats to the player's CharacterStats resource.
+	# Extend this as your backend schema grows.
+	if player and player.get("stats") != null:
+		var stats: CharacterStats = player.stats
+		if data.has("gold"):
+			stats.gold = data["gold"]
+		if data.has("max_health"):
+			stats.max_health = data["max_health"]
+			stats.current_health = data["max_health"]
+		if data.has("attack_damage"):
+			stats.attack_damage = data["attack_damage"]
+		if data.has("defense"):
+			stats.defense = data["defense"]
+
+
+func _set_gameplay_visible(is_visible: bool) -> void:
+	town.visible = is_visible
+	player.visible = is_visible
+	skeleton.visible = is_visible
+	hud.visible = is_visible
+	# Disable player input processing when not in gameplay
+	player.set_process(is_visible)
+	player.set_physics_process(is_visible)
+	player.set_process_input(is_visible)
 
 
 func _get_town_world_rect(root: Node) -> Rect2:

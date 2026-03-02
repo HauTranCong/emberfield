@@ -1,0 +1,70 @@
+[gd_scene format=3 uid="uid://b5f5hnvbbhcjr"]
+
+[ext_resource type="Script" uid="uid://dk5hdhn272teh" path="res://sense/ui/title/title_screen.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://5ea778rve641" path="res://assets/title/emberfield_title_bg.png" id="2_bg"]
+
+[node name="TitleScreen" type="Control" unique_id=1757852607]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="TextureRect" parent="." unique_id=425286239]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_bg")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Backdrop" type="ColorRect" parent="." unique_id=246137591]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.35)
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=836110747]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer" unique_id=1578844540]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="MenuButtons" type="VBoxContainer" parent="CenterContainer/VBoxContainer" unique_id=2014245458]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="PlayOnlineButton" type="Button" parent="CenterContainer/VBoxContainer/MenuButtons" unique_id=2067045519]
+custom_minimum_size = Vector2(260, 46)
+layout_mode = 2
+text = "Play Online"
+
+[node name="SettingsButton" type="Button" parent="CenterContainer/VBoxContainer/MenuButtons" unique_id=645282872]
+custom_minimum_size = Vector2(260, 46)
+layout_mode = 2
+text = "Settings"
+
+[node name="QuitButton" type="Button" parent="CenterContainer/VBoxContainer/MenuButtons" unique_id=446635641]
+custom_minimum_size = Vector2(260, 46)
+layout_mode = 2
+text = "Quit"
+
+[node name="SettingsDialog" type="AcceptDialog" parent="." unique_id=1197085022]
+title = "Settings"
+size = Vector2i(420, 140)
+ok_button_text = "Close"
