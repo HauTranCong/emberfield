@@ -125,14 +125,17 @@ func _ready():
 ## File Structure Conventions
 ```
 sense/
-├── components/     # HitboxComponent, HurtboxComponent, HealthComponent
+├── components/     # HitboxComponent, HurtboxComponent, HealthComponent, ShopComponent
 ├── entities/
 │   ├── player/     # player.gd, character_stats.gd
 │   ├── enemies/    # skeleton/, etc.
 │   └── npcs/       # blacksmith/, merchant/
 ├── globals/        # collision_layers.gd, game_manager.gd
+├── items/          # item_data.gd, item_database.gd, game_item.gd, item_spawner.gd
 ├── maps/           # town.tscn, forest.tscn
-└── ui/             # hud/
+└── ui/
+    ├── hud/
+    └── inventory/  # inventory_data.gd, inventory_panel.gd
 ```
 
 ## Naming Conventions
@@ -151,3 +154,9 @@ sense/
 ## Documentation Reference
 - `LAYER_AND_MASK_STANDARDS.md` - Collision layer details
 - `docs/COMBAT_SYSTEM.md` - Combat interaction flow
+- `docs/item_system.md` - Item system architecture
+- `docs/inventory_system.md` - Inventory and equipment system
+
+## Prompt Files
+- `.github/prompts/item-shop-implementation.prompt.md` - Best practices for creating items & shop integration
+

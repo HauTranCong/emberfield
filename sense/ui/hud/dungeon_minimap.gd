@@ -13,25 +13,25 @@ const CELL_GAP := 2
 const CONNECTION_WIDTH := 2.0
 
 ## Dungeon data
-var rooms: Dictionary = {}  ## grid_pos → room data
+var rooms: Dictionary = {} ## grid_pos → room data
 var current_room_pos: Vector2i = Vector2i.ZERO
 var min_grid: Vector2i = Vector2i.ZERO
 var max_grid: Vector2i = Vector2i.ZERO
 
 ## Room type colors
 const ROOM_COLORS := {
-	0: Color(0.3, 0.7, 0.3),   # START - Green
-	1: Color(0.4, 0.4, 0.5),   # NORMAL - Gray
-	2: Color(0.8, 0.2, 0.2),   # BOSS - Red
-	3: Color(0.9, 0.8, 0.2),   # TREASURE - Gold
+	0: Color(0.3, 0.7, 0.3), # START - Green
+	1: Color(0.4, 0.4, 0.5), # NORMAL - Gray
+	2: Color(0.8, 0.2, 0.2), # BOSS - Red
+	3: Color(0.9, 0.8, 0.2), # TREASURE - Gold
 }
 
 ## Direction offsets
 const DIR_OFFSETS := {
-	0: Vector2i(0, -1),   # UP
-	1: Vector2i(0, 1),    # DOWN
-	2: Vector2i(-1, 0),   # LEFT
-	3: Vector2i(1, 0),    # RIGHT
+	0: Vector2i(0, -1), # UP
+	1: Vector2i(0, 1), # DOWN
+	2: Vector2i(-1, 0), # LEFT
+	3: Vector2i(1, 0), # RIGHT
 }
 
 
@@ -63,6 +63,15 @@ func show_minimap() -> void:
 ## Hide the dungeon minimap
 func hide_minimap() -> void:
 	visible = false
+
+
+## Clear dungeon data so next dungeon visit starts fresh
+func clear_dungeon() -> void:
+	rooms.clear()
+	current_room_pos = Vector2i.ZERO
+	min_grid = Vector2i.ZERO
+	max_grid = Vector2i.ZERO
+	queue_redraw()
 
 
 func _calculate_bounds() -> void:

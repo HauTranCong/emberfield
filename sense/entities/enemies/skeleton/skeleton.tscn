@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://dqhqtxp18k1h6" path="res://assets/enemies/skeleton_hammer/walk/walk_left.png" id="6_gt5gd"]
 [ext_resource type="Texture2D" uid="uid://bxmo6pt0tnwws" path="res://assets/enemies/skeleton_hammer/walk/walk_right.png" id="7_w1yni"]
 [ext_resource type="Texture2D" uid="uid://cbkbmobuvc3jv" path="res://assets/enemies/skeleton_hammer/walk/walk_up.png" id="8_rup63"]
+[ext_resource type="Script" uid="uid://inskdgfcrhcm" path="res://sense/entities/enemies/skeleton/skeleton.gd" id="9_skeleton"]
 [ext_resource type="Script" uid="uid://dq311i1qjnaed" path="res://sense/components/hitbox_component.gd" id="10_fsllt"]
 [ext_resource type="Script" uid="uid://b3y58plh7x28i" path="res://sense/components/hurtbox_component.gd" id="11_gt5gd"]
 [ext_resource type="Script" uid="uid://3ngepc7ms574" path="res://sense/components/health_component.gd" id="12_health"]
@@ -576,7 +577,7 @@ radius = 7.0
 height = 64.0
 
 [node name="Skeleton" type="CharacterBody2D" unique_id=501015317]
-position = Vector2(1, 0)
+script = ExtResource("9_skeleton")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=993045661]
 sprite_frames = SubResource("SpriteFrames_r2b4s")

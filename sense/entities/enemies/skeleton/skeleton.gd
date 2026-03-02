@@ -146,6 +146,12 @@ const HITBOX_OFFSETS := {
 @onready var hurtbox: HurtboxComponent = $Hurtbox
 
 # =============================================================================
+# LOOT TABLE
+# =============================================================================
+## Loot table cho skeleton - định nghĩa drops khi chết
+@export var loot_table: LootTable = null
+
+# =============================================================================
 # STATE VARIABLES
 # =============================================================================
 
@@ -493,6 +499,10 @@ func _on_died() -> void:
 		hitbox.monitoring = false
 	if hurtbox:
 		hurtbox.monitoring = false
+	
+	# Spawn loot drops
+	_spawn_drops()
+	
 	# Remove after death animation
 	await get_tree().create_timer(1.0).timeout
 	queue_free()
@@ -548,3 +558,32 @@ func _draw() -> void:
 		var hitbox_pos := hitbox.position
 		draw_rect(Rect2(hitbox_pos - Vector2(10, 10), Vector2(20, 20)), Color.YELLOW, false, 2.0)
 		draw_circle(hitbox_pos, 5, Color.YELLOW)
+
+
+# =============================================================================
+# LOOT DROPS
+# =============================================================================
+
+## Spawn drops when enemy dies
+func _spawn_drops() -> void:
+	# Use default loot table if none assigned
+	if loot_table == null:
+		loot_table = _create_default_loot_table()
+	
+	# Spawn items from loot table
+	ItemSpawner.spawn_enemy_drops(get_tree(), global_position, loot_table)
+
+
+## Create default loot table for skeleton
+func _create_default_loot_table() -> LootTable:
+	var table := LootTable.new()
+	table.drop_count = 2
+	table.nothing_weight = 40
+	table.gold_range = Vector2i(5, 15)
+	
+	# Add possible drops
+	table.add_entry("bone", 100, 1, 3)          # Common: bones
+	table.add_entry("health_potion", 30, 1, 1)  # Rare: health potion
+	table.add_entry("iron_sword", 5, 1, 1)      # Very rare: weapon
+	
+	return table

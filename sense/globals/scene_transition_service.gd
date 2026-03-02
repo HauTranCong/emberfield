@@ -15,12 +15,15 @@ signal transition_completed(active_map: String)
 # Constants for backward compatibility
 const MAP_TOWN := "town"
 const MAP_DUNGEON := "dungeon"
+const NON_CACHED_MAPS := {
+	MAP_DUNGEON: true
+}
 
 const FADE_DURATION := 0.25
 
 # Internal state
-var _map_registry: Dictionary = {}  # map_id → scene_path
-var _loaded_maps: Dictionary = {}   # map_id → Node2D instance (cache)
+var _map_registry: Dictionary = {} # map_id → scene_path
+var _loaded_maps: Dictionary = {} # map_id → Node2D instance (cache)
 var _active_map_id: String = ""
 var _active_map_node: Node2D = null
 var _is_transitioning: bool = false
@@ -110,9 +113,16 @@ func _change_map_with_fade(target_map: String) -> void:
 
 
 func _load_map(map_id: String) -> void:
-	# Unload current map (keep in cache, just remove from tree)
-	if _active_map_node != null and _active_map_node.get_parent() == _root:
-		_root.remove_child(_active_map_node)
+	# Unload current map
+	var previous_map_id = _active_map_id
+	var previous_map_node = _active_map_node
+	if previous_map_node != null and previous_map_node.get_parent() == _root:
+		_root.remove_child(previous_map_node)
+	
+	# Free maps that should not persist between visits (fresh run each time)
+	if previous_map_node != null and not _should_cache_map(previous_map_id):
+		_loaded_maps.erase(previous_map_id)
+		previous_map_node.queue_free()
 	
 	# Get or create map instance
 	var map_node: Node2D
@@ -140,6 +150,10 @@ func _load_map(map_id: String) -> void:
 	_active_map_node = map_node
 
 
+func _should_cache_map(map_id: String) -> bool:
+	return not NON_CACHED_MAPS.has(map_id)
+
+
 func _spawn_player_in_map(map_node: Node2D) -> void:
 	# Convention 1: Look for "PlayerSpawn" node
 	var spawn = map_node.get_node_or_null("PlayerSpawn")
@@ -165,7 +179,7 @@ func _spawn_player_in_map(map_node: Node2D) -> void:
 
 func _setup_fade_layer() -> void:
 	if _fade_layer != null:
-		return  # Already setup
+		return # Already setup
 	
 	_fade_layer = CanvasLayer.new()
 	_fade_layer.name = "FadeLayer"

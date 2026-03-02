@@ -128,6 +128,7 @@ func show_world_minimap() -> void:
 		world_minimap_container.visible = true
 	if dungeon_minimap:
 		dungeon_minimap.hide_minimap()
+		dungeon_minimap.clear_dungeon()
 
 
 ## Switch to dungeon minimap mode (for room-based dungeons)

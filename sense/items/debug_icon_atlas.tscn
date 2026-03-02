@@ -1,0 +1,43 @@
+[gd_scene format=3 uid="uid://bexk7gc27i13b"]
+
+[ext_resource type="Script" uid="uid://ddno4i0hfpyb8" path="res://sense/items/debug_icon_atlas.gd" id="1_debug"]
+
+[node name="DebugAtlasViewer" type="Control" unique_id=776515380]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=833684073]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Instructions" type="Label" parent="VBoxContainer" unique_id=1922789227]
+layout_mode = 2
+text = "Hover to see row/col | Click to copy to clipboard | Scroll to see full image"
+
+[node name="InfoLabel" type="Label" parent="VBoxContainer" unique_id=1041983905]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Row: -, Col: - | Click an icon to copy code"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer" unique_id=865122927]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 2
+vertical_scroll_mode = 2
+
+[node name="IconAtlas" type="Control" parent="VBoxContainer/ScrollContainer" unique_id=2046053126]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(1074, 1814)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_default_cursor_shape = 3
+script = ExtResource("1_debug")

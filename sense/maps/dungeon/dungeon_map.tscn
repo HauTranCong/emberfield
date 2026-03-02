@@ -419,5 +419,5 @@ tile_set = SubResource("TileSet_ground")
 [node name="WallLayer" type="TileMapLayer" parent="." unique_id=505326248]
 tile_set = SubResource("TileSet_kd4vd")
 
-[node name="PlayerSpawn" type="Marker2D" parent="."]
+[node name="PlayerSpawn" type="Marker2D" parent="." unique_id=671571606]
 position = Vector2(160, 120)

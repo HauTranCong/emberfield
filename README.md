@@ -6,24 +6,26 @@
 
 ## 📖 Giới thiệu
 
-**Emberfield** là một dự án game 2D được phát triển bằng **Godot Engine 4.6**. Game theo phong cách pixel art với hệ thống combat, NPC, cửa hàng và khám phá thế giới.
+**Emberfield** là một dự án game 2D Action RPG được phát triển bằng **Godot Engine 4.6**. Game theo phong cách pixel art với hệ thống combat, inventory, equipment, NPC shops và khám phá thế giới.
 
 ### ✨ Tính năng chính
 
-- 🎮 **Hệ thống Player**: Di chuyển, tấn công, tương tác với NPC
-- ⚔️ **Combat System**: Hệ thống Hitbox/Hurtbox component-based (reusable)
-- 🏪 **Cửa hàng**: General Shop, Blacksmith
-- 👾 **Kẻ thù**: Skeleton với nhiều animations (idle, walk, attack, death)
-- 🗺️ **Maps**: Town map với tileset đa dạng
-- 🧩 **Component System**: Reusable components cho Health, Hitbox, Hurtbox
+- 🎮 **Hệ thống Player**: Di chuyển 8 hướng, tấn công, state machine
+- ⚔️ **Combat System**: Hitbox/Hurtbox component-based, i-frames, knockback
+- 🎒 **Inventory System**: 32 slots, equipment (7 slots), drag & drop, tabs
+- 💰 **Item System**: Loot tables, gold/health/XP pickups, chests
+- 🏪 **NPC & Shops**: Blacksmith, Merchant với shop UI
+- 👾 **Enemies**: Skeleton với AI (patrol, chase, attack)
+- 🗺️ **Maps**: Town map với tileset, portals
 
 ### 🎯 Thông số kỹ thuật
 
-- **Engine**: Godot 4.6
-- **Độ phân giải**: 1280x720
-- **Rendering**: GL Compatibility (Pixel Perfect)
-- **Physics**: 2D với hệ thống collision layer chuẩn hóa
-- **Architecture**: Component-based, modular structure
+| Spec | Value |
+|------|-------|
+| **Engine** | Godot 4.6 |
+| **Resolution** | 1280x720 |
+| **Rendering** | GL Compatibility (Pixel Perfect) |
+| **Architecture** | Component-based, State Machine |
 
 ---
 
@@ -32,206 +34,221 @@
 ```
 emberfield/
 │
-├── 📄 project.godot              # File cấu hình dự án Godot
-├── 📄 LAYER_AND_MASK_STANDARDS.md # Tài liệu chuẩn collision layer
-├── 📄 README.md                  # Tài liệu dự án
-├── 📄 icon.svg                   # Icon của game
+├── 📄 project.godot              # Godot project config
+├── 📄 LAYER_AND_MASK_STANDARDS.md
+├── 📄 README.md
 │
-├── 📂 assets/                    # Tài nguyên đồ họa
-│   ├── 📂 blacksmith/            # Sprites cho thợ rèn
-│   ├── 📂 enemies/               # Sprites kẻ thù
-│   │   └── 📂 skeleton_hammer/   # Skeleton với búa
-│   │       ├── 📂 attack/        # Animation tấn công (8 hướng)
-│   │       ├── 📂 death/         # Animation chết
-│   │       ├── 📂 idle/          # Animation đứng yên (8 hướng)
-│   │       └── 📂 walk/          # Animation di chuyển (8 hướng)
-│   ├── 📂 Shop/                  # Sprites cửa hàng
-│   │   └── 📂 General-shop/      # Merchant Cart & Merchant Man
-│   ├── 📂 soldiers/              # Sprites nhân vật chính (Player)
-│   │   ├── 📂 attack/            # Animation tấn công (4 hướng)
-│   │   ├── 📂 idle/              # Animation đứng yên (4 hướng)
-│   │   └── 📂 walk/              # Animation di chuyển (4 hướng)
-│   └── 📂 tilesets/              # Tileset cho map
-│       ├── TX Plant.png          # Cây cối
-│       ├── TX Props.png          # Props trang trí
-│       ├── TX Struct.png         # Công trình
-│       ├── TX Tileset Grass.png  # Tileset cỏ
-│       ├── TX Tileset Stone Ground.png # Tileset đá
-│       └── TX Tileset Wall.png   # Tileset tường
+├── 📂 assets/                    # Game assets
+│   ├── 📂 enemies/               # Enemy sprites
+│   ├── 📂 soldiers/              # Player sprites
+│   ├── 📂 items/                 # Item icon sprite sheet (512x867, 32x32)
+│   ├── 📂 Shop/                  # Shop UI & NPC sprites
+│   ├── 📂 Font/                  # Pixel fonts
+│   └── 📂 tilesets/              # Map tilesets
 │
-└── 📂 sense/                     # Source code & Scenes
-    ├── 📄 main.gd                # Script chính (game entry point)
-    ├── 📄 Main.tscn              # Scene chính
-    │
-    ├── 📂 components/            # ⭐ Reusable Components
-    │   ├── health_component.gd   # Hệ thống HP (attach to Node)
-    │   ├── hitbox_component.gd   # Vùng gây damage (attach to Area2D)
-    │   └── hurtbox_component.gd  # Vùng nhận damage (attach to Area2D)
-    │
-    ├── 📂 entities/              # Tất cả game entities
-    │   ├── 📂 player/            # Player character
-    │   │   ├── character_stats.gd    # Resource: stats (HP, stamina, damage)
-    │   │   ├── player.gd             # Player controller & state machine
-    │   │   └── player.tscn           # Player scene
-    │   │
-    │   ├── 📂 enemies/           # Kẻ thù
-    │   │   └── 📂 skeleton/
-    │   │       └── skeleton.tscn     # Skeleton enemy scene
-    │   │
-    │   └── 📂 npcs/              # Non-playable characters
-    │       ├── 📂 blacksmith/
-    │       │   ├── black_smith_area.gd   # Blacksmith interaction logic
-    │       │   └── blacksmith.tscn       # Blacksmith scene
-    │       │
-    │       └── 📂 merchant/
-    │           ├── general_goods.gd      # Shop logic
-    │           └── general_goods.tscn    # Merchant shop scene
-    │
-    ├── 📂 globals/               # Autoload scripts (Singletons)
-    │   └── collision_layers.gd   # Định nghĩa collision layers enum
-    │
-    ├── 📂 maps/                  # Game levels/maps
-    │   └── town.tscn             # Bản đồ thị trấn chính
-    │
-    └── 📂 ui/                    # User Interface
-        └── 📂 hud/
-            ├── hud.gd            # HUD controller
-            ├── hud.tscn          # HUD scene (health bar, minimap)
-            └── pixel_bar.gd      # Pixel art progress bar component
+├── 📂 docs/                      # Documentation
+│   ├── architecture.md           # System architecture
+│   ├── combat_system.md          # Combat mechanics
+│   ├── inventory_system.md       # Inventory & equipment
+│   └── item_system.md            # Item spawning & loot
+│
+└── 📂 sense/                     # Source code
+    ├── 📂 globals/               # Autoloads (CollisionLayers, GameEvent)
+    ├── 📂 components/            # Reusable components
+    ├── 📂 entities/              # Player, Enemies, NPCs
+    ├── 📂 items/                 # Item system
+    ├── 📂 maps/                  # Game maps
+    └── 📂 ui/                    # HUD, Inventory UI
 ```
 
 ---
 
-## 🧩 Component System
+## 🧩 Systems Overview
 
-Dự án sử dụng **Component-based Architecture** để tái sử dụng code:
+### Component System
 
-### Cách sử dụng Components
+| Component | File | Purpose |
+|-----------|------|---------|
+| **HealthComponent** | `health_component.gd` | HP management, death signal |
+| **HitboxComponent** | `hitbox_component.gd` | Deal damage, LOS check |
+| **HurtboxComponent** | `hurtbox_component.gd` | Receive damage, i-frames |
+| **InteractionManager** | `interaction_manager.gd` | NPC/object interaction |
+| **ShopComponent** | `shop_component.gd` | Shop functionality |
 
-**1. HealthComponent** - Attach vào bất kỳ Node nào cần HP:
-```gdscript
-@onready var health: HealthComponent = $HealthComponent
+### Item System
 
-func _ready():
-    health.died.connect(_on_died)
-    health.health_changed.connect(_on_health_changed)
+| Component | File | Purpose |
+|-----------|------|---------|
+| **ItemData** | `item_data.gd` | Item resource definition |
+| **ItemDatabase** | `item_database.gd` | All items registry (Autoload) |
+| **ItemIconAtlas** | `item_icon_atlas.gd` | Extract icons from sprite sheet |
+| **GameItem** | `game_item.gd` | Droppable item (AUTO, MAGNET, INTERACT) |
+| **ItemSpawner** | `item_spawner.gd` | Factory for spawning items |
+| **LootTable** | `loot_table.gd` | Drop rate configuration |
+
+### Inventory System
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| **InventoryData** | `inventory_data.gd` | Inventory state (32 slots + equipment) |
+| **InventoryPanel** | `inventory_panel.gd` | Main UI controller |
+| **InventorySlotUI** | `inventory_slot_ui.gd` | Individual slot rendering |
+
+### Entity Structure
+
 ```
-
-**2. HitboxComponent** - Attach vào Area2D, tự định nghĩa CollisionShape:
-```gdscript
-@onready var hitbox: HitboxComponent = $AttackHitbox
-
-func attack():
-    hitbox.activate()
-    await get_tree().create_timer(0.2).timeout
-    hitbox.deactivate()
-```
-
-**3. HurtboxComponent** - Attach vào Area2D, tự định nghĩa CollisionShape:
-```gdscript
-@onready var hurtbox: HurtboxComponent = $Hurtbox
-
-func _ready():
-    hurtbox.damage_received.connect(_on_damage_received)
-```
-
-### Ví dụ cấu trúc Entity
-```
-Player (CharacterBody2D)
-├── Sprite2D
+Player/Enemy (CharacterBody2D)
+├── AnimatedSprite2D
 ├── CollisionShape2D
-├── HealthComponent (Node)          ← Attach health_component.gd
-├── Hurtbox (HurtboxComponent)      ← Attach hurtbox_component.gd
-│   └── CollisionShape2D            ← Shape riêng cho entity
-└── AttackHitbox (HitboxComponent)  ← Attach hitbox_component.gd
-    └── CollisionShape2D            ← Shape riêng cho attack
+├── HealthComponent (Node)
+├── HitboxComponent (Area2D)     # Layer 7/8
+│   └── CollisionShape2D
+└── HurtboxComponent (Area2D)    # Layer 5/6
+    └── CollisionShape2D
 ```
 
 ---
 
 ## 🎮 Điều khiển
 
-| Phím | Hành động |
-|------|-----------|
-| `W` `A` `S` `D` hoặc Arrow Keys | Di chuyển |
-| `A` (Physical Key) | Tấn công |
-| `E` | Tương tác với Blacksmith |
+| Input | Action |
+|-------|--------|
+| `W` `A` `S` `D` / Arrow Keys | Di chuyển |
+| `Space` / `J` | Tấn công |
+| `E` | Tương tác (NPC, Shop, Pickup) |
+| `B` / `I` | Mở Inventory |
+| `ESC` | Đóng UI |
 
 ---
 
-## 🔧 Collision Layer System
+## 🔧 Collision Layers
 
-Dự án sử dụng hệ thống collision layer chuẩn hóa:
+| Layer | Name | Bit | Description |
+|-------|------|-----|-------------|
+| 1 | WORLD | 1 | Walls, obstacles, terrain |
+| 2 | PLAYER | 2 | Player body |
+| 3 | ENEMY | 4 | Enemy body |
+| 4 | NPC | 8 | NPCs |
+| 5 | PLAYER_HURTBOX | 16 | Player receives damage |
+| 6 | ENEMY_HURTBOX | 32 | Enemy receives damage |
+| 7 | PLAYER_HITBOX | 64 | Player attack area |
+| 8 | ENEMY_HITBOX | 128 | Enemy attack area |
+| 9 | INTERACTABLE | 256 | Shop, chest, door |
+| 10 | PICKUP | 512 | Items to collect |
 
-| Layer | Tên | Mô tả |
-|-------|-----|-------|
-| 1 | World | Tường, obstacles, terrain |
-| 2 | Player | Nhân vật người chơi |
-| 3 | Enemy | Kẻ thù |
-| 4 | NPC | NPCs (thương nhân, dân làng) |
-| 5 | PlayerHurtbox | Vùng player nhận damage |
-| 6 | EnemyHurtbox | Vùng enemy nhận damage |
-| 7 | PlayerHitbox | Vùng tấn công của player |
-| 8 | EnemyHitbox | Vùng tấn công của enemy |
-| 9 | Interactable | Shop, chest, door |
-| 10 | Pickup | Items có thể nhặt |
-
-> 📚 Xem chi tiết tại [LAYER_AND_MASK_STANDARDS.md](LAYER_AND_MASK_STANDARDS.md)
+> 📚 Chi tiết: [LAYER_AND_MASK_STANDARDS.md](LAYER_AND_MASK_STANDARDS.md)
 
 ---
 
-## 🚀 Cài đặt & Chạy
+## 📦 Item Icon Atlas
 
-1. **Clone repository:**
-   ```bash
-   git clone https://github.com/your-username/emberfield.git
-   ```
+Sprite sheet: `assets/items/item_icons.png` (512x867, 32x32 icons, 16 columns)
 
-2. **Mở project:**
-   - Mở Godot Engine 4.6
-   - Import project từ thư mục `emberfield`
+### Available Icons
 
-3. **Chạy game:**
-   - Nhấn `F5` hoặc nút Play
+| Name | Position | Name | Position |
+|------|----------|------|----------|
+| `sword_iron` | (5, 1) | `leather_armor` | (7, 5) |
+| `helmet_horned` | (0, 0) | `boot_green` | (1, 1) |
+| `potion_red` | (9, 0) | `gold_coin` | (12, 7) |
+| `heart` | (0, 4) | `bone` | (17, 9) |
+| `iron_ore` | (17, 1) | `gem_green` | (1, 2) |
+
+### Adding New Icons
+
+1. Add to `ItemIconAtlas.ICONS` dictionary:
+```gdscript
+const ICONS := {
+    "new_item": Vector2i(row, col),
+}
+```
+
+2. Create item in `ItemDatabase`:
+```gdscript
+var item := ItemData.new()
+item.use_atlas_icon = true
+item.atlas_icon_name = "new_item"
+```
+
+> 🔧 Use `debug_icon_atlas.tscn` to find row/col positions
 
 ---
 
-## 📝 Ghi chú phát triển
+## 🚀 Quick Start
 
-- Tất cả sprites sử dụng pixel art style
-- Rendering được tối ưu cho pixel perfect display
-- Collision system được thiết kế để dễ mở rộng
-- **Component-based architecture** cho dễ teamwork, tránh conflict
-- Mỗi entity tự định nghĩa CollisionShape, reuse logic từ components
+### Spawn Items
+
+```gdscript
+# Spawn item
+ItemSpawner.spawn_item(get_tree(), position, "health_potion", 1)
+
+# Spawn gold (magnet effect)
+ItemSpawner.spawn_gold(get_tree(), position, 100)
+
+# Spawn from loot table
+ItemSpawner.spawn_enemy_drops(get_tree(), position, loot_table, xp_amount)
+```
+
+### Add Item to Inventory
+
+```gdscript
+var item := ItemDatabase.get_item("iron_sword")
+inventory.add_item(item, 1)
+```
+
+### Create Loot Table
+
+```gdscript
+var loot := LootTable.new()
+loot.drop_count = 2
+loot.nothing_weight = 40
+loot.gold_range = Vector2i(5, 20)
+loot.add_entry("bone", 100, 1, 3)      # Common
+loot.add_entry("health_potion", 30)    # Uncommon
+```
 
 ---
 
-## 👥 Teamwork Guidelines
+## 📚 Documentation
 
-### Phân công theo Module
-| Module | Folder | Mô tả |
-|--------|--------|-------|
+| Document | Description |
+|----------|-------------|
+| [architecture.md](docs/architecture.md) | System architecture & design |
+| [combat_system.md](docs/combat_system.md) | Combat mechanics, hitbox/hurtbox |
+| [inventory_system.md](docs/inventory_system.md) | Inventory, equipment, UI |
+| [item_system.md](docs/item_system.md) | Items, loot tables, spawning |
+
+---
+
+## 👥 Module Ownership
+
+| Module | Folder | Description |
+|--------|--------|-------------|
 | Player | `sense/entities/player/` | Character controller, stats |
-| Enemies | `sense/entities/enemies/` | AI, behaviors, stats |
+| Enemies | `sense/entities/enemies/` | AI, behaviors |
 | NPCs | `sense/entities/npcs/` | Dialogue, shop logic |
-| UI | `sense/ui/` | HUD, menus, popups |
-| Maps | `sense/maps/` | Levels, tilemaps |
-| Components | `sense/components/` | Shared reusable components |
+| Items | `sense/items/` | Item spawning, loot |
+| Inventory | `sense/ui/inventory/` | Inventory UI |
+| Components | `sense/components/` | Shared components |
 
-### Quy tắc tránh Conflict
-1. **Không edit `Main.tscn`** trực tiếp - load scenes động
-2. **Tách map lớn** thành các area nhỏ
-3. **Mỗi người một module** - không chồng chéo
-4. **Dùng UIDs** của Godot để tránh path conflict
+---
+
+## 🔄 Recent Updates
+
+- ✅ Item icon atlas system with default fallback
+- ✅ Inventory drag & drop with equipment validation
+- ✅ Loot table for enemy drops
+- ✅ Gold/Health/XP pickup types
+- ✅ Comprehensive documentation
 
 ---
 
 ## 📄 License
 
-*Chưa có license cụ thể*
+*MIT License*
 
 ---
 
 <p align="center">
-  Made with ❤️ using Godot Engine
+  Made with ❤️ using Godot Engine 4.6
 </p>
