@@ -392,6 +392,8 @@ Items trong `ItemDatabase` đã được cấu hình `use_atlas_icon = true` và
 
 ## Sequence Diagrams
 
+> Note: Inventory UI interaction details (slot UI, tab filters, tooltip, drag & drop validation) are documented in `docs/inventory_system.md`.
+
 ### 1. Item Pickup Flow
 
 ```mermaid
