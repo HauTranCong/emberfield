@@ -17,9 +17,9 @@ enum TabFilter { ALL, EQUIP, MATERIAL }
 @onready var equip_grid: GridContainer = $CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox/EquipGrid
 
 # Tab buttons
-@onready var tab_all: Button = $CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox/TabsContainer/TabAll
-@onready var tab_equip: Button = $CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox/TabsContainer/TabEquip
-@onready var tab_material: Button = $CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox/TabsContainer/TabMaterial
+@onready var tab_all: Button = $CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox/HeaderRow/TabsContainer/TabAll
+@onready var tab_equip: Button = $CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox/HeaderRow/TabsContainer/TabEquip
+@onready var tab_material: Button = $CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox/HeaderRow/TabsContainer/TabMaterial
 
 # Equipment slot references
 @onready var helmet_slot: Panel = $CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox/EquipGrid/HelmetSlot
@@ -67,6 +67,7 @@ func _input(event: InputEvent) -> void:
 
 
 func _setup_tabs() -> void:
+	tab_buttons = [tab_all, tab_equip, tab_material]
 	tab_all.pressed.connect(_on_tab_pressed.bind(TabFilter.ALL))
 	tab_equip.pressed.connect(_on_tab_pressed.bind(TabFilter.EQUIP))
 	tab_material.pressed.connect(_on_tab_pressed.bind(TabFilter.MATERIAL))
@@ -83,9 +84,34 @@ func _update_tab_styles() -> void:
 	for i in range(tab_buttons.size()):
 		var btn := tab_buttons[i]
 		if i == current_tab:
-			btn.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9, 1))
+			# Active tab - bright gold text with visible background
+			btn.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4, 1.0))
+			btn.add_theme_color_override("font_hover_color", Color(1.0, 0.9, 0.5, 1.0))
+			btn.add_theme_color_override("font_pressed_color", Color(1.0, 0.85, 0.4, 1.0))
+			var active_bg := StyleBoxFlat.new()
+			active_bg.bg_color = Color(0.25, 0.22, 0.18, 1.0)
+			active_bg.border_color = Color(0.6, 0.5, 0.3, 0.8)
+			active_bg.set_border_width_all(1)
+			active_bg.border_width_bottom = 2
+			active_bg.set_corner_radius_all(2)
+			active_bg.set_content_margin_all(6)
+			btn.add_theme_stylebox_override("normal", active_bg)
+			btn.add_theme_stylebox_override("hover", active_bg)
+			btn.add_theme_stylebox_override("pressed", active_bg)
 		else:
-			btn.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7, 1))
+			# Inactive tab - dim text with subtle background
+			btn.add_theme_color_override("font_color", Color(0.5, 0.48, 0.44, 1.0))
+			btn.add_theme_color_override("font_hover_color", Color(0.7, 0.65, 0.55, 1.0))
+			btn.add_theme_color_override("font_pressed_color", Color(0.6, 0.55, 0.45, 1.0))
+			var inactive_bg := StyleBoxFlat.new()
+			inactive_bg.bg_color = Color(0.12, 0.11, 0.1, 1.0)
+			inactive_bg.border_color = Color(0.25, 0.22, 0.2, 0.5)
+			inactive_bg.set_border_width_all(1)
+			inactive_bg.set_corner_radius_all(2)
+			inactive_bg.set_content_margin_all(6)
+			btn.add_theme_stylebox_override("normal", inactive_bg)
+			btn.add_theme_stylebox_override("hover", inactive_bg)
+			btn.add_theme_stylebox_override("pressed", inactive_bg)
 
 
 func _create_inventory_slots() -> void:
@@ -183,15 +209,14 @@ func _refresh_inventory() -> void:
 	for i in range(inventory_slots.size()):
 		var slot_data := inventory_data.get_item_at(i)
 		if slot_data.item != null:
-			# Check if item matches current tab filter
-			if _item_matches_filter(slot_data.item):
-				inventory_slots[i].set_item(slot_data.item, slot_data.quantity)
-				inventory_slots[i].visible = true
-			else:
-				inventory_slots[i].clear_slot()
-				inventory_slots[i].visible = true  # Keep slot visible but empty when filtered
+			inventory_slots[i].set_item(slot_data.item, slot_data.quantity)
+			# Dim non-matching items instead of hiding them
+			var matches_filter := _item_matches_filter(slot_data.item)
+			inventory_slots[i].set_filtered(not matches_filter)
+			inventory_slots[i].visible = true
 		else:
 			inventory_slots[i].clear_slot()
+			inventory_slots[i].set_filtered(false)
 			inventory_slots[i].visible = true
 
 

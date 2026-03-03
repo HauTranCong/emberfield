@@ -49,12 +49,14 @@ const SLOT_BORDER_DROP := Color(0.4, 0.7, 0.3, 1.0)  # Green when can drop
 const SLOT_SIZE := Vector2(44, 44)
 const ICON_PADDING := 4
 const BORDER_WIDTH := 2
+const FILTERED_DIM_ALPHA := 0.3  # Opacity for filtered-out items
 
 var item: ItemData = null
 var quantity: int = 0
 var is_hovered: bool = false
 var is_selected: bool = false
 var is_drag_target: bool = false  # True when dragging over this slot
+var is_filtered: bool = false  # True when item doesn't match current tab filter
 
 
 func _ready() -> void:
@@ -66,6 +68,8 @@ func _ready() -> void:
 
 
 func _gui_input(event: InputEvent) -> void:
+	if is_filtered:
+		return  # Block all input on filtered-out slots
 	if event is InputEventMouseButton:
 		if event.pressed:
 			if event.button_index == MOUSE_BUTTON_RIGHT:
@@ -78,7 +82,7 @@ func _gui_input(event: InputEvent) -> void:
 
 ## Called when drag starts - returns drag data if slot has item
 func _get_drag_data(_at_position: Vector2) -> Variant:
-	if item == null:
+	if item == null or is_filtered:
 		return null
 	
 	# Create drag preview
@@ -98,6 +102,8 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 
 ## Called to check if we can drop here
 func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
+	if is_filtered:
+		return false  # Can't drop onto filtered-out slots
 	if data == null or not data is Dictionary:
 		return false
 	
@@ -221,11 +227,17 @@ func set_item(new_item: ItemData, new_quantity: int = 1) -> void:
 func clear_slot() -> void:
 	item = null
 	quantity = 0
+	is_filtered = false
 	queue_redraw()
 
 
 func set_selected(selected: bool) -> void:
 	is_selected = selected
+	queue_redraw()
+
+
+func set_filtered(filtered: bool) -> void:
+	is_filtered = filtered
 	queue_redraw()
 
 
@@ -254,6 +266,12 @@ func _draw() -> void:
 	
 	# Draw item icon if present
 	if item != null:
+		# Apply dim overlay for filtered-out items
+		if is_filtered:
+			modulate.a = FILTERED_DIM_ALPHA
+		else:
+			modulate.a = 1.0
+		
 		_draw_item_icon(rect)
 		
 		# Draw rarity border glow
@@ -263,6 +281,8 @@ func _draw() -> void:
 		# Draw stack count
 		if item.stackable and quantity > 1:
 			_draw_stack_count(rect)
+	else:
+		modulate.a = 1.0
 
 
 func _draw_slot_background(rect: Rect2, color: Color) -> void:
