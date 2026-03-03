@@ -119,10 +119,6 @@ func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 		if not data.is_equipment and data.from_index == slot_index:
 			return false
 	
-	# Update visual
-	is_drag_target = true
-	queue_redraw()
-	
 	return true
 
 
@@ -201,12 +197,17 @@ func _create_drag_preview() -> Control:
 
 func _on_mouse_entered() -> void:
 	is_hovered = true
+	if get_viewport().gui_get_drag_data() != null:
+		var drag_data = get_viewport().gui_get_drag_data()
+		if _can_drop_data(Vector2.ZERO, drag_data):
+			is_drag_target = true
 	slot_hovered.emit(slot_index, true)
 	queue_redraw()
 
 
 func _on_mouse_exited() -> void:
 	is_hovered = false
+	is_drag_target = false
 	slot_hovered.emit(slot_index, false)
 	queue_redraw()
 
