@@ -766,38 +766,19 @@ atlas_icon_name = "sword_iron"
 
 ## How to Give Items to Player
 
-### ✅ Correct: Use ItemDatabase
+Use `ItemDatabase` as the canonical source for gameplay items.
 
 ```gdscript
-# ALWAYS get items from ItemDatabase to ensure icons work!
 var sword := ItemDatabase.get_item("iron_sword")
 if sword:
     player.inventory.add_item(sword, 1)
 
-# Give stackable items
-var potion := ItemDatabase.get_item("health_potion")
-if potion:
-    player.inventory.add_item(potion, 5)
-
-# Give gold
 player.inventory.gold += 100
 ```
 
-### ❌ Wrong: Creating ItemData Manually
-
-```gdscript
-# DON'T DO THIS - icons won't work!
-var sword := ItemData.new()
-sword.id = "iron_sword"
-sword.name = "Iron Sword"
-# ... this item won't have atlas icon configured!
-player.inventory.add_item(sword, 1)
-```
-
-### Why Use ItemDatabase?
-
-Items in `ItemDatabase` have `use_atlas_icon = true` and atlas coordinates configured.
-Manually created `ItemData` objects default to `use_atlas_icon = false`, causing missing icons.
+Detailed do/don't rules and icon fallback behavior are documented in `docs/item_system.md`:
+- Section: **⚠️ Quan Trọng: Sử Dụng ItemDatabase**
+- Section: **Default Icon Fallback**
 
 ---
 
@@ -866,11 +847,13 @@ const SLOT_BORDER_COLOR := Color(0.35, 0.32, 0.28, 1.0)
 
 ### Item Icons Missing (Gray Squares)
 
-1. **Are you using ItemDatabase?** Items must come from `ItemDatabase.get_item()`, not `ItemData.new()`
-2. Check `item.use_atlas_icon` is `true`
-3. Verify atlas is initialized: `ItemIconAtlas.sprite_sheet != null`
-4. Check named icon exists in `ItemIconAtlas.ICONS` dictionary
-5. Verify row/col coordinates are correct using `debug_icon_atlas.tscn`
+1. Confirm items are fetched from `ItemDatabase` (not manual `ItemData.new()` gameplay instances).
+2. Verify atlas is initialized: `ItemIconAtlas.sprite_sheet != null`.
+3. Check named icon exists in `ItemIconAtlas.ICONS` dictionary.
+4. Verify row/col coordinates with `debug_icon_atlas.tscn`.
+5. For full icon troubleshooting flow, see `docs/item_system.md` sections:
+    - **Item Icons từ Sprite Sheet**
+    - **Default Icon Fallback**
 
 ### Item Not Appearing in Inventory
 

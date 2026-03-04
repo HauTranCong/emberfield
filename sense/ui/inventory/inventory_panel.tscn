@@ -39,14 +39,6 @@ border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.25, 0.23, 0.28, 1)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_inventory_grid"]
-bg_color = Color(0.12, 0.11, 0.14, 1)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0.35, 0.32, 0.28, 1)
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tab_active"]
 bg_color = Color(0.22, 0.2, 0.26, 1)
 border_width_left = 2
@@ -67,6 +59,14 @@ border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_color = Color(0.28, 0.25, 0.22, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_inventory_grid"]
+bg_color = Color(0.12, 0.11, 0.14, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.35, 0.32, 0.28, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tooltip"]
 bg_color = Color(0.14, 0.12, 0.16, 0.98)
@@ -97,7 +97,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="MainPanel" type="Panel" parent="CenterContainer" unique_id=1561455466]
-custom_minimum_size = Vector2(700, 450)
+custom_minimum_size = Vector2(684, 450)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_main_panel")
 
@@ -352,11 +352,48 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 8
 
-[node name="Title" type="Label" parent="CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox" unique_id=1658725800]
+[node name="HeaderRow" type="HBoxContainer" parent="CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox" unique_id=584804833]
 layout_mode = 2
+
+[node name="Title" type="Label" parent="CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox/HeaderRow" unique_id=1658725800]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.55, 0.58, 0.65, 1)
 text = "INVENTORY"
-horizontal_alignment = 1
+
+[node name="TabsContainer" type="HBoxContainer" parent="CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox/HeaderRow" unique_id=1224119151]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TabAll" type="Button" parent="CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox/HeaderRow/TabsContainer" unique_id=72837067]
+custom_minimum_size = Vector2(80, 28)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_tab_active")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_tab_active")
+theme_override_styles/hover = SubResource("StyleBoxFlat_tab_hover")
+text = "All"
+
+[node name="TabEquip" type="Button" parent="CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox/HeaderRow/TabsContainer" unique_id=2124347187]
+custom_minimum_size = Vector2(80, 28)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_tab_inactive")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_tab_active")
+theme_override_styles/hover = SubResource("StyleBoxFlat_tab_hover")
+text = "Equip"
+
+[node name="TabMaterial" type="Button" parent="CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox/HeaderRow/TabsContainer" unique_id=1499573775]
+custom_minimum_size = Vector2(80, 28)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_tab_inactive")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_tab_active")
+theme_override_styles/hover = SubResource("StyleBoxFlat_tab_hover")
+text = "Material"
 
 [node name="InventoryGrid" type="Panel" parent="CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox" unique_id=2005520295]
 layout_mode = 2
@@ -380,40 +417,6 @@ layout_mode = 2
 theme_override_constants/h_separation = 4
 theme_override_constants/v_separation = 4
 columns = 8
-
-[node name="TabsContainer" type="HBoxContainer" parent="CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox" unique_id=1224119151]
-layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="TabAll" type="Button" parent="CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox/TabsContainer" unique_id=72837067]
-custom_minimum_size = Vector2(80, 28)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1)
-theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
-theme_override_styles/normal = SubResource("StyleBoxFlat_tab_active")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_tab_active")
-theme_override_styles/hover = SubResource("StyleBoxFlat_tab_hover")
-text = "All"
-
-[node name="TabEquip" type="Button" parent="CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox/TabsContainer" unique_id=2124347187]
-custom_minimum_size = Vector2(80, 28)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
-theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
-theme_override_styles/normal = SubResource("StyleBoxFlat_tab_inactive")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_tab_active")
-theme_override_styles/hover = SubResource("StyleBoxFlat_tab_hover")
-text = "Equip"
-
-[node name="TabMaterial" type="Button" parent="CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox/TabsContainer" unique_id=1499573775]
-custom_minimum_size = Vector2(80, 28)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
-theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
-theme_override_styles/normal = SubResource("StyleBoxFlat_tab_inactive")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_tab_active")
-theme_override_styles/hover = SubResource("StyleBoxFlat_tab_hover")
-text = "Material"
 
 [node name="TooltipPanel" type="Panel" parent="CenterContainer/MainPanel" unique_id=391891090]
 visible = false
