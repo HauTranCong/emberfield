@@ -4,8 +4,10 @@ class_name SmithShopPopup
 signal buy_requested(item: Dictionary)
 
 @onready var dim: ColorRect = $Dim
-@onready var items_list: VBoxContainer = $Panel/VBox/ItemsScroll/ItemsList
-@onready var close_btn: Button = $Panel/VBox/TitleRow/Close
+@onready var shop_item: VBoxContainer = $Main/MainMargin/MainAlign/ShopItem
+@onready var shop_craft: VBoxContainer = $Main/MainMargin/MainAlign/ShopCraft
+@onready var items_list: VBoxContainer = shop_item.get_node("ItemsScroll/ItemsList")
+@onready var close_btn: Button = $Main/MainMargin/MainAlign/TitleRow/Close
 
 var items: Array[Dictionary] = []
 var owner_npc: Node = null  # Reference to the NPC that opened this shop
@@ -71,3 +73,13 @@ func _refresh() -> void:
 		row.add_child(buy_btn)
 
 		items_list.add_child(row)
+
+
+func _on_shop_pressed() -> void:
+	shop_item.visible = true
+	shop_craft.visible = false
+
+
+func _on_craft_pressed() -> void:
+	shop_item.visible = false
+	shop_craft.visible = true
