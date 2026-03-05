@@ -5,18 +5,80 @@ extends Node2D
 @onready var shop: ShopComponent = $ShopComponent
 
 var npc_name: String = "blacksmith"
-var weapons: Array[Dictionary] = [
-	{"id":"w_iron_sword", "name":"Iron Sword", "price":120},
-	{"id":"w_iron_axe", "name":"Iron Axe", "price":150},
-	{"id":"w_bow", "name":"Hunter Bow", "price":180},
-	{"id":"w_dagger", "name":"Dagger", "price":90},
+var weapons: Array[Dictionary] = []
+
+## Which item types this shop sells
+var shop_categories: Array[ItemData.ItemType] = [
+	ItemData.ItemType.WEAPON,
+	ItemData.ItemType.ARMOR,
+	ItemData.ItemType.HELMET,
+	ItemData.ItemType.SHIELD,
+	ItemData.ItemType.BOOTS,
+	ItemData.ItemType.ACCESSORY
 ]
 
 func _ready() -> void:
+	# Load items from ItemDatabase
+	_load_shop_items()
+	
 	interaction_area.interact = Callable(self, "_on_interact")
 	# Auto-close shop when player exits area (general approach for all NPCs)
 	if ui_popup:
 		ui_popup.setup_auto_close(interaction_area)
+	
+	# Connect shop signals for feedback
+	if shop:
+		shop.purchase_successful.connect(_on_purchase_successful)
+		shop.purchase_failed.connect(_on_purchase_failed)
+
+## Load all shop items from ItemDatabase with their icons
+func _load_shop_items() -> void:
+	weapons.clear()
+	
+	# Get all items from database that match shop categories
+	for item_id in ItemDatabase.items.keys():
+		var item_data: ItemData = ItemDatabase.items[item_id]
+		
+		# Filter only items this shop sells
+		if item_data.item_type in shop_categories:
+			# Get the icon texture
+			var icon: AtlasTexture = null
+			if item_data.use_atlas_icon and item_data.atlas_icon_name != "":
+				icon = ItemIconAtlas.get_named_icon(item_data.atlas_icon_name)
+			elif item_data.use_atlas_icon:
+				icon = ItemIconAtlas.get_icon(item_data.atlas_row, item_data.atlas_col)
+			elif item_data.icon != null:
+				icon = item_data.icon
+			else:
+				icon = ItemIconAtlas.get_default_icon()
+			
+			# Create item dictionary with all relevant data
+			var item_dict := {
+				"id": item_data.id,
+				"name": item_data.name,
+				"description": item_data.description,
+				"price": item_data.buy_price,
+				"icon": icon,
+				"attack_bonus": item_data.attack_bonus,
+				"defense_bonus": item_data.defense_bonus,
+				"speed_bonus": item_data.speed_bonus,
+				"health_bonus": item_data.health_bonus,
+				"rarity": item_data.rarity,
+				"item_type": item_data.item_type
+			}
+			
+			weapons.append(item_dict)
+	
+	print("[Blacksmith] Loaded %d items from ItemDatabase" % weapons.size())
+	
+	# Count by category
+	var counts := {}
+	for item in weapons:
+		var type_name: String = ItemData.ItemType.keys()[item.item_type]
+		counts[type_name] = counts.get(type_name, 0) + 1
+	
+	for type_name in counts:
+		print("  - %s: %d items" % [type_name, counts[type_name]])
 
 func _on_interact() -> void:
 	print("Player is interacting with ", npc_name)
@@ -35,3 +97,17 @@ func _on_interact() -> void:
 func _on_purchase_requested(item: Dictionary) -> void:
 	# Delegate to ShopComponent (general approach for all shops)
 	shop.process_purchase(item)
+
+## Called when purchase is successful
+func _on_purchase_successful(_item: Dictionary, remaining_gold: int) -> void:
+	print("[Blacksmith] Thanks for your purchase! You have %d gold remaining." % remaining_gold)
+	# You could show a success message or play a sound here
+
+## Called when purchase fails
+func _on_purchase_failed(reason: String, _item: Dictionary) -> void:
+	print("[Blacksmith] Purchase failed: %s" % reason)
+	# You could show an error message to the player here
+	if reason == "Not enough gold":
+		print("[Blacksmith] Come back when you have more gold!")
+	elif reason == "Inventory full":
+		print("[Blacksmith] Your inventory is full! Clear some space first.")
