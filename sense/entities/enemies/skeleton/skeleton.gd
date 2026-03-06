@@ -585,5 +585,18 @@ func _create_default_loot_table() -> LootTable:
 	table.add_entry("bone", 100, 1, 3)          # Common: bones
 	table.add_entry("health_potion", 30, 1, 1)  # Rare: health potion
 	table.add_entry("iron_sword", 5, 1, 1)      # Very rare: weapon
-	
+
+	# Segment drops (crafting materials)
+	table.add_entry("herb_segment", 18, 1, 2)        # Most common segment
+	table.add_entry("fire_shard", 15, 1, 2)           # Common fire crafting drop
+	table.add_entry("frost_shard", 15, 1, 2)          # Common frost crafting drop
+	table.add_entry("power_fragment", 12, 1, 2)       # Common energy drop
+	table.add_entry("spirit_essence", 6, 1, 1)        # Uncommon spectral drop
+	table.add_entry("venom_gland", 6, 1, 1)           # Uncommon poison drop
+	# Rare/Epic segments reserved for stronger enemies or dungeon chests:
+	# table.add_entry("inferno_shard", 3, 1, 1)
+	# table.add_entry("blizzard_shard", 3, 1, 1)
+	# table.add_entry("greater_power_fragment", 3, 1, 1)
+	# table.add_entry("hellfire_shard", 1, 1, 1)
+
 	return table

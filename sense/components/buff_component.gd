@@ -85,6 +85,7 @@ func apply_buff(item: ItemData) -> void:
 
 	active_buffs.append(buff_data)
 	buff_applied.emit(buff_data)
+	GameEvent.buff_applied.emit(buff_id)
 	buffs_changed.emit()
 
 
@@ -102,6 +103,7 @@ func clear_all_buffs() -> void:
 	active_buffs.clear()
 	for id: String in ids:
 		buff_expired.emit(id)
+		GameEvent.buff_expired.emit(id)
 	buffs_changed.emit()
 
 
@@ -152,4 +154,5 @@ func _remove_buff_internal(buff_id: String) -> void:
 		if active_buffs[i].get("id", "") == buff_id:
 			active_buffs.remove_at(i)
 			buff_expired.emit(buff_id)
+			GameEvent.buff_expired.emit(buff_id)
 			return

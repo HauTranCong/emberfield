@@ -582,6 +582,8 @@ func _on_category_tab_pressed(cat_name: String) -> void:
 
 
 func _refresh_all() -> void:
+	if recipe_list_container == null:
+		return
 	_populate_recipe_list()
 	_refresh_detail()
 

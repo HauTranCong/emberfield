@@ -32,6 +32,13 @@ extends CharacterBody2D
 ## ║    │  │   • Animation xong → tắt hitbox → về IDLE               │  │         ║
 ## ║    │  └─────────────────────────────────────────────────────────┘  │         ║
 ## ║    │                                                               │         ║
+## ║    │  ┌─────────────────────────────────────────────────────────┐  │         ║
+## ║    │  │                      SKILL                              │  │         ║
+## ║    │  │   • v = 0 (đứng yên khi dùng skill)                     │  │         ║
+## ║    │  │   • SkillExecutor spawns hitbox + VFX                   │  │         ║
+## ║    │  │   • skill_effect_finished → về IDLE                     │  │         ║
+## ║    │  └─────────────────────────────────────────────────────────┘  │         ║
+## ║    │                                                               │         ║
 ## ║    └───────────────────────────────────────────────────────────────┘         ║
 ## ║                                                                              ║
 ## ╠══════════════════════════════════════════════════════════════════════════════╣
@@ -63,8 +70,9 @@ extends CharacterBody2D
 ## - IDLE: Đứng yên, chờ input. Nếu có move input → MOVE, attack → ATTACK
 ## - MOVE: Di chuyển theo input với stats.move_speed. Attack có thể cancel
 ## - ATTACK: Đứng yên, chờ animation xong. Bật hitbox gây damage
+## - SKILL: Đứng yên, sử dụng active skill (từ augment). SkillExecutor handles effect
 ## - DEATH: Chết, không xử lý input, chờ respawn
-enum State { IDLE, MOVE, ATTACK, DEATH }
+enum State { IDLE, MOVE, ATTACK, DEATH, SKILL }
 
 # =============================================================================
 # DEBUG VISUALIZATION
@@ -77,14 +85,16 @@ const STATE_COLORS := {
 	State.IDLE: Color.CYAN,       # Xanh dương - đang chờ
 	State.MOVE: Color.GREEN,      # Xanh lá - đang di chuyển
 	State.ATTACK: Color.RED,      # Đỏ - đang tấn công
-	State.DEATH: Color.BLACK      # Đen - đã chết
+	State.DEATH: Color.BLACK,     # Đen - đã chết
+	State.SKILL: Color.MAGENTA    # Tím - đang dùng skill
 }
 
 const STATE_NAMES := {
 	State.IDLE: "IDLE",
 	State.MOVE: "MOVE",
 	State.ATTACK: "ATTACK",
-	State.DEATH: "DEATH"
+	State.DEATH: "DEATH",
+	State.SKILL: "SKILL"
 }
 
 ## ┌─────────────────────────────────────────────────────────────────┐
@@ -159,6 +169,19 @@ var invincibility_duration: float = 0.5
 var hitbox_active: bool = false
 
 # =============================================================================
+# COMPONENT REFERENCES (created in _ready)
+# =============================================================================
+
+## BuffComponent — manages timed stat buffs
+var buff_component: BuffComponent
+## PassiveEffectProcessor — handles on-hit/on-damage passive effects
+var passive_processor: PassiveEffectProcessor
+## SkillComponent — manages equipment-bound active skills
+var skill_component: SkillComponent
+## SkillExecutor — spawns skill hitboxes/effects in the world
+var skill_executor: SkillExecutor
+
+# =============================================================================
 # LIFECYCLE METHODS
 # =============================================================================
 
@@ -201,6 +224,9 @@ func _ready() -> void:
 	hurtbox.collision_mask = CollisionLayers.Layer.ENEMY_HITBOX
 	hurtbox.damage_received.connect(_on_hurtbox_damage_received)
 	# print("[PLAYER] Hurtbox - Layer: ", hurtbox.collision_layer, " Mask: ", hurtbox.collision_mask)
+	
+	# === CREATE & WIRE NEW COMPONENTS ===
+	_setup_components()
 
 
 func _physics_process(delta: float) -> void:
@@ -228,6 +254,8 @@ func _physics_process(delta: float) -> void:
 			_state_move()
 		State.ATTACK:
 			_state_attack()
+		State.SKILL:
+			_state_skill()
 	
 	# Check inventory toggle input (B key)
 	if Input.is_action_just_pressed("open_inventory"):
@@ -299,6 +327,14 @@ func _state_attack() -> void:
 	# Animation đang chạy, khi xong sẽ gọi _on_animation_finished
 
 
+## Xử lý trạng thái SKILL - đang sử dụng active skill
+## Player đứng yên, SkillExecutor xử lý effect và emit skill_effect_finished
+func _state_skill() -> void:
+	velocity = Vector2.ZERO
+	move_and_slide()
+	# State transition handled by _on_skill_effect_finished()
+
+
 ## Xử lý trạng thái DEATH - nhân vật đã chết
 func _state_death() -> void:
 	velocity = Vector2.ZERO
@@ -321,6 +357,8 @@ func _change_state(new_state: State) -> void:
 			_play_attack_animation()
 		State.DEATH:
 			_play_death_animation()
+		State.SKILL:
+			_play_idle_animation()  # Use idle anim as placeholder during skill
 
 
 ## Callback khi animation kết thúc
@@ -528,6 +566,9 @@ func _direction_to_attack_key(d: Vector2) -> String:
 
 ## Callback khi stats emit signal died
 func _on_died() -> void:
+	# Clear all buffs on death
+	if buff_component:
+		buff_component.clear_all_buffs()
 	die()
 
 
@@ -607,7 +648,7 @@ func _add_inventory_to_hud() -> void:
 		push_warning("Player: HUD not found, adding inventory panel to self")
 		add_child(inventory_panel)
 	
-	inventory_panel.setup(inventory)
+	inventory_panel.setup(inventory, stats)
 	
 	# Connect item use signal from inventory panel
 	if inventory_panel.has_signal("item_used"):
@@ -635,6 +676,10 @@ func _add_starter_items() -> void:
 	var iron_ore := ItemDatabase.get_item("iron_ore")
 	if iron_ore:
 		inventory.add_item(iron_ore, 23)
+
+	var herb_segment := ItemDatabase.get_item("herb_segment")
+	if herb_segment:
+		inventory.add_item(herb_segment, 12)	
 
 
 ## Toggle inventory panel visibility
@@ -672,16 +717,36 @@ func _on_equipment_changed(_slot_type: String) -> void:
 
 ## Called when player uses an item from inventory
 func _on_item_used(result: Dictionary) -> void:
-	if result.success and stats != null:
-		# Apply heal
-		if result.heal_amount > 0:
-			stats.heal(result.heal_amount)
-			print("[PLAYER] Used item: healed ", result.heal_amount, " HP")
-		
-		# Apply stamina restore
-		if result.stamina_restore > 0:
-			stats.restore_stamina(result.stamina_restore)
-			print("[PLAYER] Used item: restored ", result.stamina_restore, " stamina")
+	if not result.get("success", false) or stats == null:
+		return
+	
+	# Handle timed buff consumables (from crafting system)
+	if result.get("is_timed_buff", false):
+		var buff_item: ItemData = result.get("buff_item")
+		if buff_item and buff_component:
+			buff_component.apply_buff(buff_item)
+			print("[PLAYER] Applied timed buff: ", buff_item.name,
+				" | ATK+", buff_item.attack_bonus,
+				" DEF+", buff_item.defense_bonus,
+				" HP+", buff_item.health_bonus,
+				" SPD+", buff_item.speed_bonus,
+				" Duration=", buff_item.buff_duration, "s")
+			print("[PLAYER] Stats after buff → ATK=", stats.attack_damage,
+				" DEF=", stats.defense,
+				" MaxHP=", stats.max_health,
+				" SPD=", stats.move_speed)
+		return
+	
+	# Handle regular consumables (existing logic)
+	var heal_amount: int = result.get("heal_amount", 0)
+	if heal_amount > 0:
+		stats.heal(heal_amount)
+		print("[PLAYER] Used item: healed ", heal_amount, " HP")
+	
+	var stamina_restore: float = result.get("stamina_restore", 0.0)
+	if stamina_restore > 0:
+		stats.restore_stamina(stamina_restore)
+		print("[PLAYER] Used item: restored ", stamina_restore, " stamina")
 
 
 ## Heal player from pickup
@@ -700,6 +765,109 @@ func restore_stamina_from_pickup(amount: float) -> void:
 func add_xp(amount: int) -> void:
 	# TODO: Implement XP/leveling system
 	print("[PLAYER] Gained ", amount, " XP")
+
+
+# =============================================================================
+# COMPONENT SETUP (BuffComponent, PassiveEffectProcessor, SkillComponent, SkillExecutor)
+# =============================================================================
+
+## Create and wire decoupled components for buffs, passives, skills
+func _setup_components() -> void:
+	# --- BuffComponent: manages timed stat buffs ---
+	buff_component = BuffComponent.new()
+	buff_component.name = "BuffComponent"
+	add_child(buff_component)
+	buff_component.buffs_changed.connect(_on_buffs_changed)
+
+	# --- PassiveEffectProcessor: on-hit / on-damaged passive effects ---
+	passive_processor = PassiveEffectProcessor.new()
+	passive_processor.name = "PassiveEffectProcessor"
+	add_child(passive_processor)
+	passive_processor.get_passive_effects_func = _get_all_passive_effects
+	passive_processor.get_owner_stats_func = func() -> CharacterStats: return stats
+	passive_processor.get_owner_node_func = func() -> Node2D: return self
+
+	# --- SkillComponent: equipment-bound active skills ---
+	skill_component = SkillComponent.new()
+	skill_component.name = "SkillComponent"
+	add_child(skill_component)
+	skill_component.get_active_skills_func = func() -> Array: return inventory.get_all_augment_active_skills()
+	skill_component.use_stamina_func = func(cost: float) -> bool: return stats.use_stamina(cost)
+	skill_component.skill_activated.connect(_on_skill_activated)
+
+	# --- SkillExecutor: spawns skill hitboxes/effects ---
+	skill_executor = SkillExecutor.new()
+	skill_executor.name = "SkillExecutor"
+	add_child(skill_executor)
+	skill_executor.skill_effect_finished.connect(_on_skill_effect_finished)
+
+	# --- Wire existing hitbox/hurtbox to passive processor ---
+	attack_hitbox.hit_landed.connect(func(hurtbox_area: Area2D) -> void:
+		passive_processor.on_hit_landed(hurtbox_area, stats.attack_damage)
+	)
+	hurtbox.damage_received.connect(func(amount: int, knockback: float, from_pos: Vector2) -> void:
+		passive_processor.on_damage_received(amount, knockback, from_pos)
+	)
+
+	# --- Wire equipment/augment changes to rebuild skills ---
+	inventory.augments_changed.connect(func(_slot: String) -> void: skill_component.rebuild_skills())
+	inventory.equipment_changed.connect(func(_slot: String) -> void: skill_component.rebuild_skills())
+
+	# --- Wire buff/skill components to HUD ---
+	_connect_components_to_hud.call_deferred()
+
+
+## Connect buff and skill components to HUD (deferred since HUD may not exist yet)
+func _connect_components_to_hud() -> void:
+	var hud = get_tree().root.get_node_or_null("Main/HUD")
+	if hud == null:
+		return
+
+	# Wire BuffComponent → HUD status icons
+	if hud.has_method("connect_buff_component"):
+		hud.connect_buff_component(buff_component)
+
+	# Wire SkillComponent → HUD skill display
+	if hud.has_method("connect_skill_component"):
+		hud.connect_skill_component(skill_component)
+
+
+# =============================================================================
+# SKILL & BUFF SIGNAL HANDLERS
+# =============================================================================
+
+## Called when BuffComponent.buffs_changed fires — recalculate stats
+func _on_buffs_changed() -> void:
+	stats.apply_buff_bonuses(buff_component)
+
+
+## Called when SkillComponent.skill_activated fires — enter SKILL state + execute
+func _on_skill_activated(skill_id: String) -> void:
+	if current_state == State.DEATH:
+		return
+	_change_state(State.SKILL)
+	var skill_data := SkillDatabase.get_skill(skill_id)
+	if skill_data:
+		skill_executor.execute_skill(skill_data, global_position, last_dir, stats.attack_damage, self)
+		GameEvent.skill_used.emit(skill_id)
+	# TODO: Play skill animation based on skill_id
+
+
+## Called when SkillExecutor.skill_effect_finished fires — return to IDLE
+func _on_skill_effect_finished(_skill_id: String) -> void:
+	if current_state == State.SKILL:
+		_change_state(State.IDLE)
+
+
+## Aggregate passive effects from augments + active timed buffs
+## Used by PassiveEffectProcessor via injected Callable
+func _get_all_passive_effects() -> Array[Dictionary]:
+	var effects: Array[Dictionary] = []
+	if inventory:
+		effects.append_array(inventory.get_all_augment_passive_effects())
+	if buff_component:
+		effects.append_array(buff_component.get_active_passive_effects())
+	return effects
 
 
 # =============================================================================

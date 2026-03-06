@@ -1,6 +1,6 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://y50yu4eyc8gn"]
 
-[ext_resource type="Script" path="res://sense/ui/augment/augment_panel.gd" id="1_augment"]
+[ext_resource type="Script" uid="uid://cq2j144uiiqqn" path="res://sense/ui/augment/augment_panel.gd" id="1_augment"]
 
-[node name="AugmentPanel" type="PanelContainer"]
+[node name="AugmentPanel" type="PanelContainer" unique_id=511747447]
 script = ExtResource("1_augment")

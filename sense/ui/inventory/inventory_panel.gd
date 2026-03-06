@@ -51,6 +51,7 @@ var _embedded := false
 @onready var tooltip_stats: Label = $CenterContainer/MainPanel/TooltipPanel/MarginContainer/TooltipContent/ItemStats
 
 var inventory_data: InventoryData
+var character_stats: CharacterStats
 var inventory_slots: Array[InventorySlotUI] = []
 var equipment_slots: Dictionary = {}
 var selected_slot_index: int = -1
@@ -195,12 +196,17 @@ func _setup_equipment_slots() -> void:
 		equipment_slots[slot_type] = slot
 
 
-## Setup inventory with data
-func setup(data: InventoryData) -> void:
+## Setup inventory with data and optional character stats
+func setup(data: InventoryData, stats: CharacterStats = null) -> void:
 	inventory_data = data
+	character_stats = stats
 	inventory_data.inventory_changed.connect(_refresh_inventory)
 	inventory_data.equipment_changed.connect(_refresh_equipment)
 	inventory_data.gold_changed.connect(_refresh_gold)
+	
+	# Refresh stats when buffs change (via health_changed which fires on buff apply)
+	if character_stats:
+		character_stats.health_changed.connect(func(_c: int, _m: int) -> void: _refresh_stats())
 	
 	_refresh_inventory()
 	_refresh_equipment("")
@@ -277,8 +283,14 @@ func _refresh_stats() -> void:
 	if inventory_data == null:
 		return
 	
-	atk_value.text = str(inventory_data.get_total_attack_bonus())
-	def_value.text = str(inventory_data.get_total_defense_bonus())
+	if character_stats:
+		# Show total stats (base + equipment + buff)
+		atk_value.text = str(character_stats.attack_damage)
+		def_value.text = str(character_stats.defense)
+	else:
+		# Fallback: equipment bonuses only
+		atk_value.text = str(inventory_data.get_total_attack_bonus())
+		def_value.text = str(inventory_data.get_total_defense_bonus())
 
 
 func _refresh_gold(amount: int) -> void:

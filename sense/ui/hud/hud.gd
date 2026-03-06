@@ -95,6 +95,51 @@ func show_freeze_icon(value: bool = true) -> void:
 	icon_freeze.visible = value
 
 
+## Connect BuffComponent signals to HUD status icons
+## Called by Player after creating BuffComponent
+func connect_buff_component(buff_comp: BuffComponent) -> void:
+	buff_comp.buff_applied.connect(_on_buff_applied)
+	buff_comp.buff_expired.connect(_on_buff_expired)
+
+
+## Connect SkillComponent signals to HUD skill display
+## Called by Player after creating SkillComponent
+func connect_skill_component(skill_comp: SkillComponent) -> void:
+	skill_comp.skills_changed.connect(_on_skills_changed)
+	skill_comp.skill_cooldown_updated.connect(_on_skill_cooldown_updated)
+
+
+func _on_buff_applied(buff_data: Dictionary) -> void:
+	var source_id: String = buff_data.get("source_item_id", "")
+	# Map known buff IDs to existing icon slots
+	if "speed" in source_id:
+		show_speed_icon(true)
+	elif "vitality" in source_id or "health" in source_id:
+		show_heal_icon(true)
+	elif "defense" in source_id:
+		show_shield_icon(true)
+	# TODO: Add duration overlay (Label with countdown) on each icon
+
+
+func _on_buff_expired(buff_id: String) -> void:
+	if "speed" in buff_id:
+		show_speed_icon(false)
+	elif "vitality" in buff_id or "health" in buff_id:
+		show_heal_icon(false)
+	elif "defense" in buff_id:
+		show_shield_icon(false)
+
+
+func _on_skills_changed() -> void:
+	# TODO: Rebuild skill icon display (small icons in bottom-right HUD area)
+	pass
+
+
+func _on_skill_cooldown_updated(_skill_id: String, _remaining: float) -> void:
+	# TODO: Update cooldown sweep overlay on the skill icon
+	pass
+
+
 func set_status_icon(icon_name: String, value: bool) -> void:
 	match icon_name:
 		"speed":

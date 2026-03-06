@@ -125,17 +125,52 @@ func _ready():
 ## File Structure Conventions
 ```
 sense/
-├── components/     # HitboxComponent, HurtboxComponent, HealthComponent, ShopComponent
+├── main.gd / Main.tscn          # Game entry point
+├── components/                   # Reusable game components
+│   ├── health_component.gd       # Health management
+│   ├── hitbox_component.gd       # Deals damage (Area2D)
+│   ├── hurtbox_component.gd      # Receives damage (Area2D)
+│   ├── buff_component.gd         # Buff/debuff system
+│   ├── shop_component.gd         # Shop interaction logic
+│   ├── skill_component.gd        # Skill usage
+│   ├── passive_effect_processor.gd # Passive item effects
+│   ├── ui_popup_component.gd     # UI popup helper
+│   └── interaction_manager/      # Interaction system (gd + tscn)
 ├── entities/
-│   ├── player/     # player.gd, character_stats.gd
-│   ├── enemies/    # skeleton/, etc.
-│   └── npcs/       # blacksmith/, merchant/
-├── globals/        # collision_layers.gd, game_manager.gd
-├── items/          # item_data.gd, item_database.gd, game_item.gd, item_spawner.gd
-├── maps/           # town.tscn, forest.tscn
+│   ├── player/                   # player.gd, character_stats.gd, player.tscn
+│   ├── enemies/
+│   │   └── skeleton/             # skeleton.gd, skeleton.tscn
+│   └── npcs/
+│       ├── blacksmith/           # blacksmith.gd, furnace_fire.gd, smith_shop_popup
+│       └── merchant/             # general_goods.gd, item_sell.gd, ui_general_shop.gd
+├── globals/                      # Autoloaded singletons & services
+│   ├── collision_layers.gd       # CollisionLayers.Layer enum
+│   ├── game_event.gd             # Global event bus
+│   ├── camera_service.gd         # Camera management
+│   └── scene_transition_service.gd # Scene transitions
+├── items/                        # Item system
+│   ├── item_data.gd              # Item resource definition
+│   ├── item_database.gd          # Item registry
+│   ├── item_helper.gd            # Item utility functions
+│   ├── item_spawner.gd           # Spawns items in world
+│   ├── game_item.gd / game_item.tscn # World pickup entity
+│   ├── loot_table.gd             # Loot drop tables
+│   └── item_icon_atlas.gd        # Icon atlas for items
+├── maps/
+│   ├── town/                     # town.gd, town.tscn
+│   ├── dungeon/                  # dungeon_generator.gd, dungeon_level.gd, return_portal
+│   └── portal/                   # portal.gd, portal.tscn
+├── skills/                       # Skill system
+│   ├── skill_data.gd             # Skill resource definition
+│   ├── skill_database.gd         # Skill registry
+│   ├── skill_executor.gd         # Skill execution logic
+│   └── whirlwind_vfx.gd / WhirlwindVFX.tscn # Skill VFX
 └── ui/
-    ├── hud/
-    └── inventory/  # inventory_data.gd, inventory_panel.gd
+    ├── dim_background.gd         # Background dimming for panels
+    ├── hud/                      # hud.gd, pixel_bar.gd, dungeon_minimap.gd
+    ├── inventory/                # inventory_data.gd, inventory_panel.gd, inventory_slot_ui.gd
+    ├── augment/                  # augment_panel.gd, AugmentPanel.tscn
+    └── crafting/                 # crafting_panel.gd, crafting_recipe.gd, recipe_database.gd
 ```
 
 ## Naming Conventions
