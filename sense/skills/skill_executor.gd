@@ -14,7 +14,7 @@ signal skill_effect_finished(skill_id: String)
 func execute_skill(skill: SkillData, origin: Vector2, direction: Vector2, base_damage: int, parent_node: Node2D) -> void:
 	match skill.id:
 		"whirlwind":
-			_execute_whirlwind(skill, origin, base_damage, parent_node)
+			_execute_whirlwind(skill, origin, direction, base_damage, parent_node)
 		"shield_bash":
 			_execute_shield_bash(skill, origin, direction, base_damage, parent_node)
 		"fire_burst":
@@ -24,26 +24,41 @@ func execute_skill(skill: SkillData, origin: Vector2, direction: Vector2, base_d
 			skill_effect_finished.emit(skill.id)
 
 
-func _execute_whirlwind(skill: SkillData, origin: Vector2, base_damage: int, parent_node: Node2D) -> void:
-	# AoE circle around player
-	var damage := int(float(base_damage) * skill.damage_multiplier)
-	var hitbox := _create_skill_hitbox(origin, skill.range_radius, damage, skill.knockback_force, parent_node)
+func _execute_whirlwind(skill: SkillData, origin: Vector2, direction: Vector2, base_damage: int, parent_node: Node2D) -> void:
+	# Storm-like whirlwind that moves forward in the player's facing direction
+	var damage : int = int(float(base_damage) * skill.damage_multiplier)
+	var dir : Vector2 = direction.normalized() if direction != Vector2.ZERO else Vector2.RIGHT
 
-	# Spawn VFX if effect_scene is set
-	_spawn_vfx(skill, origin, parent_node)
+	# Create hitbox at player position
+	var hitbox : Area2D = _create_skill_hitbox(origin, skill.range_radius, damage, skill.knockback_force, parent_node)
 
-	# Active for 0.5s (matches VFX animation length) then cleanup
+	# Tween hitbox forward along direction (matches VFX position animation: ~90px travel)
+	var travel_distance : float = 120.0
+	var end_pos : Vector2 = origin + dir * travel_distance
+	var tween : Tween = get_tree().create_tween()
+	tween.tween_property(hitbox, "global_position", end_pos, 0.5)
+
+	# Spawn VFX at player position, rotated so local +X = facing direction
+	if skill.effect_scene:
+		var vfx: Node2D = skill.effect_scene.instantiate()
+		vfx.global_position = origin
+		vfx.rotation = dir.angle()
+		parent_node.get_parent().add_child(vfx)
+
+	# Active for 0.5s (matches spin animation length) then cleanup
 	await get_tree().create_timer(0.5).timeout
 	if is_instance_valid(hitbox):
 		hitbox.queue_free()
+	if tween.is_valid():
+		tween.kill()
 	skill_effect_finished.emit(skill.id)
 
 
 func _execute_shield_bash(skill: SkillData, origin: Vector2, direction: Vector2, base_damage: int, parent_node: Node2D) -> void:
 	# Forward cone
-	var damage := int(float(base_damage) * skill.damage_multiplier)
-	var offset := direction.normalized() * skill.range_radius * 0.5
-	var hitbox := _create_skill_hitbox(origin + offset, skill.range_radius * 0.6, damage, skill.knockback_force, parent_node)
+	var damage : int = int(float(base_damage) * skill.damage_multiplier)
+	var offset : Vector2 = direction.normalized() * skill.range_radius * 0.5
+	var hitbox : Area2D = _create_skill_hitbox(origin + offset, skill.range_radius * 0.6, damage, skill.knockback_force, parent_node)
 
 	_spawn_vfx(skill, origin + offset, parent_node)
 
@@ -55,9 +70,9 @@ func _execute_shield_bash(skill: SkillData, origin: Vector2, direction: Vector2,
 
 func _execute_fire_burst(skill: SkillData, origin: Vector2, direction: Vector2, base_damage: int, parent_node: Node2D) -> void:
 	# Ranged projectile-like AoE at distance
-	var damage := int(float(base_damage) * skill.damage_multiplier)
-	var target_pos := origin + direction.normalized() * skill.range_radius
-	var hitbox := _create_skill_hitbox(target_pos, 25.0, damage, skill.knockback_force, parent_node)
+	var damage : int = int(float(base_damage) * skill.damage_multiplier)
+	var target_pos : Vector2 = origin + direction.normalized() * skill.range_radius
+	var hitbox : Area2D = _create_skill_hitbox(target_pos, 25.0, damage, skill.knockback_force, parent_node)
 
 	_spawn_vfx(skill, target_pos, parent_node)
 
@@ -82,17 +97,17 @@ func _create_skill_hitbox(pos: Vector2, radius: float, damage: int, knockback: f
 	shape.shape = circle
 	area.add_child(shape)
 
-	# Connect to detect hurtboxes
+	# Connect to detect hurtboxes (use area's live position for knockback direction)
 	area.area_entered.connect(func(other: Area2D):
 		if other.has_method("take_damage"):
-			other.take_damage(damage, knockback, pos)
+			other.take_damage(damage, knockback, area.global_position)
 	)
 
 	parent_node.get_parent().add_child(area)
 	return area
 
 
-## Spawn the VFX scene at a position (if skill has an effect_scene)
+## Spawn the VFX scene at a fixed world position (for non-follow skills)
 func _spawn_vfx(skill: SkillData, pos: Vector2, parent_node: Node2D) -> void:
 	if skill.effect_scene == null:
 		return
