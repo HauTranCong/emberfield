@@ -440,11 +440,17 @@ func _on_inventory_slot_right_clicked(index: int) -> void:
 			_apply_consumable_effect(result)
 
 
-## Handle right-click on equipment slot (unequip)
+## Handle right-click on equipment slot (unequip or augment)
 func _on_equipment_slot_right_clicked(_index: int, slot_type: String) -> void:
 	if inventory_data == null:
 		return
-	inventory_data.unequip_item(slot_type)
+
+	var item := inventory_data.get_equipped(slot_type)
+	if item != null and item.get_augment_slot_count() > 0:
+		# If item has augment slots, open augment panel instead of unequipping
+		_open_augment_panel(slot_type)
+	else:
+		inventory_data.unequip_item(slot_type)
 
 
 ## Handle hover on equipment slot
@@ -503,6 +509,8 @@ func _get_item_type_string(type: ItemData.ItemType) -> String:
 		ItemData.ItemType.CONSUMABLE: return "Consumable"
 		ItemData.ItemType.MATERIAL: return "Material"
 		ItemData.ItemType.QUEST: return "Quest Item"
+		ItemData.ItemType.SEGMENT: return "Segment"
+		ItemData.ItemType.AUGMENT: return "Augment"
 		_: return "Unknown"
 
 
@@ -520,13 +528,83 @@ func _get_item_stats_string(item: ItemData) -> String:
 		stats.append("💚 Heals %d HP" % item.heal_amount)
 	if item.stamina_restore > 0:
 		stats.append("💙 Restores %.0f Stamina" % item.stamina_restore)
-	
+
+	# Augment-specific stats
+	if item.item_type == ItemData.ItemType.AUGMENT:
+		match item.augment_type:
+			ItemData.AugmentType.PASSIVE_EFFECT:
+				stats.append(_get_passive_effect_description(item.passive_effect, item.passive_value))
+			ItemData.AugmentType.ACTIVE_SKILL:
+				stats.append("Grants Skill: %s" % item.active_skill_id)
+			ItemData.AugmentType.TIMED_BUFF:
+				stats.append("Duration: %.0fs" % item.buff_duration)
+
+	# Augment slots on equippable items
+	if item.is_equippable() and item.get_augment_slot_count() > 0:
+		stats.append("")
+		stats.append("--- Augment Slots ---")
+		var slot_count := item.get_augment_slot_count()
+		for i in range(slot_count):
+			if i < item.applied_augments.size():
+				var aug_id: String = item.applied_augments[i]
+				var aug_item: ItemData = ItemDatabase.get_item(aug_id)
+				if aug_item:
+					stats.append("  [%s]" % aug_item.name)
+				else:
+					stats.append("  [Unknown]")
+			else:
+				stats.append("  [ Empty Slot ]")
+
 	if stats.size() > 0:
 		return "\n".join(stats)
 	return ""
+
+
+func _get_passive_effect_description(effect: ItemData.PassiveEffect, value: float) -> String:
+	match effect:
+		ItemData.PassiveEffect.LIFE_STEAL:    return "Life Steal: %.0f%%" % value
+		ItemData.PassiveEffect.CRIT_CHANCE:   return "Crit Chance: +%.0f%%" % value
+		ItemData.PassiveEffect.THORNS:        return "Thorns: Reflect %.0f%% damage" % value
+		ItemData.PassiveEffect.BURN_ON_HIT:   return "Burn: %.0f damage/s for 3s" % value
+		ItemData.PassiveEffect.FREEZE_ON_HIT: return "Freeze: Slow %.0f%% for 2s" % value
+		ItemData.PassiveEffect.POISON_ON_HIT: return "Poison: %.0f damage/s for 3s" % value
+		_: return ""
 
 
 func _apply_consumable_effect(result: Dictionary) -> void:
 	print("[Inventory] Used consumable: heal=%d, stamina=%f" % [result.heal_amount, result.stamina_restore])
 	# Emit signal so player can apply the effects
 	item_used.emit(result)
+
+
+# =============================================================================
+# AUGMENT PANEL INTEGRATION
+# =============================================================================
+
+## Open the augment panel for a specific equipment slot
+func _open_augment_panel(equip_slot: String) -> void:
+	var equipment: ItemData = inventory_data.get_equipped(equip_slot)
+	if equipment == null or equipment.get_augment_slot_count() == 0:
+		return
+
+	# Remove existing augment panel if any
+	var existing := get_node_or_null("AugmentPanel")
+	if existing:
+		existing.queue_free()
+
+	var panel := AugmentPanel.new()
+	panel.name = "AugmentPanel"
+	add_child(panel)
+	panel.setup(inventory_data, equip_slot)
+
+	# Position near the equipment panel
+	var eq_slot_ui: Control = equipment_slots.get(equip_slot)
+	if eq_slot_ui:
+		await get_tree().process_frame
+		var slot_rect := eq_slot_ui.get_global_rect()
+		panel.global_position = Vector2(slot_rect.end.x + 10, slot_rect.position.y)
+
+
+## Called from equipment slot context — shows augment button if item has slots
+func _on_augment_button_pressed(equip_slot: String) -> void:
+	_open_augment_panel(equip_slot)

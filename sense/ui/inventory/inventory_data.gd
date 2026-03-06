@@ -416,7 +416,7 @@ func use_item(index: int) -> Dictionary:
 
 	# Handle timed buff consumables (crafted AUGMENT with TIMED_BUFF type)
 	if item.is_timed_buff():
-		var result := {
+		var buff_result := {
 			"success": true,
 			"is_timed_buff": true,
 			"buff_item": item,  # Pass full ItemData so BuffComponent can read it
@@ -425,7 +425,7 @@ func use_item(index: int) -> Dictionary:
 			"effect_duration": item.buff_duration
 		}
 		remove_item_at(index, 1)
-		return result
+		return buff_result
 
 	# Handle regular consumables (existing logic)
 	var result := {

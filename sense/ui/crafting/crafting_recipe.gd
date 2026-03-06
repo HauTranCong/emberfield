@@ -61,7 +61,10 @@ func get_highest_craftable_tier(inventory: InventoryData) -> int:
 ## Get ingredient list for a specific tier (for UI display)
 func get_ingredients(tier: int) -> Array[Dictionary]:
 	var tier_data := _get_tier_data(tier)
-	return tier_data.get("ingredients", []) as Array[Dictionary]
+	var raw: Array = tier_data.get("ingredients", [])
+	var result: Array[Dictionary] = []
+	result.assign(raw)
+	return result
 
 
 ## Get result item ID for a specific tier

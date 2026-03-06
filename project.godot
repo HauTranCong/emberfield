@@ -23,7 +23,7 @@ GameEvent="*res://sense/globals/game_event.gd"
 ItemDatabase="*res://sense/items/item_database.gd"
 SceneTransitionService="*res://sense/globals/scene_transition_service.gd"
 CameraService="*res://sense/globals/camera_service.gd"
-RecipeDatabase="*res://sense/crafting/recipe_database.gd"
+RecipeDatabase="*res://sense/ui/crafting/recipe_database.gd"
 SkillDatabase="*res://sense/skills/skill_database.gd"
 
 [display]
