@@ -35,3 +35,18 @@ func _on_interact() -> void:
 func _on_purchase_requested(item: Dictionary) -> void:
 	# Delegate to ShopComponent (general approach for all shops)
 	shop.process_purchase(item)
+
+## Called when purchase is successful
+func _on_purchase_successful(item: Dictionary, remaining_gold: int) -> void:
+	var item_name: String = item.get("name", "item")
+	NotificationManager.show_success("Purchased %s! (%d G remaining)" % [item_name, remaining_gold])
+
+func _on_purchase_failed(reason: String, item: Dictionary) -> void:
+	var item_name: String = item.get("name", "item")
+	match reason:
+		"Not enough gold":
+			NotificationManager.show_error("Not enough gold to buy %s!" % item_name)
+		"Inventory full":
+			NotificationManager.show_warning("Inventory full! Can't buy %s." % item_name)
+		_:
+			NotificationManager.show_error("Cannot purchase %s." % item_name)

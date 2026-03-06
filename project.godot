@@ -23,6 +23,8 @@ GameEvent="*res://sense/globals/game_event.gd"
 ItemDatabase="*res://sense/items/item_database.gd"
 SceneTransitionService="*res://sense/globals/scene_transition_service.gd"
 CameraService="*res://sense/globals/camera_service.gd"
+NotificationManager="*res://sense/globals/notification_manager.gd"
+ConfirmDialog="*res://sense/globals/confirm_dialog.gd"
 
 [display]
 

@@ -28,262 +28,229 @@ func _init_icon_atlas() -> void:
 
 
 func _create_sample_items() -> void:
-	# === WEAPONS ===
-	var iron_sword := ItemData.new()
-	iron_sword.id = "iron_sword"
-	iron_sword.name = "Iron Sword"
-	iron_sword.description = "A basic iron sword. Reliable but nothing special."
-	iron_sword.item_type = ItemData.ItemType.WEAPON
-	iron_sword.rarity = ItemData.ItemRarity.COMMON
-	iron_sword.stackable = false
-	iron_sword.attack_bonus = 15
-	iron_sword.buy_price = 100
-	iron_sword.sell_price = 50
-	# Use atlas icon
-	iron_sword.use_atlas_icon = true
-	iron_sword.atlas_icon_name = "sword_iron"
-	items["iron_sword"] = iron_sword
-	
-	var steel_sword := ItemData.new()
-	steel_sword.id = "steel_sword"
-	steel_sword.name = "Steel Sword"
-	steel_sword.description = "A well-crafted steel sword with a sharp edge."
-	steel_sword.item_type = ItemData.ItemType.WEAPON
-	steel_sword.rarity = ItemData.ItemRarity.UNCOMMON
-	steel_sword.stackable = false
-	steel_sword.attack_bonus = 25
-	steel_sword.buy_price = 300
-	steel_sword.sell_price = 150
-	steel_sword.use_atlas_icon = true
-	steel_sword.atlas_icon_name = "sword_iron"  # Reuse sword icon
-	items["steel_sword"] = steel_sword
-	
-	var fire_blade := ItemData.new()
-	fire_blade.id = "fire_blade"
-	fire_blade.name = "Flame Blade"
-	fire_blade.description = "A magical blade imbued with fire essence. Burns with eternal flame."
-	fire_blade.item_type = ItemData.ItemType.WEAPON
-	fire_blade.rarity = ItemData.ItemRarity.RARE
-	fire_blade.stackable = false
-	fire_blade.attack_bonus = 40
-	fire_blade.buy_price = 1000
-	fire_blade.sell_price = 500
-	fire_blade.use_atlas_icon = true
-	fire_blade.atlas_icon_name = "sword_iron"  # Reuse sword icon
-	items["fire_blade"] = fire_blade
-	
-	# === ARMOR ===
-	var leather_armor := ItemData.new()
-	leather_armor.id = "leather_armor"
-	leather_armor.name = "Leather Armor"
-	leather_armor.description = "Light leather armor that provides basic protection."
-	leather_armor.item_type = ItemData.ItemType.ARMOR
-	leather_armor.rarity = ItemData.ItemRarity.COMMON
-	leather_armor.stackable = false
-	leather_armor.defense_bonus = 10
-	leather_armor.buy_price = 80
-	leather_armor.sell_price = 40
-	leather_armor.use_atlas_icon = true
-	leather_armor.atlas_icon_name = "leather_armor"
-	items["leather_armor"] = leather_armor
-	
-	var iron_armor := ItemData.new()
-	iron_armor.id = "iron_armor"
-	iron_armor.name = "Iron Armor"
-	iron_armor.description = "Sturdy iron armor. Heavy but protective."
-	iron_armor.item_type = ItemData.ItemType.ARMOR
-	iron_armor.rarity = ItemData.ItemRarity.UNCOMMON
-	iron_armor.stackable = false
-	iron_armor.defense_bonus = 25
-	iron_armor.speed_bonus = -10.0
-	iron_armor.buy_price = 400
-	iron_armor.sell_price = 200
-	iron_armor.use_atlas_icon = true
-	iron_armor.atlas_icon_name = "leather_armor"  # Reuse armor icon
-	items["iron_armor"] = iron_armor
-	
-	# === HELMET ===
-	var iron_helmet := ItemData.new()
-	iron_helmet.id = "iron_helmet"
-	iron_helmet.name = "Iron Helmet"
-	iron_helmet.description = "A sturdy iron helmet to protect your head."
-	iron_helmet.item_type = ItemData.ItemType.HELMET
-	iron_helmet.rarity = ItemData.ItemRarity.COMMON
-	iron_helmet.stackable = false
-	iron_helmet.defense_bonus = 8
-	iron_helmet.buy_price = 60
-	iron_helmet.sell_price = 30
-	iron_helmet.use_atlas_icon = true
-	iron_helmet.atlas_icon_name = "helmet_horned"
-	items["iron_helmet"] = iron_helmet
-	
-	# === SHIELD ===
-	var wooden_shield := ItemData.new()
-	wooden_shield.id = "wooden_shield"
-	wooden_shield.name = "Wooden Shield"
-	wooden_shield.description = "A simple wooden shield. Better than nothing."
-	wooden_shield.item_type = ItemData.ItemType.SHIELD
-	wooden_shield.rarity = ItemData.ItemRarity.COMMON
-	wooden_shield.stackable = false
-	wooden_shield.defense_bonus = 12
-	wooden_shield.buy_price = 50
-	wooden_shield.sell_price = 25
-	wooden_shield.use_atlas_icon = true
-	wooden_shield.atlas_row = 18  # Shield row - adjust with debug tool
-	wooden_shield.atlas_col = 0
-	items["wooden_shield"] = wooden_shield
-	
-	# === BOOTS ===
-	var leather_boots := ItemData.new()
-	leather_boots.id = "leather_boots"
-	leather_boots.name = "Leather Boots"
-	leather_boots.description = "Comfortable leather boots for long journeys."
-	leather_boots.item_type = ItemData.ItemType.BOOTS
-	leather_boots.rarity = ItemData.ItemRarity.COMMON
-	leather_boots.stackable = false
-	leather_boots.defense_bonus = 5
-	leather_boots.speed_bonus = 10.0
-	leather_boots.buy_price = 40
-	leather_boots.sell_price = 20
-	leather_boots.use_atlas_icon = true
-	leather_boots.atlas_icon_name = "boot_green"
-	items["leather_boots"] = leather_boots
-	
-	# === ACCESSORIES ===
-	var silver_ring := ItemData.new()
-	silver_ring.id = "silver_ring"
-	silver_ring.name = "Silver Ring"
-	silver_ring.description = "A simple silver ring with minor enchantments."
-	silver_ring.item_type = ItemData.ItemType.ACCESSORY
-	silver_ring.rarity = ItemData.ItemRarity.UNCOMMON
-	silver_ring.stackable = false
-	silver_ring.attack_bonus = 5
-	silver_ring.defense_bonus = 5
-	silver_ring.buy_price = 200
-	silver_ring.sell_price = 100
-	silver_ring.use_atlas_icon = true
-	silver_ring.atlas_row = 8  # Ring row - adjust with debug tool
-	silver_ring.atlas_col = 2
-	items["silver_ring"] = silver_ring
-	
-	# === CONSUMABLES ===
-	var health_potion := ItemData.new()
-	health_potion.id = "health_potion"
-	health_potion.name = "Health Potion"
-	health_potion.description = "A red potion that restores health."
-	health_potion.item_type = ItemData.ItemType.CONSUMABLE
-	health_potion.rarity = ItemData.ItemRarity.COMMON
-	health_potion.stackable = true
-	health_potion.max_stack = 20
-	health_potion.heal_amount = 50
-	health_potion.buy_price = 25
-	health_potion.sell_price = 10
-	health_potion.use_atlas_icon = true
-	health_potion.atlas_icon_name = "potion_red"
-	items["health_potion"] = health_potion
-	
-	var large_health_potion := ItemData.new()
-	large_health_potion.id = "large_health_potion"
-	large_health_potion.name = "Large Health Potion"
-	large_health_potion.description = "A large red potion that greatly restores health."
-	large_health_potion.item_type = ItemData.ItemType.CONSUMABLE
-	large_health_potion.rarity = ItemData.ItemRarity.UNCOMMON
-	large_health_potion.stackable = true
-	large_health_potion.max_stack = 10
-	large_health_potion.heal_amount = 100
-	large_health_potion.buy_price = 75
-	large_health_potion.sell_price = 30
-	large_health_potion.use_atlas_icon = true
-	large_health_potion.atlas_icon_name = "potion_red"
-	items["large_health_potion"] = large_health_potion
-	
-	var stamina_potion := ItemData.new()
-	stamina_potion.id = "stamina_potion"
-	stamina_potion.name = "Stamina Potion"
-	stamina_potion.description = "A blue potion that restores stamina."
-	stamina_potion.item_type = ItemData.ItemType.CONSUMABLE
-	stamina_potion.rarity = ItemData.ItemRarity.COMMON
-	stamina_potion.stackable = true
-	stamina_potion.max_stack = 20
-	stamina_potion.stamina_restore = 50.0
-	stamina_potion.buy_price = 20
-	stamina_potion.sell_price = 8
-	stamina_potion.use_atlas_icon = true
-	stamina_potion.atlas_row = 9  # Potion row - blue potion
-	stamina_potion.atlas_col = 1
-	items["stamina_potion"] = stamina_potion
-	
-	# === MATERIALS ===
-	var iron_ore := ItemData.new()
-	iron_ore.id = "iron_ore"
-	iron_ore.name = "Iron Ore"
-	iron_ore.description = "Raw iron ore. Can be smelted into iron ingots."
-	iron_ore.item_type = ItemData.ItemType.MATERIAL
-	iron_ore.rarity = ItemData.ItemRarity.COMMON
-	iron_ore.stackable = true
-	iron_ore.max_stack = 99
-	iron_ore.buy_price = 10
-	iron_ore.sell_price = 5
-	iron_ore.use_atlas_icon = true
-	iron_ore.atlas_icon_name = "iron_ore"
-	items["iron_ore"] = iron_ore
-	
-	var gold_ore := ItemData.new()
-	gold_ore.id = "gold_ore"
-	gold_ore.name = "Gold Ore"
-	gold_ore.description = "Precious gold ore. Valuable but soft."
-	gold_ore.item_type = ItemData.ItemType.MATERIAL
-	gold_ore.rarity = ItemData.ItemRarity.UNCOMMON
-	gold_ore.stackable = true
-	gold_ore.max_stack = 99
-	gold_ore.buy_price = 50
-	gold_ore.sell_price = 25
-	gold_ore.use_atlas_icon = true
-	gold_ore.atlas_icon_name = "iron_ore"  # Reuse ore icon
-	items["gold_ore"] = gold_ore
-	
-	var monster_bone := ItemData.new()
-	monster_bone.id = "monster_bone"
-	monster_bone.name = "Monster Bone"
-	monster_bone.description = "A bone from a defeated monster. Used in crafting."
-	monster_bone.item_type = ItemData.ItemType.MATERIAL
-	monster_bone.rarity = ItemData.ItemRarity.COMMON
-	monster_bone.stackable = true
-	monster_bone.max_stack = 99
-	monster_bone.buy_price = 15
-	monster_bone.sell_price = 7
-	monster_bone.use_atlas_icon = true
-	monster_bone.atlas_icon_name = "bone"  # Uses ICONS["bone"] = Vector2i(17, 9)
-	items["monster_bone"] = monster_bone
-	
-	var bone := ItemData.new()
-	bone.id = "bone"
-	bone.name = "Bone"
-	bone.description = "A skeletal bone. Common drop from skeleton enemies."
-	bone.item_type = ItemData.ItemType.MATERIAL
-	bone.rarity = ItemData.ItemRarity.COMMON
-	bone.stackable = true
-	bone.max_stack = 99
-	bone.buy_price = 5
-	bone.sell_price = 2
-	bone.use_atlas_icon = true
-	bone.atlas_icon_name = "bone"  # Uses ICONS["bone"] = Vector2i(17, 9)
-	items["bone"] = bone
-	
-	# === CURRENCY (for visual drops) ===
-	var gold_coin := ItemData.new()
-	gold_coin.id = "gold_coin"
-	gold_coin.name = "Gold Coin"
-	gold_coin.description = "A shiny gold coin."
-	gold_coin.item_type = ItemData.ItemType.MATERIAL  # or create CURRENCY type
-	gold_coin.rarity = ItemData.ItemRarity.COMMON
-	gold_coin.stackable = true
-	gold_coin.max_stack = 9999
-	gold_coin.buy_price = 1
-	gold_coin.sell_price = 1
-	gold_coin.use_atlas_icon = true
-	gold_coin.atlas_icon_name = "gold_coin"
-	items["gold_coin"] = gold_coin
+	_create_weapons()
+	_create_armor()
+	_create_helmets()
+	_create_shields()
+	_create_boots()
+	_create_accessories()
+	_create_consumables()
+	_create_materials()
+
+
+func _create_weapons() -> void:
+	# Swords
+	items["wooden_sword"] = ItemHelper.create_item({
+		"id": "wooden_sword", "name": "Wooden Sword",
+		"description": "A basic wooden sword. Not very effective but better than nothing.",
+		"type": ItemData.ItemType.WEAPON, "price": 50, "attack": 5,
+		"icon_name": "wooden_sword"
+	})
+	items["iron_sword"] = ItemHelper.create_item({
+		"id": "iron_sword", "name": "Iron Sword",
+		"description": "A basic iron sword. Reliable but nothing special.",
+		"type": ItemData.ItemType.WEAPON, "price": 100, "attack": 15,
+		"icon_name": "iron_sword"
+	})
+	items["platinum_sword"] = ItemHelper.create_item({
+		"id": "platinum_sword", "name": "Platinum Sword",
+		"description": "A finely crafted platinum sword. Light and deadly.",
+		"type": ItemData.ItemType.WEAPON, "price": 300, "attack": 25, "speed": 5.0,
+		"icon_name": "platinum_sword"
+	})
+	# Blades
+	items["pirate_blade"] = ItemHelper.create_item({
+		"id": "pirate_blade", "name": "Pirate Blade",
+		"description": "A curved blade favored by pirates. Fast but less powerful.",
+		"type": ItemData.ItemType.WEAPON, "price": 120, "attack": 12, "speed": 10.0,
+		"icon_name": "pirate_blade"
+	})
+	# Axes
+	items["battle_axe"] = ItemHelper.create_item({
+		"id": "battle_axe", "name": "Battle Axe",
+		"description": "A heavy axe that deals massive damage.",
+		"type": ItemData.ItemType.WEAPON, "price": 250, "attack": 30, "speed": -5.0,
+		"icon_name": "battle_axe"
+	})
+	# Daggers
+	items["dagger"] = ItemHelper.create_item({
+		"id": "dagger", "name": "Dagger",
+		"description": "A quick, light blade for swift attacks.",
+		"type": ItemData.ItemType.WEAPON, "price": 90, "attack": 10, "speed": 15.0,
+		"icon_name": "dagger"
+	})
+	# Maces
+	items["thron_mace"] = ItemHelper.create_item({
+		"id": "thron_mace", "name": "Thron Mace",
+		"description": "A heavy mace that can crush armor.",
+		"type": ItemData.ItemType.WEAPON, "price": 220, "attack": 28, "speed": -10.0,
+		"icon_name": "thron_mace"
+	})
+	# Bows
+	items["hunting_bow"] = ItemHelper.create_item({
+		"id": "hunting_bow", "name": "Hunting Bow",
+		"description": "A reliable bow for ranged combat.",
+		"type": ItemData.ItemType.WEAPON, "price": 180, "attack": 20,
+		"icon_name": "hunting_bow"
+	})
+
+
+func _create_armor() -> void:
+	items["leather_armor"] = ItemHelper.create_item({
+		"id": "leather_armor", "name": "Leather Armor",
+		"description": "Light leather armor that provides basic protection.",
+		"type": ItemData.ItemType.ARMOR, "price": 80, "defense": 10,
+		"icon_name": "leather_armor"
+	})
+	items["iron_armor"] = ItemHelper.create_item({
+		"id": "iron_armor", "name": "Iron Armor",
+		"description": "Sturdy iron armor. Heavy but protective.",
+		"type": ItemData.ItemType.ARMOR, "price": 400, "defense": 25, "speed": -10.0,
+		"icon_name": "iron_armor"
+	})
+	items["plate_armor"] = ItemHelper.create_item({
+		"id": "plate_armor", "name": "Plate Armor",
+		"description": "Heavy full plate armor. Maximum protection.",
+		"type": ItemData.ItemType.ARMOR, "price": 600, "defense": 35, "speed": -15.0,
+		"icon_name": "plate_armor"
+	})
+
+
+func _create_helmets() -> void:
+	items["iron_helmet"] = ItemHelper.create_item({
+		"id": "iron_helmet", "name": "Iron Helmet",
+		"description": "A sturdy iron helmet to protect your head.",
+		"type": ItemData.ItemType.HELMET, "price": 60, "defense": 8,
+		"icon_name": "iron_helmet"
+	})
+	items["leather_cap"] = ItemHelper.create_item({
+		"id": "leather_cap", "name": "Leather Cap",
+		"description": "A simple leather hood for basic protection.",
+		"type": ItemData.ItemType.HELMET, "price": 30, "defense": 4,
+		"icon_name": "leather_cap"
+	})
+	items["steel_helmet"] = ItemHelper.create_item({
+		"id": "steel_helmet", "name": "Steel Helmet",
+		"description": "A well-crafted steel helmet for superior protection.",
+		"type": ItemData.ItemType.HELMET, "price": 120, "defense": 15,
+		"icon_name": "steel_helmet"
+	})
+
+
+func _create_shields() -> void:
+	items["wooden_shield"] = ItemHelper.create_item({
+		"id": "wooden_shield", "name": "Wooden Shield",
+		"description": "A simple wooden shield. Better than nothing.",
+		"type": ItemData.ItemType.SHIELD, "price": 50, "defense": 12,
+		"icon_name": "wooden_shield"
+	})
+	items["iron_shield"] = ItemHelper.create_item({
+		"id": "iron_shield", "name": "Iron Shield",
+		"description": "A sturdy iron shield for better protection.",
+		"type": ItemData.ItemType.SHIELD, "price": 150, "defense": 20,
+		"icon_name": "iron_shield"
+	})
+	items["kite_shield"] = ItemHelper.create_item({
+		"id": "kite_shield", "name": "Kite Shield",
+		"description": "Large shield providing excellent defensive coverage.",
+		"type": ItemData.ItemType.SHIELD, "price": 300, "defense": 28, "speed": -5.0,
+		"icon_name": "kite_shield"
+	})
+
+
+func _create_boots() -> void:
+	items["leather_boots"] = ItemHelper.create_item({
+		"id": "leather_boots", "name": "Leather Boots",
+		"description": "Comfortable leather boots for long journeys.",
+		"type": ItemData.ItemType.BOOTS, "price": 40, "defense": 5, "speed": 10.0,
+		"icon_name": "leather_boots"
+	})
+	items["swift_boots"] = ItemHelper.create_item({
+		"id": "swift_boots", "name": "Swift Boots",
+		"description": "Light boots enchanted for speed.",
+		"type": ItemData.ItemType.BOOTS, "price": 150, "defense": 3, "speed": 20.0,
+		"icon_name": "swift_boots"
+	})
+
+
+func _create_accessories() -> void:
+	items["gold_ring"] = ItemHelper.create_item({
+		"id": "gold_ring", "name": "Gold Ring",
+		"description": "An elegant golden ring that boosts vitality.",
+		"type": ItemData.ItemType.ACCESSORY, "price": 350, "health": 20, "defense": 8,
+		"icon_row": 8, "icon_col": 4
+	})
+	items["diamond_ring"] = ItemHelper.create_item({
+		"id": "diamond_ring", "name": "Diamond Ring",
+		"description": "A sparkling diamond ring that enhances all stats.",
+		"type": ItemData.ItemType.ACCESSORY, "price": 800, "attack": 10, "defense": 10, "health": 30,
+		"icon_row": 8, "icon_col": 5
+	})
+	items["gold_necklace"] = ItemHelper.create_item({
+		"id": "gold_necklace", "name": "Gold Necklace",
+		"description": "A beautiful gold necklace that increases defense.",
+		"type": ItemData.ItemType.ACCESSORY, "price": 500, "defense": 15,
+		"icon_row": 8, "icon_col": 6
+	})
+
+
+func _create_consumables() -> void:
+	items["health_potion"] = ItemHelper.create_item({
+		"id": "health_potion", "name": "Health Potion",
+		"description": "A red potion that restores health.",
+		"type": ItemData.ItemType.CONSUMABLE, "stackable": true, "max_stack": 20,
+		"price": 25, "sell_price": 10, "heal": 50,
+		"icon_name": "potion_red"
+	})
+	items["large_health_potion"] = ItemHelper.create_item({
+		"id": "large_health_potion", "name": "Large Health Potion",
+		"description": "A large red potion that greatly restores health.",
+		"type": ItemData.ItemType.CONSUMABLE, "stackable": true, "max_stack": 10,
+		"price": 75, "sell_price": 30, "heal": 100,
+		"icon_name": "potion_red"
+	})
+	items["stamina_potion"] = ItemHelper.create_item({
+		"id": "stamina_potion", "name": "Stamina Potion",
+		"description": "A blue potion that restores stamina.",
+		"type": ItemData.ItemType.CONSUMABLE, "stackable": true, "max_stack": 20,
+		"price": 20, "sell_price": 8, "stamina": 50.0,
+		"icon_row": 9, "icon_col": 1
+	})
+
+
+func _create_materials() -> void:
+	items["iron_ore"] = ItemHelper.create_item({
+		"id": "iron_ore", "name": "Iron Ore",
+		"description": "Raw iron ore. Can be smelted into iron ingots.",
+		"stackable": true, "price": 10,
+		"icon_name": "iron_ore"
+	})
+	items["gold_ore"] = ItemHelper.create_item({
+		"id": "gold_ore", "name": "Gold Ore",
+		"description": "Precious gold ore. Valuable but soft.",
+		"stackable": true, "price": 50,
+		"icon_name": "gold_ore"
+	})
+
+	items["monster_bone"] = ItemHelper.create_item({
+		"id": "monster_bone", "name": "Monster Bone",
+		"description": "A bone from a defeated monster. Used in crafting.",
+		"stackable": true, "price": 15,
+		"icon_name": "bone"
+	})
+	items["bone"] = ItemHelper.create_item({
+		"id": "bone", "name": "Bone",
+		"description": "A skeletal bone. Common drop from skeleton enemies.",
+		"stackable": true, "price": 5,
+		"icon_name": "bone"
+	})
+	items["gold_coin"] = ItemHelper.create_item({
+		"id": "gold_coin", "name": "Gold Coin",
+		"description": "A shiny gold coin.",
+		"stackable": true, "max_stack": 9999,
+		"price": 1, "sell_price": 1,
+		"icon_name": "gold_coin"
+	})
 
 
 ## Get item data by ID
