@@ -285,6 +285,446 @@ func _create_sample_items() -> void:
 	gold_coin.atlas_icon_name = "gold_coin"
 	items["gold_coin"] = gold_coin
 
+	# ═══════════════════════════════════════════════════════════
+	# SEGMENT ITEMS — magical crafting drops from enemies/world
+	# ═══════════════════════════════════════════════════════════
+
+	var fire_shard := ItemData.new()
+	fire_shard.id = "fire_shard"
+	fire_shard.name = "Fire Shard"
+	fire_shard.description = "A warm crystalline fragment."
+	fire_shard.item_type = ItemData.ItemType.SEGMENT
+	fire_shard.rarity = ItemData.ItemRarity.COMMON
+	fire_shard.stackable = true
+	fire_shard.max_stack = 99
+	fire_shard.buy_price = 15
+	fire_shard.sell_price = 5
+	fire_shard.use_atlas_icon = true
+	fire_shard.atlas_icon_name = "fire_shard"
+	items["fire_shard"] = fire_shard
+
+	var frost_shard := ItemData.new()
+	frost_shard.id = "frost_shard"
+	frost_shard.name = "Frost Shard"
+	frost_shard.description = "A cold crystalline fragment."
+	frost_shard.item_type = ItemData.ItemType.SEGMENT
+	frost_shard.rarity = ItemData.ItemRarity.COMMON
+	frost_shard.stackable = true
+	frost_shard.max_stack = 99
+	frost_shard.buy_price = 15
+	frost_shard.sell_price = 5
+	frost_shard.use_atlas_icon = true
+	frost_shard.atlas_icon_name = "frost_shard"
+	items["frost_shard"] = frost_shard
+
+	var power_fragment := ItemData.new()
+	power_fragment.id = "power_fragment"
+	power_fragment.name = "Power Fragment"
+	power_fragment.description = "Pulses with raw energy."
+	power_fragment.item_type = ItemData.ItemType.SEGMENT
+	power_fragment.rarity = ItemData.ItemRarity.COMMON
+	power_fragment.stackable = true
+	power_fragment.max_stack = 99
+	power_fragment.buy_price = 20
+	power_fragment.sell_price = 7
+	power_fragment.use_atlas_icon = true
+	power_fragment.atlas_icon_name = "power_fragment"
+	items["power_fragment"] = power_fragment
+
+	var spirit_essence := ItemData.new()
+	spirit_essence.id = "spirit_essence"
+	spirit_essence.name = "Spirit Essence"
+	spirit_essence.description = "A wisp of spectral energy."
+	spirit_essence.item_type = ItemData.ItemType.SEGMENT
+	spirit_essence.rarity = ItemData.ItemRarity.UNCOMMON
+	spirit_essence.stackable = true
+	spirit_essence.max_stack = 99
+	spirit_essence.buy_price = 30
+	spirit_essence.sell_price = 10
+	spirit_essence.use_atlas_icon = true
+	spirit_essence.atlas_icon_name = "spirit_essence"
+	items["spirit_essence"] = spirit_essence
+
+	var venom_gland := ItemData.new()
+	venom_gland.id = "venom_gland"
+	venom_gland.name = "Venom Gland"
+	venom_gland.description = "Drips with potent toxin."
+	venom_gland.item_type = ItemData.ItemType.SEGMENT
+	venom_gland.rarity = ItemData.ItemRarity.UNCOMMON
+	venom_gland.stackable = true
+	venom_gland.max_stack = 99
+	venom_gland.buy_price = 25
+	venom_gland.sell_price = 8
+	venom_gland.use_atlas_icon = true
+	venom_gland.atlas_icon_name = "venom_gland"
+	items["venom_gland"] = venom_gland
+
+	var herb_segment := ItemData.new()
+	herb_segment.id = "herb_segment"
+	herb_segment.name = "Herb Segment"
+	herb_segment.description = "A fragrant healing herb."
+	herb_segment.item_type = ItemData.ItemType.SEGMENT
+	herb_segment.rarity = ItemData.ItemRarity.COMMON
+	herb_segment.stackable = true
+	herb_segment.max_stack = 99
+	herb_segment.buy_price = 10
+	herb_segment.sell_price = 3
+	herb_segment.use_atlas_icon = true
+	herb_segment.atlas_icon_name = "herb_segment"
+	items["herb_segment"] = herb_segment
+
+	var inferno_shard := ItemData.new()
+	inferno_shard.id = "inferno_shard"
+	inferno_shard.name = "Inferno Shard"
+	inferno_shard.description = "Blazing hot crystal."
+	inferno_shard.item_type = ItemData.ItemType.SEGMENT
+	inferno_shard.rarity = ItemData.ItemRarity.RARE
+	inferno_shard.stackable = true
+	inferno_shard.max_stack = 99
+	inferno_shard.buy_price = 50
+	inferno_shard.sell_price = 18
+	inferno_shard.use_atlas_icon = true
+	inferno_shard.atlas_icon_name = "inferno_shard"
+	items["inferno_shard"] = inferno_shard
+
+	var blizzard_shard := ItemData.new()
+	blizzard_shard.id = "blizzard_shard"
+	blizzard_shard.name = "Blizzard Shard"
+	blizzard_shard.description = "Freezing cold crystal."
+	blizzard_shard.item_type = ItemData.ItemType.SEGMENT
+	blizzard_shard.rarity = ItemData.ItemRarity.RARE
+	blizzard_shard.stackable = true
+	blizzard_shard.max_stack = 99
+	blizzard_shard.buy_price = 50
+	blizzard_shard.sell_price = 18
+	blizzard_shard.use_atlas_icon = true
+	blizzard_shard.atlas_icon_name = "blizzard_shard"
+	items["blizzard_shard"] = blizzard_shard
+
+	var greater_power_fragment := ItemData.new()
+	greater_power_fragment.id = "greater_power_fragment"
+	greater_power_fragment.name = "Greater Power Fragment"
+	greater_power_fragment.description = "Surges with intense energy."
+	greater_power_fragment.item_type = ItemData.ItemType.SEGMENT
+	greater_power_fragment.rarity = ItemData.ItemRarity.RARE
+	greater_power_fragment.stackable = true
+	greater_power_fragment.max_stack = 99
+	greater_power_fragment.buy_price = 60
+	greater_power_fragment.sell_price = 22
+	greater_power_fragment.use_atlas_icon = true
+	greater_power_fragment.atlas_icon_name = "greater_power_fragment"
+	items["greater_power_fragment"] = greater_power_fragment
+
+	var hellfire_shard := ItemData.new()
+	hellfire_shard.id = "hellfire_shard"
+	hellfire_shard.name = "Hellfire Shard"
+	hellfire_shard.description = "Burns with infernal flame."
+	hellfire_shard.item_type = ItemData.ItemType.SEGMENT
+	hellfire_shard.rarity = ItemData.ItemRarity.EPIC
+	hellfire_shard.stackable = true
+	hellfire_shard.max_stack = 99
+	hellfire_shard.buy_price = 120
+	hellfire_shard.sell_price = 45
+	hellfire_shard.use_atlas_icon = true
+	hellfire_shard.atlas_icon_name = "hellfire_shard"
+	items["hellfire_shard"] = hellfire_shard
+
+	# ═══════════════════════════════════════════════════════════
+	# AUGMENT ITEMS — permanent augments (crafting outputs)
+	# ═══════════════════════════════════════════════════════════
+
+	var flame_augment_t1 := ItemData.new()
+	flame_augment_t1.id = "flame_augment_t1"
+	flame_augment_t1.name = "Flame Augment I"
+	flame_augment_t1.description = "Imbue equipment with fire. Burns enemies on hit."
+	flame_augment_t1.item_type = ItemData.ItemType.AUGMENT
+	flame_augment_t1.rarity = ItemData.ItemRarity.UNCOMMON
+	flame_augment_t1.stackable = false
+	flame_augment_t1.max_stack = 1
+	flame_augment_t1.augment_type = ItemData.AugmentType.PASSIVE_EFFECT
+	flame_augment_t1.passive_effect = ItemData.PassiveEffect.BURN_ON_HIT
+	flame_augment_t1.passive_value = 3.0
+	flame_augment_t1.attack_bonus = 5
+	flame_augment_t1.use_atlas_icon = true
+	flame_augment_t1.atlas_icon_name = "flame_augment"
+	items["flame_augment_t1"] = flame_augment_t1
+
+	var flame_augment_t2 := ItemData.new()
+	flame_augment_t2.id = "flame_augment_t2"
+	flame_augment_t2.name = "Flame Augment II"
+	flame_augment_t2.description = "Stronger fire imbue. Sears enemies on hit."
+	flame_augment_t2.item_type = ItemData.ItemType.AUGMENT
+	flame_augment_t2.rarity = ItemData.ItemRarity.RARE
+	flame_augment_t2.stackable = false
+	flame_augment_t2.max_stack = 1
+	flame_augment_t2.augment_type = ItemData.AugmentType.PASSIVE_EFFECT
+	flame_augment_t2.passive_effect = ItemData.PassiveEffect.BURN_ON_HIT
+	flame_augment_t2.passive_value = 5.0
+	flame_augment_t2.attack_bonus = 12
+	flame_augment_t2.use_atlas_icon = true
+	flame_augment_t2.atlas_icon_name = "flame_augment"
+	items["flame_augment_t2"] = flame_augment_t2
+
+	var flame_augment_t3 := ItemData.new()
+	flame_augment_t3.id = "flame_augment_t3"
+	flame_augment_t3.name = "Flame Augment III"
+	flame_augment_t3.description = "Infernal fire imbue. Incinerates enemies on hit."
+	flame_augment_t3.item_type = ItemData.ItemType.AUGMENT
+	flame_augment_t3.rarity = ItemData.ItemRarity.EPIC
+	flame_augment_t3.stackable = false
+	flame_augment_t3.max_stack = 1
+	flame_augment_t3.augment_type = ItemData.AugmentType.PASSIVE_EFFECT
+	flame_augment_t3.passive_effect = ItemData.PassiveEffect.BURN_ON_HIT
+	flame_augment_t3.passive_value = 8.0
+	flame_augment_t3.attack_bonus = 20
+	flame_augment_t3.use_atlas_icon = true
+	flame_augment_t3.atlas_icon_name = "flame_augment"
+	items["flame_augment_t3"] = flame_augment_t3
+
+	var frost_augment_t1 := ItemData.new()
+	frost_augment_t1.id = "frost_augment_t1"
+	frost_augment_t1.name = "Frost Augment I"
+	frost_augment_t1.description = "Imbue equipment with ice. Slows enemies on hit."
+	frost_augment_t1.item_type = ItemData.ItemType.AUGMENT
+	frost_augment_t1.rarity = ItemData.ItemRarity.UNCOMMON
+	frost_augment_t1.stackable = false
+	frost_augment_t1.max_stack = 1
+	frost_augment_t1.augment_type = ItemData.AugmentType.PASSIVE_EFFECT
+	frost_augment_t1.passive_effect = ItemData.PassiveEffect.FREEZE_ON_HIT
+	frost_augment_t1.passive_value = 1.5
+	frost_augment_t1.attack_bonus = 3
+	frost_augment_t1.use_atlas_icon = true
+	frost_augment_t1.atlas_icon_name = "frost_augment"
+	items["frost_augment_t1"] = frost_augment_t1
+
+	var frost_augment_t2 := ItemData.new()
+	frost_augment_t2.id = "frost_augment_t2"
+	frost_augment_t2.name = "Frost Augment II"
+	frost_augment_t2.description = "Stronger ice imbue. Freezes enemies on hit."
+	frost_augment_t2.item_type = ItemData.ItemType.AUGMENT
+	frost_augment_t2.rarity = ItemData.ItemRarity.RARE
+	frost_augment_t2.stackable = false
+	frost_augment_t2.max_stack = 1
+	frost_augment_t2.augment_type = ItemData.AugmentType.PASSIVE_EFFECT
+	frost_augment_t2.passive_effect = ItemData.PassiveEffect.FREEZE_ON_HIT
+	frost_augment_t2.passive_value = 3.0
+	frost_augment_t2.attack_bonus = 8
+	frost_augment_t2.use_atlas_icon = true
+	frost_augment_t2.atlas_icon_name = "frost_augment"
+	items["frost_augment_t2"] = frost_augment_t2
+
+	var power_augment_t1 := ItemData.new()
+	power_augment_t1.id = "power_augment_t1"
+	power_augment_t1.name = "Power Augment I"
+	power_augment_t1.description = "Raw strength increase."
+	power_augment_t1.item_type = ItemData.ItemType.AUGMENT
+	power_augment_t1.rarity = ItemData.ItemRarity.UNCOMMON
+	power_augment_t1.stackable = false
+	power_augment_t1.max_stack = 1
+	power_augment_t1.augment_type = ItemData.AugmentType.STAT_BOOST
+	power_augment_t1.attack_bonus = 8
+	power_augment_t1.use_atlas_icon = true
+	power_augment_t1.atlas_icon_name = "power_augment"
+	items["power_augment_t1"] = power_augment_t1
+
+	var power_augment_t2 := ItemData.new()
+	power_augment_t2.id = "power_augment_t2"
+	power_augment_t2.name = "Power Augment II"
+	power_augment_t2.description = "Greater strength increase."
+	power_augment_t2.item_type = ItemData.ItemType.AUGMENT
+	power_augment_t2.rarity = ItemData.ItemRarity.RARE
+	power_augment_t2.stackable = false
+	power_augment_t2.max_stack = 1
+	power_augment_t2.augment_type = ItemData.AugmentType.STAT_BOOST
+	power_augment_t2.attack_bonus = 15
+	power_augment_t2.use_atlas_icon = true
+	power_augment_t2.atlas_icon_name = "power_augment"
+	items["power_augment_t2"] = power_augment_t2
+
+	var lifesteal_augment_t1 := ItemData.new()
+	lifesteal_augment_t1.id = "lifesteal_augment_t1"
+	lifesteal_augment_t1.name = "Lifesteal Augment I"
+	lifesteal_augment_t1.description = "Drain 5% of damage dealt as health."
+	lifesteal_augment_t1.item_type = ItemData.ItemType.AUGMENT
+	lifesteal_augment_t1.rarity = ItemData.ItemRarity.UNCOMMON
+	lifesteal_augment_t1.stackable = false
+	lifesteal_augment_t1.max_stack = 1
+	lifesteal_augment_t1.augment_type = ItemData.AugmentType.PASSIVE_EFFECT
+	lifesteal_augment_t1.passive_effect = ItemData.PassiveEffect.LIFE_STEAL
+	lifesteal_augment_t1.passive_value = 5.0
+	lifesteal_augment_t1.use_atlas_icon = true
+	lifesteal_augment_t1.atlas_icon_name = "lifesteal_augment"
+	items["lifesteal_augment_t1"] = lifesteal_augment_t1
+
+	var lifesteal_augment_t2 := ItemData.new()
+	lifesteal_augment_t2.id = "lifesteal_augment_t2"
+	lifesteal_augment_t2.name = "Lifesteal Augment II"
+	lifesteal_augment_t2.description = "Drain 10% of damage dealt as health."
+	lifesteal_augment_t2.item_type = ItemData.ItemType.AUGMENT
+	lifesteal_augment_t2.rarity = ItemData.ItemRarity.RARE
+	lifesteal_augment_t2.stackable = false
+	lifesteal_augment_t2.max_stack = 1
+	lifesteal_augment_t2.augment_type = ItemData.AugmentType.PASSIVE_EFFECT
+	lifesteal_augment_t2.passive_effect = ItemData.PassiveEffect.LIFE_STEAL
+	lifesteal_augment_t2.passive_value = 10.0
+	lifesteal_augment_t2.use_atlas_icon = true
+	lifesteal_augment_t2.atlas_icon_name = "lifesteal_augment"
+	items["lifesteal_augment_t2"] = lifesteal_augment_t2
+
+	var crit_augment_t1 := ItemData.new()
+	crit_augment_t1.id = "crit_augment_t1"
+	crit_augment_t1.name = "Critical Augment I"
+	crit_augment_t1.description = "8% chance for 2x damage."
+	crit_augment_t1.item_type = ItemData.ItemType.AUGMENT
+	crit_augment_t1.rarity = ItemData.ItemRarity.UNCOMMON
+	crit_augment_t1.stackable = false
+	crit_augment_t1.max_stack = 1
+	crit_augment_t1.augment_type = ItemData.AugmentType.PASSIVE_EFFECT
+	crit_augment_t1.passive_effect = ItemData.PassiveEffect.CRIT_CHANCE
+	crit_augment_t1.passive_value = 8.0
+	crit_augment_t1.use_atlas_icon = true
+	crit_augment_t1.atlas_icon_name = "crit_augment"
+	items["crit_augment_t1"] = crit_augment_t1
+
+	var crit_augment_t2 := ItemData.new()
+	crit_augment_t2.id = "crit_augment_t2"
+	crit_augment_t2.name = "Critical Augment II"
+	crit_augment_t2.description = "15% chance for 2x damage."
+	crit_augment_t2.item_type = ItemData.ItemType.AUGMENT
+	crit_augment_t2.rarity = ItemData.ItemRarity.RARE
+	crit_augment_t2.stackable = false
+	crit_augment_t2.max_stack = 1
+	crit_augment_t2.augment_type = ItemData.AugmentType.PASSIVE_EFFECT
+	crit_augment_t2.passive_effect = ItemData.PassiveEffect.CRIT_CHANCE
+	crit_augment_t2.passive_value = 15.0
+	crit_augment_t2.use_atlas_icon = true
+	crit_augment_t2.atlas_icon_name = "crit_augment"
+	items["crit_augment_t2"] = crit_augment_t2
+
+	var whirlwind_augment := ItemData.new()
+	whirlwind_augment.id = "whirlwind_augment"
+	whirlwind_augment.name = "Whirlwind Rune"
+	whirlwind_augment.description = "Grants the Whirlwind skill when slotted into equipment."
+	whirlwind_augment.item_type = ItemData.ItemType.AUGMENT
+	whirlwind_augment.rarity = ItemData.ItemRarity.EPIC
+	whirlwind_augment.stackable = false
+	whirlwind_augment.max_stack = 1
+	whirlwind_augment.augment_type = ItemData.AugmentType.ACTIVE_SKILL
+	whirlwind_augment.active_skill_id = "whirlwind"
+	whirlwind_augment.attack_bonus = 5
+	whirlwind_augment.use_atlas_icon = true
+	whirlwind_augment.atlas_icon_name = "whirlwind_augment"
+	items["whirlwind_augment"] = whirlwind_augment
+
+	var shield_bash_augment := ItemData.new()
+	shield_bash_augment.id = "shield_bash_augment"
+	shield_bash_augment.name = "Shield Bash Rune"
+	shield_bash_augment.description = "Grants the Shield Bash skill when slotted into equipment."
+	shield_bash_augment.item_type = ItemData.ItemType.AUGMENT
+	shield_bash_augment.rarity = ItemData.ItemRarity.EPIC
+	shield_bash_augment.stackable = false
+	shield_bash_augment.max_stack = 1
+	shield_bash_augment.augment_type = ItemData.AugmentType.ACTIVE_SKILL
+	shield_bash_augment.active_skill_id = "shield_bash"
+	shield_bash_augment.defense_bonus = 5
+	shield_bash_augment.use_atlas_icon = true
+	shield_bash_augment.atlas_icon_name = "shield_bash_augment"
+	items["shield_bash_augment"] = shield_bash_augment
+
+	# ═══════════════════════════════════════════════════════════
+	# AUGMENT ITEMS — timed buff consumables (crafting outputs)
+	# ═══════════════════════════════════════════════════════════
+
+	var vitality_tonic_t1 := ItemData.new()
+	vitality_tonic_t1.id = "vitality_tonic_t1"
+	vitality_tonic_t1.name = "Vitality Tonic I"
+	vitality_tonic_t1.description = "Temporarily increases max HP by 20 for 60 seconds."
+	vitality_tonic_t1.item_type = ItemData.ItemType.AUGMENT
+	vitality_tonic_t1.rarity = ItemData.ItemRarity.UNCOMMON
+	vitality_tonic_t1.stackable = true
+	vitality_tonic_t1.max_stack = 5
+	vitality_tonic_t1.augment_type = ItemData.AugmentType.TIMED_BUFF
+	vitality_tonic_t1.buff_duration = 60.0
+	vitality_tonic_t1.health_bonus = 20
+	vitality_tonic_t1.use_atlas_icon = true
+	vitality_tonic_t1.atlas_icon_name = "vitality_tonic"
+	items["vitality_tonic_t1"] = vitality_tonic_t1
+
+	var vitality_tonic_t2 := ItemData.new()
+	vitality_tonic_t2.id = "vitality_tonic_t2"
+	vitality_tonic_t2.name = "Vitality Tonic II"
+	vitality_tonic_t2.description = "Temporarily increases max HP by 50 for 90 seconds."
+	vitality_tonic_t2.item_type = ItemData.ItemType.AUGMENT
+	vitality_tonic_t2.rarity = ItemData.ItemRarity.RARE
+	vitality_tonic_t2.stackable = true
+	vitality_tonic_t2.max_stack = 5
+	vitality_tonic_t2.augment_type = ItemData.AugmentType.TIMED_BUFF
+	vitality_tonic_t2.buff_duration = 90.0
+	vitality_tonic_t2.health_bonus = 50
+	vitality_tonic_t2.use_atlas_icon = true
+	vitality_tonic_t2.atlas_icon_name = "vitality_tonic"
+	items["vitality_tonic_t2"] = vitality_tonic_t2
+
+	var speed_elixir_t1 := ItemData.new()
+	speed_elixir_t1.id = "speed_elixir_t1"
+	speed_elixir_t1.name = "Speed Elixir I"
+	speed_elixir_t1.description = "Temporarily increases move speed by 20 for 45 seconds."
+	speed_elixir_t1.item_type = ItemData.ItemType.AUGMENT
+	speed_elixir_t1.rarity = ItemData.ItemRarity.UNCOMMON
+	speed_elixir_t1.stackable = true
+	speed_elixir_t1.max_stack = 5
+	speed_elixir_t1.augment_type = ItemData.AugmentType.TIMED_BUFF
+	speed_elixir_t1.buff_duration = 45.0
+	speed_elixir_t1.speed_bonus = 20.0
+	speed_elixir_t1.use_atlas_icon = true
+	speed_elixir_t1.atlas_icon_name = "speed_elixir"
+	items["speed_elixir_t1"] = speed_elixir_t1
+
+	var speed_elixir_t2 := ItemData.new()
+	speed_elixir_t2.id = "speed_elixir_t2"
+	speed_elixir_t2.name = "Speed Elixir II"
+	speed_elixir_t2.description = "Temporarily increases move speed by 40 for 60 seconds."
+	speed_elixir_t2.item_type = ItemData.ItemType.AUGMENT
+	speed_elixir_t2.rarity = ItemData.ItemRarity.RARE
+	speed_elixir_t2.stackable = true
+	speed_elixir_t2.max_stack = 5
+	speed_elixir_t2.augment_type = ItemData.AugmentType.TIMED_BUFF
+	speed_elixir_t2.buff_duration = 60.0
+	speed_elixir_t2.speed_bonus = 40.0
+	speed_elixir_t2.use_atlas_icon = true
+	speed_elixir_t2.atlas_icon_name = "speed_elixir"
+	items["speed_elixir_t2"] = speed_elixir_t2
+
+	var defense_brew_t1 := ItemData.new()
+	defense_brew_t1.id = "defense_brew_t1"
+	defense_brew_t1.name = "Defense Brew I"
+	defense_brew_t1.description = "Temporarily increases defense by 8 for 45 seconds."
+	defense_brew_t1.item_type = ItemData.ItemType.AUGMENT
+	defense_brew_t1.rarity = ItemData.ItemRarity.UNCOMMON
+	defense_brew_t1.stackable = true
+	defense_brew_t1.max_stack = 5
+	defense_brew_t1.augment_type = ItemData.AugmentType.TIMED_BUFF
+	defense_brew_t1.buff_duration = 45.0
+	defense_brew_t1.defense_bonus = 8
+	defense_brew_t1.use_atlas_icon = true
+	defense_brew_t1.atlas_icon_name = "defense_brew"
+	items["defense_brew_t1"] = defense_brew_t1
+
+	var defense_brew_t2 := ItemData.new()
+	defense_brew_t2.id = "defense_brew_t2"
+	defense_brew_t2.name = "Defense Brew II"
+	defense_brew_t2.description = "Temporarily increases defense by 15 for 60 seconds."
+	defense_brew_t2.item_type = ItemData.ItemType.AUGMENT
+	defense_brew_t2.rarity = ItemData.ItemRarity.RARE
+	defense_brew_t2.stackable = true
+	defense_brew_t2.max_stack = 5
+	defense_brew_t2.augment_type = ItemData.AugmentType.TIMED_BUFF
+	defense_brew_t2.buff_duration = 60.0
+	defense_brew_t2.defense_bonus = 15
+	defense_brew_t2.use_atlas_icon = true
+	defense_brew_t2.atlas_icon_name = "defense_brew"
+	items["defense_brew_t2"] = defense_brew_t2
+
 
 ## Get item data by ID
 func get_item(item_id: String) -> ItemData:
