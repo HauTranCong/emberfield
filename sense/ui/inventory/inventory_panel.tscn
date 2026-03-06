@@ -76,12 +76,18 @@ border_width_right = 3
 border_width_bottom = 3
 border_color = Color(0.5, 0.45, 0.38, 1)
 
-[node name="InventoryPanel" type="CanvasLayer" unique_id=416836775]
+[node name="InventoryPanel" type="Control" unique_id=416836775]
 process_mode = 3
-layer = 100
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_panel")
 
 [node name="Overlay" type="ColorRect" parent="." unique_id=1465787470]
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -90,6 +96,7 @@ grow_vertical = 2
 color = Color(0, 0, 0, 0.5)
 
 [node name="CenterContainer" type="CenterContainer" parent="." unique_id=184502372]
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0

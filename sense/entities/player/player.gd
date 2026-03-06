@@ -593,7 +593,20 @@ func _setup_inventory() -> void:
 	# Load inventory panel scene
 	var inventory_scene := preload("res://sense/ui/inventory/inventory_panel.tscn")
 	inventory_panel = inventory_scene.instantiate()
-	add_child(inventory_panel)
+	
+	# Defer adding to HUD since it may not be in the tree yet during _ready()
+	_add_inventory_to_hud.call_deferred()
+	
+
+## Add inventory panel to HUD (CanvasLayer) so it renders in screen space
+func _add_inventory_to_hud() -> void:
+	var hud = get_tree().root.get_node_or_null("Main/HUD")
+	if hud:
+		hud.add_child(inventory_panel)
+	else:
+		push_warning("Player: HUD not found, adding inventory panel to self")
+		add_child(inventory_panel)
+	
 	inventory_panel.setup(inventory)
 	
 	# Connect item use signal from inventory panel

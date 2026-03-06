@@ -1,4 +1,5 @@
-extends CanvasLayer
+extends Control
+class_name InventoryPanel
 
 ## Inventory panel UI - main inventory interface
 ## Uses scene nodes instead of building UI in code
@@ -11,6 +12,13 @@ const INVENTORY_SIZE := 32
 
 ## Tab filter types
 enum TabFilter { ALL, EQUIP, MATERIAL }
+
+## If true, hide overlay and skip ESC close (managed by parent).
+## Set via scene override or call set_embedded_mode() before _ready().
+@export var embedded_mode: bool = false
+
+## Internal flag
+var _embedded := false
 
 # Node references from scene
 @onready var slots_grid: GridContainer = $CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox/InventoryGrid/GridMargin/SlotsGrid
@@ -58,12 +66,29 @@ func _ready() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if not visible:
+	if not visible or _embedded:
 		return
 	
 	if event.is_action_pressed("ui_cancel"):
 		close_inventory()
 		get_viewport().set_input_as_handled()
+
+
+## Enable embedded mode: hides overlay, disables ESC-close, adjusts sizing for HBox
+func set_embedded_mode(enabled: bool) -> void:
+	_embedded = enabled
+	# Hide overlay (parent handles dim background)
+	var overlay = get_node_or_null("Overlay")
+	if overlay:
+		overlay.visible = not enabled
+	
+	if enabled:
+		# Set minimum size so HBox can allocate proper space
+		custom_minimum_size = Vector2(500, 450)
+		# Shrink the MainPanel minimum to fit side-by-side
+		var main_panel = get_node_or_null("CenterContainer/MainPanel")
+		if main_panel:
+			main_panel.custom_minimum_size = Vector2(500, 450)
 
 
 func _setup_tabs() -> void:

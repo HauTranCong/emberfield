@@ -2,8 +2,8 @@ extends Control
 class_name SmithShopPopup
 
 signal buy_requested(item: Dictionary)
+signal close_requested
 
-@onready var dim: ColorRect = $Dim
 @onready var items_list: VBoxContainer = $Panel/VBox/ItemsScroll/ItemsList
 @onready var close_btn: Button = $Panel/VBox/TitleRow/Close
 
@@ -13,9 +13,7 @@ var owner_npc: Node = null  # Reference to the NPC that opened this shop
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	visible = false
-	if dim and dim.has_signal("dim_clicked"):
-		dim.dim_clicked.connect(_on_dim_clicked)
-	close_btn.pressed.connect(hide_popup)
+	close_btn.pressed.connect(_on_close_pressed)
 
 ## Initialize the shop with data from the NPC
 func initialize(data: Dictionary) -> void:
@@ -36,11 +34,9 @@ func show_popup() -> void:
 
 func hide_popup() -> void:
 	visible = false
-	queue_free()  # Remove from scene tree when closed
 
-func _on_dim_clicked(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.is_pressed():
-		hide_popup()
+func _on_close_pressed() -> void:
+	close_requested.emit()
 
 func _refresh() -> void:
 	# clear list
