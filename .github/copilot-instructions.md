@@ -2,10 +2,26 @@
 
 ## Project Context
 This is a Godot 2D game project with:
-- Strict collision layer and mask standards
-- Component-based architecture (Hitbox, Hurtbox, Health components)
+- Strict collision layer and mask standards (10 layers)
+- Component-based architecture (Hitbox, Hurtbox, Health, Buff, Skill, PassiveEffect components)
 - State machine pattern for Player and Enemy AI
+- Augment system for equipment customization
+- Tiered crafting system
+- Procedural dungeon generation (Binding of Isaac style)
+- Scene transition service for map management
 - Debug visualization system
+
+## Autoloads (8 total, defined in project.godot)
+| Singleton | Script | Purpose |
+|-----------|--------|---------|
+| CollisionLayers | `sense/globals/collision_layers.gd` | Layer bitmask enum |
+| InteractionManager | `sense/components/interaction_manager.tscn` | E-to-interact prompt system |
+| GameEvent | `sense/globals/game_event.gd` | Global signal bus |
+| ItemDatabase | `sense/items/item_database.gd` | All item definitions |
+| SceneTransitionService | `sense/globals/scene_transition_service.gd` | Map transitions with fade |
+| CameraService | `sense/globals/camera_service.gd` | Camera mode management |
+| RecipeDatabase | `sense/ui/crafting/recipe_database.gd` | Crafting recipe registry |
+| SkillDatabase | `sense/skills/skill_database.gd` | Skill definitions |
 
 ## Critical Rules for Entity Creation
 
@@ -83,18 +99,34 @@ Entities that can deal/receive damage should have:
 Entity (CharacterBody2D)
 ├── AnimatedSprite2D
 ├── CollisionShape2D
-├── HealthComponent (Node)
-├── HitboxComponent (Area2D)    # Deals damage
+├── HealthComponent (Node)         # HP management (enemies)
+├── HitboxComponent (Area2D)       # Deals damage
 │   └── CollisionShape2D
-└── HurtboxComponent (Area2D)   # Receives damage
-    └── CollisionShape2D
+├── HurtboxComponent (Area2D)      # Receives damage (has i-frames)
+│   └── CollisionShape2D
+├── BuffComponent (Node)           # Timed stat buffs
+├── PassiveEffectProcessor (Node)  # On-hit/on-damage effects (life_steal, burn, thorns)
+├── SkillComponent (Node)          # Equipment-bound active skills (Q/E/R/F)
+└── SkillExecutor (Node)           # Spawns skill hitboxes + VFX
 ```
+Note: Player uses CharacterStats (Resource) instead of HealthComponent for HP.
 
 ### State Machine Pattern
 Use enum for states:
 ```gdscript
-enum State { IDLE, MOVE, ATTACK, DEATH }  # Player
-enum State { IDLE, PATROL, CHASE, ATTACK, DEATH }  # Enemy
+enum State { IDLE, MOVE, ATTACK, SKILL, DEATH }  # Player (5 states)
+enum State { IDLE, PATROL, CHASE, ATTACK, DEATH }  # Enemy (5 states)
+```
+
+### Input Mappings
+```
+Movement:     WASD / Arrow keys
+Attack:       A (character_attack)
+Interact:     E (character_interact)
+Inventory:    B (open_inventory)
+Skills:       Q (skill_1), E (skill_2), R (skill_3), F (skill_4)
+Hotbar:       1-8 (hotbar_1 through hotbar_8)
+UI Nav:       ui_left/right/up/down
 ```
 
 ### When creating .tscn scenes:
@@ -121,21 +153,48 @@ func _ready():
 - HitboxComponent has `check_line_of_sight` to prevent attacking through walls
 - Player has 0.5s iframe after taking damage
 - Enemy attack has HITBOX_DELAY (0.8s) to sync with animation
+- PassiveEffectProcessor handles on-hit effects (life_steal, burn, freeze, poison) and on-damage effects (thorns)
+- SkillComponent binds active skills to equipment slots: weapon→Q, armor→E, helmet→R, boots→F
+- SkillExecutor spawns skill-specific hitboxes + VFX (whirlwind=AoE, shield_bash=cone, fire_burst=ranged)
+- Damage formula: `effective_damage = max(1, raw_damage - target_defense)`
+
+## Buff & Augment System
+- **BuffComponent**: Manages timed stat buffs (attack/defense/health/speed bonuses). Ticks down in `_process`. Emits `buff_applied`, `buff_expired`, `buffs_changed`.
+- **Augments**: Applied to equipment via `InventoryData.apply_augment()`. Types: `STAT_BOOST`, `PASSIVE_EFFECT`, `ACTIVE_SKILL`, `TIMED_BUFF`.
+- **PassiveEffect enum**: `LIFE_STEAL`, `CRIT_CHANCE`, `THORNS`, `BURN_ON_HIT`, `FREEZE_ON_HIT`, `POISON_ON_HIT`
+- Equipment has `get_augment_slot_count()` based on rarity (Common=0, Uncommon=1, Rare=2, Epic=3, Legendary=4)
+
+## Crafting System
+- **CraftingRecipe**: Has 1-3 tiers per recipe, each with different ingredients and result items
+- **RecipeDatabase** (Autoload): Stores all recipes. Categories: `AUGMENT`, `CONSUMABLE_BUFF`
+- **CraftingPanel**: Tiered crafting UI with category tabs (Augments, Buffs, All)
+- Crafted items go directly into player inventory. Emits `GameEvent.item_crafted`
+
+## Dungeon System
+- **DungeonGenerator**: Procedural room layout using random walk algorithm (Binding of Isaac style)
+- **RoomType enum**: `START`, `NORMAL`, `BOSS`, `TREASURE`
+- **DungeonLevel**: Renders rooms with TileMapLayers, handles door transitions between rooms
+- Uses CameraService in ROOM mode with bounded camera
+- DungeonMinimap shows explored rooms in HUD
+- BOSS room: furthest dead-end from start. TREASURE room: random dead-end with return portal
 
 ## File Structure Conventions
 ```
 sense/
-├── main.gd / Main.tscn          # Game entry point
+├── main.gd / Main.tscn          # Game entry point, service init
 ├── components/                   # Reusable game components
-│   ├── health_component.gd       # Health management
-│   ├── hitbox_component.gd       # Deals damage (Area2D)
-│   ├── hurtbox_component.gd      # Receives damage (Area2D)
-│   ├── buff_component.gd         # Buff/debuff system
-│   ├── shop_component.gd         # Shop interaction logic
-│   ├── skill_component.gd        # Skill usage
-│   ├── passive_effect_processor.gd # Passive item effects
-│   ├── ui_popup_component.gd     # UI popup helper
-│   └── interaction_manager/      # Interaction system (gd + tscn)
+│   ├── health_component.gd       # Health management (enemies)
+│   ├── hitbox_component.gd       # Deals damage (Area2D) with LOS check
+│   ├── hurtbox_component.gd      # Receives damage (Area2D) with i-frames
+│   ├── buff_component.gd         # Timed stat buff management
+│   ├── passive_effect_processor.gd # On-hit/on-damage passive effects
+│   ├── skill_component.gd        # Equipment-bound active skills
+│   ├── shop_component.gd         # Shop purchase logic
+│   ├── ui_popup_component.gd     # UI popup open/close helper
+│   ├── interaction_manager.gd    # Global interaction prompt system
+│   ├── interaction_manager.tscn
+│   ├── interaction_scene.gd      # InteractionArea class definition
+│   └── interaction_scene.tscn
 ├── entities/
 │   ├── player/                   # player.gd, character_stats.gd, player.tscn
 │   ├── enemies/
@@ -145,32 +204,37 @@ sense/
 │       └── merchant/             # general_goods.gd, item_sell.gd, ui_general_shop.gd
 ├── globals/                      # Autoloaded singletons & services
 │   ├── collision_layers.gd       # CollisionLayers.Layer enum
-│   ├── game_event.gd             # Global event bus
-│   ├── camera_service.gd         # Camera management
-│   └── scene_transition_service.gd # Scene transitions
+│   ├── game_event.gd             # Global event bus (7 signals)
+│   ├── camera_service.gd         # Camera modes: FOLLOW, STATIC, ROOM
+│   └── scene_transition_service.gd # Map transitions with fade + caching
 ├── items/                        # Item system
-│   ├── item_data.gd              # Item resource definition
-│   ├── item_database.gd          # Item registry
+│   ├── item_data.gd              # Item resource (11 types, 5 rarities, augments)
+│   ├── item_database.gd          # Item registry (Autoload, ~40+ items)
 │   ├── item_helper.gd            # Item utility functions
-│   ├── item_spawner.gd           # Spawns items in world
-│   ├── game_item.gd / game_item.tscn # World pickup entity
-│   ├── loot_table.gd             # Loot drop tables
-│   └── item_icon_atlas.gd        # Icon atlas for items
+│   ├── item_spawner.gd           # Spawns items/gold/health in world
+│   ├── game_item.gd / game_item.tscn # World pickup entity (4 pickup modes)
+│   ├── loot_table.gd             # Weighted loot drop tables
+│   └── item_icon_atlas.gd        # Sprite sheet icon extraction
 ├── maps/
 │   ├── town/                     # town.gd, town.tscn
-│   ├── dungeon/                  # dungeon_generator.gd, dungeon_level.gd, return_portal
+│   ├── dungeon/                  # dungeon_generator.gd, dungeon_level.gd
+│   │                             # dungeon_tilestructure.gd, tileset_structure.gd
+│   │                             # return_portal.gd, return_portal.tscn
 │   └── portal/                   # portal.gd, portal.tscn
 ├── skills/                       # Skill system
 │   ├── skill_data.gd             # Skill resource definition
-│   ├── skill_database.gd         # Skill registry
-│   ├── skill_executor.gd         # Skill execution logic
+│   ├── skill_database.gd         # Skill registry (Autoload, 3 skills)
+│   ├── skill_executor.gd         # Skill execution + hitbox spawning
 │   └── whirlwind_vfx.gd / WhirlwindVFX.tscn # Skill VFX
 └── ui/
     ├── dim_background.gd         # Background dimming for panels
     ├── hud/                      # hud.gd, pixel_bar.gd, dungeon_minimap.gd
-    ├── inventory/                # inventory_data.gd, inventory_panel.gd, inventory_slot_ui.gd
+    │                             # hotbar.gd, Hotbar.tscn, hotbar_slot_ui.gd
+    ├── inventory/                # inventory_data.gd, inventory_panel.gd
+    │                             # inventory_slot_ui.gd
     ├── augment/                  # augment_panel.gd, AugmentPanel.tscn
-    └── crafting/                 # crafting_panel.gd, crafting_recipe.gd, recipe_database.gd
+    └── crafting/                 # crafting_panel.gd, crafting_recipe.gd
+                                  # recipe_database.gd, embedded_inventory_panel.gd
 ```
 
 ## Naming Conventions
@@ -187,10 +251,12 @@ sense/
 - ASCII diagram in comments explaining state machine
 
 ## Documentation Reference
-- `LAYER_AND_MASK_STANDARDS.md` - Collision layer details
-- `docs/COMBAT_SYSTEM.md` - Combat interaction flow
+- `docs/LAYER_AND_MASK_STANDARDS.md` - Collision layer details
+- `docs/architecture.md` - Full system architecture UML diagrams
+- `docs/combat_system.md` - Combat interaction flow
 - `docs/item_system.md` - Item system architecture
 - `docs/inventory_system.md` - Inventory and equipment system
+- `docs/dungeon_system.md` - Dungeon generation and gameplay
 
 ## Prompt Files
 - `.github/prompts/item-shop-implementation.prompt.md` - Best practices for creating items & shop integration

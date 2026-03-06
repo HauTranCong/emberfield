@@ -57,10 +57,26 @@ sense/ui/inventory/
 ├── inventory_panel.gd     # Main panel controller
 └── inventory_panel.tscn   # Panel scene file
 
+sense/ui/augment/
+├── augment_panel.gd       # Augment management UI
+└── AugmentPanel.tscn      # Augment panel scene
+
+sense/ui/crafting/
+├── crafting_panel.gd      # Tiered crafting UI
+├── crafting_recipe.gd     # CraftingRecipe resource
+├── recipe_database.gd     # Autoload: recipe registry
+└── embedded_inventory_panel.gd # Simplified inventory for shops/crafting
+
+sense/ui/hud/
+├── hotbar.gd              # Skill + item quick-use bar
+├── Hotbar.tscn
+└── hotbar_slot_ui.gd      # Individual hotbar slot
+
 sense/items/
 ├── item_data.gd           # Item resource definition
 ├── item_database.gd       # Pre-defined items (Autoload)
 ├── item_icon_atlas.gd     # Sprite sheet icon extraction
+├── item_helper.gd         # Item utility functions
 ├── game_item.gd           # Droppable item scene script
 ├── game_item.tscn         # Droppable item scene
 ├── debug_icon_atlas.gd    # Debug tool for viewing sprite sheet
@@ -213,6 +229,7 @@ Manages inventory storage, equipment, and gold.
 ```gdscript
 signal inventory_changed
 signal equipment_changed(slot_type: String)
+signal augments_changed(equip_slot: String)
 signal gold_changed(amount: int)
 ```
 
@@ -247,6 +264,7 @@ var equipped_accessory_2: ItemData
 | `has_item(id, qty) -> bool`         | Check if inventory contains item               |
 | `get_item_count(id) -> int`         | Total quantity of item                         |
 | `swap_slots(from, to)`              | Swap two inventory slots                       |
+| `sort_inventory()`                  | Sort by type then rarity                       |
 | `equip_item(index)`                 | Equip item from inventory                      |
 | `unequip_item(slot_type, target?)`  | Unequip to inventory (optional target slot)    |
 | `swap_equipment(from, to)`          | Swap between equipment slots                   |
@@ -254,6 +272,10 @@ var equipped_accessory_2: ItemData
 | `get_total_attack_bonus() -> int`   | Sum of all equipment attack                    |
 | `get_total_defense_bonus() -> int`  | Sum of all equipment defense                   |
 | `use_item(index) -> Dictionary`     | Use consumable, returns effect result          |
+| `apply_augment(slot, idx) -> bool`  | Apply augment to equipment slot                |
+| `remove_augment(slot, idx) -> bool` | Remove augment from equipment slot             |
+| `get_all_augment_passive_effects()` | Get passive effects from all equipped augments |
+| `get_all_augment_active_skills()`   | Get active skills from all equipped augments   |
 
 ---
 
@@ -882,9 +904,9 @@ const SLOT_BORDER_COLOR := Color(0.35, 0.32, 0.28, 1.0)
 
 ## Future Improvements
 
-- [ ] Item sorting (by type, rarity, name)
+- [x] ~~Item sorting (by type, rarity, name)~~ → `sort_inventory()` implemented
 - [ ] Item comparison tooltip
-- [ ] Hotbar quick slots
+- [x] ~~Hotbar quick slots~~ → Hotbar with 4 skill + 8 item slots
 - [ ] Item splitting (shift+drag)
 - [ ] Context menu (use, equip, drop, destroy)
 - [ ] Item search/filter
