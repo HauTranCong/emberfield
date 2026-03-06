@@ -6,7 +6,7 @@ extends Resource
 ## ╔═══════════════════════════════════════════════════════════════════════╗
 ## ║                    STAT CALCULATION                                   ║
 ## ╠═══════════════════════════════════════════════════════════════════════╣
-## ║  Final Stat = Base Stat + Equipment Bonus                             ║
+## ║  Final Stat = Base Stat + Equipment Bonus + Buff Bonus                ║
 ## ║                                                                       ║
 ## ║  Example:                                                             ║
 ## ║  ┌────────────────────────────────────────────────────────────────┐   ║
@@ -25,7 +25,7 @@ signal died
 @export var base_max_health: int = 100
 var max_health: int:
 	get:
-		return base_max_health + equipment_health_bonus
+		return base_max_health + equipment_health_bonus + buff_health_bonus
 
 # === HEALTH ===
 var current_health: int:
@@ -59,18 +59,24 @@ var equipment_defense_bonus: int = 0
 var equipment_health_bonus: int = 0
 var equipment_speed_bonus: float = 0.0
 
+# === BUFF BONUSES (from BuffComponent) ===
+var buff_attack_bonus: int = 0
+var buff_defense_bonus: int = 0
+var buff_health_bonus: int = 0
+var buff_speed_bonus: float = 0.0
+
 # === COMPUTED STATS (with equipment) ===
 var attack_damage: int:
 	get:
-		return base_attack_damage + equipment_attack_bonus
+		return base_attack_damage + equipment_attack_bonus + buff_attack_bonus
 
 var defense: int:
 	get:
-		return base_defense + equipment_defense_bonus
+		return base_defense + equipment_defense_bonus + buff_defense_bonus
 
 var move_speed: float:
 	get:
-		return base_move_speed + equipment_speed_bonus
+		return base_move_speed + equipment_speed_bonus + buff_speed_bonus
 
 
 func _init() -> void:
@@ -131,6 +137,26 @@ func is_alive() -> bool:
 
 func has_stamina(amount: float) -> bool:
 	return current_stamina >= amount
+
+
+## Apply buff bonuses from BuffComponent — called when buffs_changed fires
+func apply_buff_bonuses(buff_component: BuffComponent) -> void:
+	if buff_component == null:
+		return
+	buff_attack_bonus = buff_component.get_total_buff_attack()
+	buff_defense_bonus = buff_component.get_total_buff_defense()
+	buff_health_bonus = buff_component.get_total_buff_health()
+	buff_speed_bonus = buff_component.get_total_buff_speed()
+	health_changed.emit(current_health, max_health)
+
+
+## Clear all buff bonuses (e.g. on death)
+func clear_buff_bonuses() -> void:
+	buff_attack_bonus = 0
+	buff_defense_bonus = 0
+	buff_health_bonus = 0
+	buff_speed_bonus = 0
+	health_changed.emit(current_health, max_health)
 
 
 func reset() -> void:
