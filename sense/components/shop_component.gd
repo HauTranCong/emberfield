@@ -24,18 +24,33 @@ func process_purchase(item: Dictionary) -> bool:
 	var inventory: InventoryData = player.inventory
 	var price: int = item.get("price", 0)
 	var item_name: String = item.get("name", "Unknown")
+	var item_id: String = item.get("id", "")
 	
 	# Check if player has enough gold
-	if inventory.gold >= price:
-		inventory.gold -= price
-		print("Purchased %s for %d gold! Remaining: %d gold" % [item_name, price, inventory.gold])
-		purchase_successful.emit(item, inventory.gold)
-		# TODO: Add item to player inventory
-		return true
-	else:
+	if inventory.gold < price:
 		print("Not enough gold! Need %d, have %d" % [price, inventory.gold])
 		purchase_failed.emit("Not enough gold", item)
 		return false
+	
+	# Get item data from ItemDatabase
+	var item_data: ItemData = ItemDatabase.get_item(item_id)
+	if item_data == null:
+		push_error("ShopComponent: Item '%s' not found in ItemDatabase!" % item_id)
+		purchase_failed.emit("Item not found", item)
+		return false
+	
+	# Try to add item to inventory
+	var remaining := inventory.add_item(item_data, 1)
+	if remaining > 0:
+		print("Inventory full! Cannot add item.")
+		purchase_failed.emit("Inventory full", item)
+		return false
+	
+	# Success - deduct gold
+	inventory.gold -= price
+	print("✓ Purchased %s for %d gold! Remaining: %d gold" % [item_name, price, inventory.gold])
+	purchase_successful.emit(item, inventory.gold)
+	return true
 
 ## Get player's current gold amount
 func get_player_gold() -> int:
