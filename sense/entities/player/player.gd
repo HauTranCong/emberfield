@@ -679,7 +679,34 @@ func _add_starter_items() -> void:
 
 	var herb_segment := ItemDatabase.get_item("herb_segment")
 	if herb_segment:
-		inventory.add_item(herb_segment, 12)	
+		inventory.add_item(herb_segment, 12)
+
+	# --- Skill demo items ---
+	# Rare weapon with 2 augment slots + Whirlwind Rune + Shield Bash Rune
+	var fire_blade := ItemDatabase.get_item("fire_blade")
+	if fire_blade:
+		inventory.add_item(fire_blade, 1)
+
+	var whirlwind_rune := ItemDatabase.get_item("whirlwind_augment")
+	if whirlwind_rune:
+		inventory.add_item(whirlwind_rune, 1)
+
+	var shield_bash_rune := ItemDatabase.get_item("shield_bash_augment")
+	if shield_bash_rune:
+		inventory.add_item(shield_bash_rune, 1)
+
+	# Timed buff consumables for testing
+	var speed_elixir := ItemDatabase.get_item("speed_elixir_t1")
+	if speed_elixir:
+		inventory.add_item(speed_elixir, 2)
+
+	var vitality_tonic := ItemDatabase.get_item("vitality_tonic_t1")
+	if vitality_tonic:
+		inventory.add_item(vitality_tonic, 2)
+
+	var defense_brew := ItemDatabase.get_item("defense_brew_t1")
+	if defense_brew:
+		inventory.add_item(defense_brew, 2)
 
 
 ## Toggle inventory panel visibility
@@ -831,6 +858,14 @@ func _connect_components_to_hud() -> void:
 	if hud.has_method("connect_skill_component"):
 		hud.connect_skill_component(skill_component)
 
+	# Wire Hotbar — setup with inventory + skill component
+	if hud.has_method("setup_hotbar"):
+		hud.setup_hotbar(inventory, skill_component)
+		# Connect hotbar item-use signal
+		var hotbar: Hotbar = hud.get_hotbar() if hud.has_method("get_hotbar") else null
+		if hotbar and not hotbar.hotbar_item_used.is_connected(_on_hotbar_item_used):
+			hotbar.hotbar_item_used.connect(_on_hotbar_item_used)
+
 
 # =============================================================================
 # SKILL & BUFF SIGNAL HANDLERS
@@ -868,6 +903,18 @@ func _get_all_passive_effects() -> Array[Dictionary]:
 	if buff_component:
 		effects.append_array(buff_component.get_active_passive_effects())
 	return effects
+
+
+## Called when player uses an item from the Hotbar (keys 1-8)
+func _on_hotbar_item_used(_slot_index: int, _item: ItemData, inv_index: int) -> void:
+	if inventory == null or stats == null:
+		return
+	var slot_data := inventory.get_item_at(inv_index)
+	if slot_data.item == null or not slot_data.item.is_consumable():
+		return
+	var result := inventory.use_item(inv_index)
+	if result.get("success", false):
+		_on_item_used(result)
 
 
 # =============================================================================

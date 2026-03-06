@@ -2,7 +2,8 @@
 
 [ext_resource type="Script" uid="uid://dhvrxlu2dsbah" path="res://sense/ui/hud/hud.gd" id="1_hud"]
 [ext_resource type="Script" uid="uid://8pc4qips1k7a" path="res://sense/ui/hud/pixel_bar.gd" id="2_pixel_bar"]
-[ext_resource type="Script" path="res://sense/ui/hud/dungeon_minimap.gd" id="3_dungeon_minimap"]
+[ext_resource type="Script" uid="uid://cphqfjo1g8kr" path="res://sense/ui/hud/dungeon_minimap.gd" id="3_dungeon_minimap"]
+[ext_resource type="PackedScene" path="res://sense/ui/hud/Hotbar.tscn" id="4_hotbar"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_icon_speed"]
 bg_color = Color(0.2, 0.8, 0.4, 1)
@@ -299,8 +300,23 @@ layout_mode = 2
 mouse_filter = 2
 color = Color(1, 0.9, 0.1, 1)
 
-[node name="DungeonMinimap" type="Control" parent="MinimapContainer/MarginContainer"]
+[node name="DungeonMinimap" type="Control" parent="MinimapContainer/MarginContainer" unique_id=1493528590]
 visible = false
 custom_minimum_size = Vector2(126, 126)
 layout_mode = 2
 script = ExtResource("3_dungeon_minimap")
+
+[node name="HotbarAnchor" type="CenterContainer" parent="." unique_id=310686361]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -64.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="Hotbar" parent="HotbarAnchor" unique_id=150248533 instance=ExtResource("4_hotbar")]
+layout_mode = 2
+size_flags_horizontal = 4

@@ -22,6 +22,9 @@ extends CanvasLayer
 var stats: CharacterStats
 var player: Node2D  # Reference to player for minimap
 
+# Hotbar (skill + item quick-use bar at bottom-center) — scene instance
+@onready var hotbar: Hotbar = $HotbarAnchor/Hotbar
+
 
 func _ready() -> void:
 	# Ẩn tất cả icon khi bắt đầu
@@ -131,13 +134,13 @@ func _on_buff_expired(buff_id: String) -> void:
 
 
 func _on_skills_changed() -> void:
-	# TODO: Rebuild skill icon display (small icons in bottom-right HUD area)
-	pass
+	if hotbar:
+		hotbar._refresh_skill_slots()
 
 
-func _on_skill_cooldown_updated(_skill_id: String, _remaining: float) -> void:
-	# TODO: Update cooldown sweep overlay on the skill icon
-	pass
+func _on_skill_cooldown_updated(skill_id: String, remaining: float) -> void:
+	if hotbar:
+		hotbar._on_skill_cooldown_updated(skill_id, remaining)
 
 
 func set_status_icon(icon_name: String, value: bool) -> void:
@@ -154,6 +157,19 @@ func set_status_icon(icon_name: String, value: bool) -> void:
 			show_burn_icon(value)
 		"freeze":
 			show_freeze_icon(value)
+
+
+# === HOTBAR ===
+
+## Setup hotbar with inventory + skill component (called by Player)
+func setup_hotbar(inventory: InventoryData, skill_comp: SkillComponent) -> void:
+	if hotbar:
+		hotbar.setup(inventory, skill_comp)
+
+
+## Get hotbar reference (for connecting signals in Player)
+func get_hotbar() -> Hotbar:
+	return hotbar
 
 
 # === MINIMAP FUNCTIONS ===

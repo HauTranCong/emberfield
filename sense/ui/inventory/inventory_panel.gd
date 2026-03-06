@@ -25,6 +25,7 @@ var _embedded := false
 @onready var equip_grid: GridContainer = $CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox/EquipGrid
 
 # Tab buttons
+@onready var sort_button: Button = $CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox/HeaderRow/TabsContainer/Sort
 @onready var tab_all: Button = $CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox/HeaderRow/TabsContainer/TabAll
 @onready var tab_equip: Button = $CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox/HeaderRow/TabsContainer/TabEquip
 @onready var tab_material: Button = $CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox/HeaderRow/TabsContainer/TabMaterial
@@ -97,6 +98,8 @@ func _setup_tabs() -> void:
 	tab_all.pressed.connect(_on_tab_pressed.bind(TabFilter.ALL))
 	tab_equip.pressed.connect(_on_tab_pressed.bind(TabFilter.EQUIP))
 	tab_material.pressed.connect(_on_tab_pressed.bind(TabFilter.MATERIAL))
+	sort_button.pressed.connect(_on_sort_pressed)
+	_style_sort_button()
 	_update_tab_styles()
 
 
@@ -104,6 +107,34 @@ func _on_tab_pressed(tab: TabFilter) -> void:
 	current_tab = tab
 	_update_tab_styles()
 	_refresh_inventory()
+
+
+func _on_sort_pressed() -> void:
+	if inventory_data == null:
+		return
+	inventory_data.sort_inventory()
+
+
+func _style_sort_button() -> void:
+	sort_button.add_theme_color_override("font_color", Color(0.7, 0.65, 0.55, 1.0))
+	sort_button.add_theme_color_override("font_hover_color", Color(1.0, 0.9, 0.6, 1.0))
+	sort_button.add_theme_color_override("font_pressed_color", Color(1.0, 0.85, 0.4, 1.0))
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(0.15, 0.14, 0.12, 1.0)
+	bg.border_color = Color(0.35, 0.3, 0.25, 0.6)
+	bg.set_border_width_all(1)
+	bg.set_corner_radius_all(2)
+	bg.set_content_margin_all(4)
+	sort_button.add_theme_stylebox_override("normal", bg)
+	var hover_bg := StyleBoxFlat.new()
+	hover_bg.bg_color = Color(0.2, 0.18, 0.15, 1.0)
+	hover_bg.border_color = Color(0.5, 0.45, 0.35, 0.8)
+	hover_bg.set_border_width_all(1)
+	hover_bg.set_corner_radius_all(2)
+	hover_bg.set_content_margin_all(4)
+	sort_button.add_theme_stylebox_override("hover", hover_bg)
+	sort_button.add_theme_stylebox_override("pressed", hover_bg)
+	sort_button.tooltip_text = "Sort Inventory"
 
 
 func _update_tab_styles() -> void:

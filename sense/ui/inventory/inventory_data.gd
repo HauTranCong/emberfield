@@ -150,6 +150,57 @@ func get_item_count(item_id: String) -> int:
 	return total
 
 
+## Sort inventory: group by item type, then rarity (desc), then name
+func sort_inventory() -> void:
+	# Collect all non-empty slots
+	var items: Array[Dictionary] = []
+	for slot in inventory_slots:
+		if slot.item != null:
+			items.append({"item": slot.item, "quantity": slot.quantity})
+
+	# Sort: item_type ascending, rarity descending, name ascending
+	items.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		var a_item: ItemData = a.item
+		var b_item: ItemData = b.item
+		# Equipment first, then consumables, then materials, then segments, then augments
+		var type_order_a := _get_sort_type_order(a_item.item_type)
+		var type_order_b := _get_sort_type_order(b_item.item_type)
+		if type_order_a != type_order_b:
+			return type_order_a < type_order_b
+		# Higher rarity first within same type
+		if a_item.rarity != b_item.rarity:
+			return a_item.rarity > b_item.rarity
+		# Alphabetical by name
+		return a_item.name.naturalnocasecmp_to(b_item.name) < 0
+	)
+
+	# Rebuild inventory: sorted items first, then empty slots
+	for i in range(INVENTORY_SIZE):
+		if i < items.size():
+			inventory_slots[i] = items[i]
+		else:
+			inventory_slots[i] = {"item": null, "quantity": 0}
+
+	inventory_changed.emit()
+
+
+## Sort order for item types (lower = earlier)
+func _get_sort_type_order(item_type: ItemData.ItemType) -> int:
+	match item_type:
+		ItemData.ItemType.WEAPON:     return 0
+		ItemData.ItemType.ARMOR:      return 1
+		ItemData.ItemType.HELMET:     return 2
+		ItemData.ItemType.SHIELD:     return 3
+		ItemData.ItemType.BOOTS:      return 4
+		ItemData.ItemType.ACCESSORY:  return 5
+		ItemData.ItemType.CONSUMABLE: return 6
+		ItemData.ItemType.MATERIAL:   return 7
+		ItemData.ItemType.QUEST:      return 8
+		ItemData.ItemType.SEGMENT:    return 9
+		ItemData.ItemType.AUGMENT:    return 10
+		_: return 99
+
+
 ## Swap two inventory slots
 func swap_slots(index_a: int, index_b: int) -> void:
 	if index_a < 0 or index_a >= inventory_slots.size():
