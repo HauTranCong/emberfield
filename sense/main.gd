@@ -1077,7 +1077,7 @@ func _test_phase7() -> void:
 	assert(aug_idx >= 0, "Found flame_augment_t1 in inventory")
 
 	# Create AugmentPanel and apply augment
-	var ap := AugmentPanel.new()
+	var ap : AugmentPanel = preload("res://sense/ui/augment/AugmentPanel.tscn").instantiate()
 	ap.inventory = aug_inv
 	ap.equip_slot = "weapon"
 	ap.equipment_item = aug_inv.equipped_weapon

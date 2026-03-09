@@ -5,22 +5,25 @@ class_name AugmentPanel
 ## ║                       AUGMENT PANEL                                    ║
 ## ╠═══════════════════════════════════════════════════════════════════════╣
 ## ║  Sub-panel opened from InventoryPanel when clicking "Augment" on an   ║
-## ║  equipment slot. Displays augment slots and allows drag-drop or       ║
-## ║  click-to-apply augment items from inventory.                         ║
+## ║  equipment slot. Displays augment slots in a column layout:            ║
+## ║  first slot = Skill (ACTIVE_SKILL), remaining = Passive.              ║
+## ║  Layout defined in AugmentPanel.tscn, logic only in this script.      ║
 ## ║                                                                       ║
-## ║  Layout:                                                              ║
-## ║  ┌──────────────────────────────────────────────────┐                  ║
-## ║  │  Augment: Iron Sword                    [Close]  │                  ║
-## ║  │  ATK: 10  DEF: 0  HP: 0  SPD: 0                 │                  ║
-## ║  │  ──────────────────────────────────────           │                  ║
-## ║  │  Augment Slots (2/2):                            │                  ║
-## ║  │  [Flame Augment I]  [Empty Slot]                 │                  ║
-## ║  │  ──────────────────────────────────────           │                  ║
-## ║  │  Available Augments in Inventory:                 │                  ║
-## ║  │  ┌───────────┐ ┌───────────┐ ┌───────────┐      │                  ║
-## ║  │  │Power Aug I│ │Crit Aug I │ │Frost AugI │      │                  ║
-## ║  │  └───────────┘ └───────────┘ └───────────┘      │                  ║
-## ║  └──────────────────────────────────────────────────┘                  ║
+## ║  Scene tree:                                                          ║
+## ║  AugmentPanel (PanelContainer)                                        ║
+## ║  └── RootVBox (VBoxContainer)                                         ║
+## ║      ├── TitleRow (HBoxContainer)                                     ║
+## ║      │   ├── TitleLabel                                               ║
+## ║      │   └── CloseBtn                                                 ║
+## ║      ├── StatsLabel                                                   ║
+## ║      ├── HSeparator1                                                  ║
+## ║      ├── SlotsTitleLabel                                              ║
+## ║      ├── SlotsContainer (VBoxContainer) ← dynamic rows               ║
+## ║      ├── HSeparator2                                                  ║
+## ║      ├── AvailableTitleLabel                                          ║
+## ║      ├── ScrollContainer                                              ║
+## ║      │   └── AvailableGrid (GridContainer) ← dynamic buttons          ║
+## ║      └── NoAugmentsLabel                                              ║
 ## ╚═══════════════════════════════════════════════════════════════════════╝
 
 signal augment_applied(equip_slot: String)
@@ -31,19 +34,19 @@ var inventory: InventoryData
 var equip_slot: String = ""
 var equipment_item: ItemData = null
 
-## UI references
-var title_label: Label
-var stats_label: Label
-var slots_container: HBoxContainer
-var slots_title_label: Label
-var available_title_label: Label
-var available_grid: GridContainer
-var close_btn: Button
-var no_augments_label: Label
+## Scene node references
+@onready var title_label: Label = $RootVBox/TitleRow/TitleLabel
+@onready var close_btn: Button = $RootVBox/TitleRow/CloseBtn
+@onready var stats_label: Label = $RootVBox/StatsLabel
+@onready var slots_title_label: Label = $RootVBox/SlotsTitleLabel
+@onready var slots_container: VBoxContainer = $RootVBox/SlotsContainer
+@onready var available_title_label: Label = $RootVBox/AvailableTitleLabel
+@onready var available_grid: GridContainer = $RootVBox/ScrollContainer/AvailableGrid
+@onready var no_augments_label: Label = $RootVBox/NoAugmentsLabel
 
 
 func _ready() -> void:
-	_build_ui()
+	close_btn.pressed.connect(_on_close_pressed)
 
 
 func setup(inv: InventoryData, slot: String) -> void:
@@ -68,97 +71,6 @@ func _refresh() -> void:
 	_update_stats()
 	_draw_augment_slots()
 	_draw_available_augments()
-
-
-# =============================================================================
-# UI CONSTRUCTION
-# =============================================================================
-
-func _build_ui() -> void:
-	custom_minimum_size = Vector2(340, 320)
-
-	# Style
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.06, 0.06, 0.1, 0.95)
-	style.border_color = Color(0.5, 0.4, 0.7, 1.0)
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(6)
-	style.content_margin_left = 12
-	style.content_margin_right = 12
-	style.content_margin_top = 10
-	style.content_margin_bottom = 10
-	add_theme_stylebox_override("panel", style)
-
-	var root_vbox := VBoxContainer.new()
-	root_vbox.add_theme_constant_override("separation", 8)
-	add_child(root_vbox)
-
-	# Title row
-	var title_row := HBoxContainer.new()
-	root_vbox.add_child(title_row)
-
-	title_label = Label.new()
-	title_label.text = "Augment: "
-	title_label.add_theme_font_size_override("font_size", 15)
-	title_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.5, 1.0))
-	title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title_row.add_child(title_label)
-
-	close_btn = Button.new()
-	close_btn.text = "X"
-	close_btn.custom_minimum_size = Vector2(28, 28)
-	close_btn.pressed.connect(_on_close_pressed)
-	title_row.add_child(close_btn)
-
-	# Stats summary
-	stats_label = Label.new()
-	stats_label.add_theme_font_size_override("font_size", 12)
-	stats_label.modulate = Color(0.7, 0.8, 0.7, 1.0)
-	root_vbox.add_child(stats_label)
-
-	# Separator
-	root_vbox.add_child(HSeparator.new())
-
-	# Augment slots title
-	slots_title_label = Label.new()
-	slots_title_label.text = "Augment Slots:"
-	slots_title_label.add_theme_font_size_override("font_size", 13)
-	root_vbox.add_child(slots_title_label)
-
-	# Augment slots row
-	slots_container = HBoxContainer.new()
-	slots_container.add_theme_constant_override("separation", 6)
-	root_vbox.add_child(slots_container)
-
-	# Separator
-	root_vbox.add_child(HSeparator.new())
-
-	# Available augments in inventory
-	available_title_label = Label.new()
-	available_title_label.text = "Available Augments:"
-	available_title_label.add_theme_font_size_override("font_size", 13)
-	root_vbox.add_child(available_title_label)
-
-	# Scrollable grid of available augments
-	var scroll := ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	root_vbox.add_child(scroll)
-
-	available_grid = GridContainer.new()
-	available_grid.columns = 4
-	available_grid.add_theme_constant_override("h_separation", 4)
-	available_grid.add_theme_constant_override("v_separation", 4)
-	scroll.add_child(available_grid)
-
-	# No augments label
-	no_augments_label = Label.new()
-	no_augments_label.text = "No augment items in inventory."
-	no_augments_label.add_theme_font_size_override("font_size", 11)
-	no_augments_label.modulate = Color(0.5, 0.5, 0.5, 1.0)
-	no_augments_label.visible = false
-	root_vbox.add_child(no_augments_label)
-
 
 # =============================================================================
 # DISPLAY UPDATES
@@ -204,39 +116,86 @@ func _draw_augment_slots() -> void:
 		slots_container.add_child(lbl)
 		return
 
+	# Categorize applied augments: skills first, then passives
+	var skill_entries: Array[Dictionary] = []
+	var passive_entries: Array[Dictionary] = []
+	for i in range(applied.size()):
+		var aug_item: ItemData = ItemDatabase.get_item(applied[i])
+		if aug_item and aug_item.augment_type == ItemData.AugmentType.ACTIVE_SKILL:
+			skill_entries.append({"aug_id": applied[i], "array_index": i})
+		else:
+			passive_entries.append({"aug_id": applied[i], "array_index": i})
+
+	# Display order: skills first, then passives, then empties
+	var display_entries: Array[Dictionary] = []
+	display_entries.append_array(skill_entries)
+	display_entries.append_array(passive_entries)
+
+	var has_skill := skill_entries.size() > 0
+
 	for i in range(slot_count):
-		var slot_panel := _create_augment_slot_ui(i, applied)
-		slots_container.add_child(slot_panel)
+		if i < display_entries.size():
+			var entry: Dictionary = display_entries[i]
+			var aug_item: ItemData = ItemDatabase.get_item(entry["aug_id"])
+			var is_skill := aug_item and aug_item.augment_type == ItemData.AugmentType.ACTIVE_SKILL
+			var type_text := "Skill" if is_skill else "Passive"
+			var type_color := Color(0.4, 0.7, 1.0) if is_skill else Color(0.6, 0.8, 0.4)
+			var row := _create_augment_slot_row(type_text, entry["array_index"], type_color)
+			slots_container.add_child(row)
+		else:
+			# Empty slot — first empty hints "Skill" if no skill applied yet
+			var is_first_empty := (i == display_entries.size())
+			if not has_skill and is_first_empty:
+				var row := _create_augment_slot_row("Skill", -1, Color(0.4, 0.7, 1.0, 0.5))
+				slots_container.add_child(row)
+			else:
+				var row := _create_augment_slot_row("Passive", -1, Color(0.6, 0.8, 0.4, 0.5))
+				slots_container.add_child(row)
 
 
-func _create_augment_slot_ui(index: int, applied: Array[String]) -> PanelContainer:
+## Creates a single augment slot row: [Type Label] [Icon + Name] [Remove]
+func _create_augment_slot_row(slot_type: String, aug_array_index: int, type_color: Color) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+
+	# Type label (Skill / Passive)
+	var type_lbl := Label.new()
+	type_lbl.text = slot_type
+	type_lbl.custom_minimum_size = Vector2(55, 0)
+	type_lbl.add_theme_font_size_override("font_size", 11)
+	type_lbl.add_theme_color_override("font_color", type_color)
+	type_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	row.add_child(type_lbl)
+
+	# Slot panel
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(72, 56)
+	panel.custom_minimum_size = Vector2(0, 36)
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 	var style := StyleBoxFlat.new()
 	style.set_corner_radius_all(4)
 	style.set_border_width_all(1)
-	style.content_margin_left = 4
-	style.content_margin_right = 4
-	style.content_margin_top = 4
-	style.content_margin_bottom = 4
+	style.content_margin_left = 6
+	style.content_margin_right = 6
+	style.content_margin_top = 3
+	style.content_margin_bottom = 3
 
-	var is_filled := index < applied.size()
+	var is_filled := aug_array_index >= 0
 
 	if is_filled:
-		var aug_id: String = applied[index]
+		var aug_id: String = equipment_item.applied_augments[aug_array_index]
 		var aug_item: ItemData = ItemDatabase.get_item(aug_id)
 
 		style.bg_color = Color(0.15, 0.12, 0.25, 0.9)
 		style.border_color = Color(0.6, 0.5, 0.8, 1.0)
 		panel.add_theme_stylebox_override("panel", style)
 
-		var vbox := VBoxContainer.new()
-		vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-		panel.add_child(vbox)
+		var hbox := HBoxContainer.new()
+		hbox.add_theme_constant_override("separation", 6)
+		panel.add_child(hbox)
 
-		# Icon
 		if aug_item:
+			# Icon
 			var icon_rect := TextureRect.new()
 			icon_rect.custom_minimum_size = Vector2(24, 24)
 			icon_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
@@ -245,37 +204,38 @@ func _create_augment_slot_ui(index: int, applied: Array[String]) -> PanelContain
 			var icon := _get_item_icon(aug_item)
 			if icon:
 				icon_rect.texture = icon
-			vbox.add_child(icon_rect)
+			hbox.add_child(icon_rect)
 
-			# Name (short)
+			# Name (full, colored by rarity)
 			var name_lbl := Label.new()
-			name_lbl.text = aug_item.name.substr(0, 12)
-			name_lbl.add_theme_font_size_override("font_size", 9)
-			name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			name_lbl.text = aug_item.name
+			name_lbl.add_theme_font_size_override("font_size", 11)
+			name_lbl.add_theme_color_override("font_color", aug_item.get_rarity_color())
+			name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			vbox.add_child(name_lbl)
+			hbox.add_child(name_lbl)
 
 		# Remove button
 		var remove_btn := Button.new()
-		remove_btn.text = "Remove"
+		remove_btn.text = "X"
 		remove_btn.add_theme_font_size_override("font_size", 9)
-		remove_btn.custom_minimum_size = Vector2(60, 18)
-		remove_btn.pressed.connect(_on_remove_augment.bind(index))
-		vbox.add_child(remove_btn)
+		remove_btn.custom_minimum_size = Vector2(24, 24)
+		remove_btn.pressed.connect(_on_remove_augment.bind(aug_array_index))
+		hbox.add_child(remove_btn)
 	else:
 		style.bg_color = Color(0.08, 0.08, 0.08, 0.6)
 		style.border_color = Color(0.3, 0.3, 0.3, 0.5)
 		panel.add_theme_stylebox_override("panel", style)
 
 		var empty_lbl := Label.new()
-		empty_lbl.text = "Empty\nSlot"
+		empty_lbl.text = "Empty"
 		empty_lbl.add_theme_font_size_override("font_size", 10)
-		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		empty_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		empty_lbl.modulate = Color(0.4, 0.4, 0.4, 1.0)
 		panel.add_child(empty_lbl)
 
-	return panel
+	row.add_child(panel)
+	return row
 
 
 func _draw_available_augments() -> void:
@@ -286,13 +246,15 @@ func _draw_available_augments() -> void:
 		no_augments_label.visible = true
 		return
 
-	# Check if equipment can accept augments
-	if not equipment_item.is_augmentable():
+	var skill_slot_open := _has_skill_slot_available()
+	var has_room := equipment_item.applied_augments.size() < equipment_item.get_augment_slot_count()
+
+	if not has_room:
 		no_augments_label.text = "All augment slots are filled."
 		no_augments_label.visible = true
 		return
 
-	# Find augment items in inventory
+	# Find augment items in inventory, filtered by available slot types
 	var found_any := false
 	for i in range(inventory.inventory_slots.size()):
 		var slot: Dictionary = inventory.inventory_slots[i]
@@ -302,13 +264,18 @@ func _draw_available_augments() -> void:
 		if not item.is_augment():
 			continue
 
+		# Filter: skill augments only shown if skill slot is open
+		var is_skill_augment := item.augment_type == ItemData.AugmentType.ACTIVE_SKILL
+		if is_skill_augment and not skill_slot_open:
+			continue
+
 		found_any = true
 		var aug_btn := _create_available_augment_button(i, item)
 		available_grid.add_child(aug_btn)
 
 	no_augments_label.visible = not found_any
 	if not found_any:
-		no_augments_label.text = "No augment items in inventory."
+		no_augments_label.text = "No matching augment items in inventory."
 
 
 func _create_available_augment_button(inv_index: int, item: ItemData) -> PanelContainer:
@@ -402,6 +369,23 @@ func _on_remove_augment(augment_index: int) -> void:
 func _on_close_pressed() -> void:
 	panel_closed.emit()
 	queue_free()
+
+
+# =============================================================================
+# AUGMENT SLOT HELPERS
+# =============================================================================
+
+## Returns true if the equipment can accept a new ACTIVE_SKILL augment
+func _has_skill_slot_available() -> bool:
+	if equipment_item == null or equipment_item.get_augment_slot_count() == 0:
+		return false
+	if equipment_item.applied_augments.size() >= equipment_item.get_augment_slot_count():
+		return false
+	for aug_id: String in equipment_item.applied_augments:
+		var aug: ItemData = ItemDatabase.get_item(aug_id)
+		if aug and aug.augment_type == ItemData.AugmentType.ACTIVE_SKILL:
+			return false
+	return true
 
 
 # =============================================================================

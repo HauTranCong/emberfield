@@ -635,7 +635,7 @@ func _open_augment_panel(equip_slot: String) -> void:
 	if existing:
 		existing.queue_free()
 
-	var panel := AugmentPanel.new()
+	var panel : AugmentPanel = preload("res://sense/ui/augment/AugmentPanel.tscn").instantiate()
 	panel.name = "AugmentPanel"
 	add_child(panel)
 	panel.setup(inventory_data, equip_slot)

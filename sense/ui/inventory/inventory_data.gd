@@ -265,11 +265,13 @@ func equip_item(inventory_index: int) -> bool:
 	# Remove item from inventory
 	inventory_slots[inventory_index].item = null
 	inventory_slots[inventory_index].quantity = 0
-	
-	# Add previously equipped item back to inventory
+
+	# Place previously equipped item at the SAME inventory index so the
+	# hotbar slot can show the swapped-in equipment automatically.
 	if equipped_item != null:
-		add_item(equipped_item, 1)
-	
+		inventory_slots[inventory_index].item = equipped_item
+		inventory_slots[inventory_index].quantity = 1
+
 	equipment_changed.emit(slot_type)
 	inventory_changed.emit()
 	return true
@@ -511,6 +513,13 @@ func apply_augment(equip_slot: String, augment_inventory_index: int) -> bool:
 	# Check if equipment has open augment slots
 	if not equipment.is_augmentable():
 		return false
+
+	# At most 1 ACTIVE_SKILL augment per equipment piece
+	if augment_slot.item.augment_type == ItemData.AugmentType.ACTIVE_SKILL:
+		for aug_id: String in equipment.applied_augments:
+			var aug: ItemData = ItemDatabase.get_item(aug_id)
+			if aug and aug.augment_type == ItemData.AugmentType.ACTIVE_SKILL:
+				return false  # Skill slot already occupied
 
 	# Duplicate equipment on first augment to create unique instance
 	# (so we don't mutate the ItemDatabase template)

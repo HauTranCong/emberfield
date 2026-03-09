@@ -161,8 +161,11 @@ func _ready():
 ## Buff & Augment System
 - **BuffComponent**: Manages timed stat buffs (attack/defense/health/speed bonuses). Ticks down in `_process`. Emits `buff_applied`, `buff_expired`, `buffs_changed`.
 - **Augments**: Applied to equipment via `InventoryData.apply_augment()`. Types: `STAT_BOOST`, `PASSIVE_EFFECT`, `ACTIVE_SKILL`, `TIMED_BUFF`.
+- **Augment slot layout**: Column-based. First slot = Skill (ACTIVE_SKILL), remaining = Passive. At most 1 ACTIVE_SKILL per equipment piece.
+- **AugmentPanel**: Scene-designed (`AugmentPanel.tscn` + `augment_panel.gd`). Static layout via scene nodes, dynamic rows built in code. Uses `@onready` references.
 - **PassiveEffect enum**: `LIFE_STEAL`, `CRIT_CHANCE`, `THORNS`, `BURN_ON_HIT`, `FREEZE_ON_HIT`, `POISON_ON_HIT`
 - Equipment has `get_augment_slot_count()` based on rarity (Common=0, Uncommon=1, Rare=2, Epic=3, Legendary=4)
+- **Hotbar skill slots**: Only show ACTIVE_SKILL augments. First skill per input_action wins (no overwriting).
 
 ## Crafting System
 - **CraftingRecipe**: Has 1-3 tiers per recipe, each with different ingredients and result items
@@ -232,7 +235,7 @@ sense/
     │                             # hotbar.gd, Hotbar.tscn, hotbar_slot_ui.gd
     ├── inventory/                # inventory_data.gd, inventory_panel.gd
     │                             # inventory_slot_ui.gd
-    ├── augment/                  # augment_panel.gd, AugmentPanel.tscn
+    ├── augment/                  # augment_panel.gd + AugmentPanel.tscn (scene-designed)
     └── crafting/                 # crafting_panel.gd, crafting_recipe.gd
                                   # recipe_database.gd, embedded_inventory_panel.gd
 ```
@@ -241,6 +244,35 @@ sense/
 - Scripts: snake_case (e.g., `goblin_enemy.gd`)
 - Scenes: PascalCase (e.g., `GoblinEnemy.tscn`)
 - Nodes: PascalCase (e.g., `AttackHitbox`, `CollisionShape2D`)
+
+## Implementation Workflow — Design First, Code Second
+When implementing any new feature or fixing a bug, follow this order:
+
+1. **Understand** — Read all relevant existing code, docs, and signals before changing anything.
+2. **Design in plain language** — Write out the plan as structured comments / ASCII diagrams:
+   - What files are affected and why.
+   - Data flow: which signals fire, which functions are called, in what order.
+   - Edge cases and how they are handled.
+   - Node / scene hierarchy changes (if any).
+3. **Implement incrementally** — Make small, verifiable changes one at a time:
+   - **Create `.tscn` scenes first** — Build the node tree / UI layout in the scene file before writing any script logic. This includes setting collision layers/masks, node hierarchy, and exported property defaults directly in the scene.
+   - Add/modify the **data layer** (Resources, enums, signals, InventoryData methods).
+   - Then the **logic layer** (state machines, component methods, player handlers).
+   - Then the **UI layer** (panels, slots, HUD updates).
+   - Finally **wire everything together** (signal connections, autoload references).
+   - All new files (`.gd` and `.tscn`) MUST be created inside the `sense/` directory following the existing folder structure.
+4. **Validate each step** — Check for errors after every edit before moving on.
+
+### Why this order matters
+- Designing up front prevents half-implemented solutions and rework.
+- Data → Logic → UI ensures each layer has a stable foundation to build on.
+- Small increments make bugs obvious immediately instead of hiding in a large diff.
+
+### Comment & Readability Standards
+- Every new function must have a `##` doc-comment explaining **what** it does and **why**.
+- Use ASCII diagrams in block comments for complex flows (state machines, signal chains, data transformations).
+- Group related functions under `# ====` section headers with a short description.
+- Prefer explicit, descriptive variable names over abbreviations (`inventory_index` not `idx`).
 
 ## Always Include
 - Health system for entities that can take damage

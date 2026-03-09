@@ -906,15 +906,36 @@ func _get_all_passive_effects() -> Array[Dictionary]:
 
 
 ## Called when player uses an item from the Hotbar (keys 1-8)
-func _on_hotbar_item_used(_slot_index: int, _item: ItemData, inv_index: int) -> void:
+func _on_hotbar_item_used(slot_index: int, _item: ItemData, inv_index: int) -> void:
 	if inventory == null or stats == null:
 		return
 	var slot_data := inventory.get_item_at(inv_index)
-	if slot_data.item == null or not slot_data.item.is_consumable():
+	if slot_data.item == null:
 		return
-	var result := inventory.use_item(inv_index)
-	if result.get("success", false):
-		_on_item_used(result)
+
+	# Equipment — equip it, then update hotbar slot with swapped-in equipment
+	if slot_data.item.is_equippable():
+		inventory.equip_item(inv_index)
+		# After equip, the old equipment (if any) sits at the same inv_index.
+		# Tell hotbar to show it instead of clearing the slot.
+		var hotbar: Hotbar = _get_hotbar()
+		if hotbar:
+			hotbar.update_slot_after_equip_swap(slot_index, inv_index)
+		return
+
+	# Consumable — use it
+	if slot_data.item.is_consumable():
+		var result := inventory.use_item(inv_index)
+		if result.get("success", false):
+			_on_item_used(result)
+
+
+## Helper to retrieve the Hotbar node from HUD
+func _get_hotbar() -> Hotbar:
+	var hud = get_tree().root.get_node_or_null("Main/HUD")
+	if hud and hud.has_method("get_hotbar"):
+		return hud.get_hotbar()
+	return null
 
 
 # =============================================================================

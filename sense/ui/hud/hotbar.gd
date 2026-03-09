@@ -126,13 +126,14 @@ func _refresh_skill_slots() -> void:
 		return
 
 	# Map skill_component.available_skills into the 4 skill slots
-	# SkillComponent already maps each skill to input_action (skill_1..skill_4)
+	# Only first skill per input_action wins — prevents overwriting by later entries
 	for skill_entry: Dictionary in skill_component.available_skills:
 		var input_action: String = skill_entry.get("input_action", "")
 		var s_id: String = skill_entry.get("skill_id", "")
 		var action_idx := SKILL_INPUT_ACTIONS.find(input_action)
 		if action_idx >= 0 and action_idx < SKILL_SLOT_COUNT:
-			skill_slots[action_idx].set_skill(s_id)
+			if skill_slots[action_idx].skill_id == "":
+				skill_slots[action_idx].set_skill(s_id)
 
 
 func _on_skill_cooldown_updated(s_id: String, remaining: float) -> void:
@@ -170,6 +171,19 @@ func assign_item_to_slot(slot_idx: int, inv_index: int) -> void:
 		item_slots[slot_idx].clear_slot()
 		return
 	item_slots[slot_idx].set_item(slot_data.item, slot_data.quantity, inv_index)
+
+
+## Update a hotbar slot after an equip-swap.
+## If the old equipment was placed back at the same inv_index, show it;
+## otherwise clear the slot.
+func update_slot_after_equip_swap(slot_idx: int, inv_index: int) -> void:
+	if slot_idx < 0 or slot_idx >= ITEM_SLOT_COUNT or inventory == null:
+		return
+	var slot_data := inventory.get_item_at(inv_index)
+	if slot_data.item != null:
+		item_slots[slot_idx].set_item(slot_data.item, slot_data.quantity, inv_index)
+	else:
+		item_slots[slot_idx].clear_slot()
 
 
 ## Clear an item slot
@@ -231,35 +245,91 @@ func _on_hotbar_item_dropped(slot_idx: int, drag_data: Dictionary) -> void:
 
 
 ## Refresh item slot quantities from inventory (called on inventory_changed)
+## Uses a two-pass algorithm to avoid stale-index collisions after sort/swap.
 func _refresh_item_slots() -> void:
 	if inventory == null:
 		return
+
+	# Pass 1 — fast path: confirm slots whose stored index still matches
+	var claimed_indices: Dictionary = {}   # inv_index → hotbar slot index
+	var needs_relocate: Array[int] = []
+
 	for i in range(ITEM_SLOT_COUNT):
 		var slot := item_slots[i]
-		if slot.inventory_index < 0:
+		if slot.item == null:
 			continue
-		var slot_data := inventory.get_item_at(slot.inventory_index)
-		if slot_data.item == null or slot_data.item.id != (slot.item.id if slot.item else ""):
-			# Item was moved/consumed — clear the hotbar slot
+		var target_id: String = slot.item.id
+		if slot.inventory_index >= 0:
+			var slot_data := inventory.get_item_at(slot.inventory_index)
+			if slot_data.item != null and slot_data.item.id == target_id:
+				claimed_indices[slot.inventory_index] = i
+				slot.quantity = slot_data.quantity
+				slot.queue_redraw()
+				continue
+		needs_relocate.append(i)
+
+	# Pass 2 — slow path: relocate items whose index changed (sort / swap)
+	for i in needs_relocate:
+		var slot := item_slots[i]
+		var target_id: String = slot.item.id
+		var found := false
+		for inv_idx in range(inventory.INVENTORY_SIZE):
+			if inv_idx in claimed_indices:
+				continue
+			var inv_slot := inventory.get_item_at(inv_idx)
+			if inv_slot.item != null and inv_slot.item.id == target_id:
+				claimed_indices[inv_idx] = i
+				slot.inventory_index = inv_idx
+				slot.quantity = inv_slot.quantity
+				slot.queue_redraw()
+				found = true
+				break
+		if not found:
 			slot.clear_slot()
-		else:
-			slot.quantity = slot_data.quantity
-			slot.queue_redraw()
 
 
-## Validate that a hotbar slot still references a valid inventory item
+## Validate that a hotbar slot still references a valid inventory item.
+## Re-locates the item by id if it has moved (e.g. after sort/swap).
 func _validate_slot(idx: int) -> bool:
 	var slot := item_slots[idx]
-	if slot.inventory_index < 0 or inventory == null:
+	if slot.item == null or inventory == null:
 		return false
-	var slot_data := inventory.get_item_at(slot.inventory_index)
-	if slot_data.item == null or (slot.item != null and slot_data.item.id != slot.item.id):
-		slot.clear_slot()
-		return false
-	# Update quantity
-	slot.quantity = slot_data.quantity
-	slot.queue_redraw()
-	return true
+
+	var target_id: String = slot.item.id
+
+	# Fast path: check stored index
+	if slot.inventory_index >= 0:
+		var slot_data := inventory.get_item_at(slot.inventory_index)
+		if slot_data.item != null and slot_data.item.id == target_id:
+			slot.quantity = slot_data.quantity
+			slot.queue_redraw()
+			return true
+
+	# Build set of indices already claimed by OTHER hotbar slots (confirmed only)
+	var claimed: Dictionary = {}
+	for j in range(ITEM_SLOT_COUNT):
+		if j == idx:
+			continue
+		var other := item_slots[j]
+		if other.item == null or other.inventory_index < 0:
+			continue
+		var other_data := inventory.get_item_at(other.inventory_index)
+		if other_data.item != null and other_data.item.id == other.item.id:
+			claimed[other.inventory_index] = true
+
+	# Slow path: search inventory for the same item id
+	for inv_idx in range(inventory.INVENTORY_SIZE):
+		if inv_idx in claimed:
+			continue
+		var inv_slot := inventory.get_item_at(inv_idx)
+		if inv_slot.item != null and inv_slot.item.id == target_id:
+			slot.inventory_index = inv_idx
+			slot.quantity = inv_slot.quantity
+			slot.queue_redraw()
+			return true
+
+	slot.clear_slot()
+	return false
 
 
 # ============================================================================
