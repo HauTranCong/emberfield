@@ -5,7 +5,13 @@ class_name DungeonLevel
 ## Flow:
 ## 1. Generate layout via DungeonGenerator
 ## 2. Render current room with TileMapLayer
-## 3. Player walks into door → transition to adjacent room
+## 3. Enemies spawn in uncleaned rooms → doors lock until all defeated
+## 4. Player walks into door → transition to adjacent room
+##
+## Room Locking:
+##   Enter uncleaned room → enemies spawn → doors sealed with wall tiles
+##   Kill all enemies → room.cleared = true → doors re-open
+##   Re-enter cleared room → no enemies, doors stay open
 
 const TILE_SIZE := 16
 const RETURN_PORTAL_SCENE := preload("res://sense/maps/dungeon/return_portal.tscn")
@@ -33,7 +39,10 @@ var _hud: CanvasLayer = null
 var generator: DungeonGenerator
 var current_room_pos: Vector2i
 var return_portal: Node2D = null
-var end_room_skeleton: Node2D = null
+
+## Enemy tracking for room locking
+var _active_enemies: Array[Node2D] = []
+var _doors_locked: bool = false
 
 ## Dynamic room size
 var room_width: int
@@ -47,8 +56,8 @@ func _ready() -> void:
 		push_error("DungeonLevel: No player found in 'player' group!")
 		return
 	
-	# Use CameraService to switch to dungeon camera (follows player)
-	CameraService.use_custom_camera(camera, player, CameraService.Mode.FOLLOW)
+	# Use CameraService to switch to dungeon camera (room-bounded)
+	CameraService.use_custom_camera(camera, player, CameraService.Mode.ROOM)
 	
 	# Calculate room size
 	if use_viewport_size:
@@ -93,6 +102,12 @@ func _setup_hud_minimap() -> void:
 
 
 func _exit_tree() -> void:
+	# Clean up active enemies
+	_clear_active_enemies()
+	
+	# Clear room bounds before restoring camera
+	CameraService.clear_room_bounds()
+	
 	# Restore player camera via CameraService
 	CameraService.restore_player_camera()
 	
@@ -105,7 +120,8 @@ func _render_room(pos: Vector2i) -> void:
 	floor_layer.clear()
 	wall_layer.clear()
 	_clear_return_portal()
-	_clear_end_room_skeleton()
+	_clear_active_enemies()
+	_doors_locked = false
 	
 	var room = generator.rooms[pos] as DungeonGenerator.Room
 	
@@ -123,7 +139,15 @@ func _render_room(pos: Vector2i) -> void:
 	# Set room tint based on type
 	_apply_room_tint(room.type)
 	_spawn_return_portal_if_end_room(room)
-	_spawn_end_room_skeleton_if_needed(room)
+	
+	# Spawn enemies and lock doors if room not yet cleared
+	_spawn_room_enemies(room)
+	
+	# Set camera bounds to room dimensions
+	CameraService.set_room_bounds(Rect2(
+		Vector2.ZERO,
+		Vector2(room_width * TILE_SIZE, room_height * TILE_SIZE)
+	))
 
 
 func _draw_walls(doors: Array) -> void:
@@ -260,33 +284,172 @@ func _clear_return_portal() -> void:
 func _spawn_return_portal_if_end_room(room: DungeonGenerator.Room) -> void:
 	if room.type != DungeonGenerator.RoomType.BOSS:
 		return
+	# Only show portal after boss room is cleared
+	if not room.cleared:
+		return
 	
 	return_portal = RETURN_PORTAL_SCENE.instantiate() as Node2D
 	add_child(return_portal)
 	return_portal.global_position = _room_center() + Vector2(0, TILE_SIZE * 4)
 
 
-func _clear_end_room_skeleton() -> void:
-	if end_room_skeleton != null and is_instance_valid(end_room_skeleton):
-		end_room_skeleton.queue_free()
-	end_room_skeleton = null
+# ── Enemy Spawning & Room Locking ───────────────────────────────────
+
+## Get enemy count for a room based on distance from START (difficulty scaling)
+## Distance 1 = 2 enemies, distance 2 = 2-3, distance 3+ = 3
+func _get_enemy_count_for_room(room: DungeonGenerator.Room) -> int:
+	match room.type:
+		DungeonGenerator.RoomType.START, DungeonGenerator.RoomType.TREASURE:
+			return 0
+		DungeonGenerator.RoomType.BOSS:
+			return 1
+		DungeonGenerator.RoomType.NORMAL:
+			var start_pos := generator.get_start_pos()
+			var dist := Vector2(room.pos - start_pos).length()
+			if dist <= 1.0:
+				return 2
+			elif dist <= 2.0:
+				return randi_range(2, 3)
+			else:
+				return 3
+	return 0
 
 
-func _spawn_end_room_skeleton_if_needed(room: DungeonGenerator.Room) -> void:
-	if room.type != DungeonGenerator.RoomType.BOSS:
+## Spawn enemies in current room and lock doors if needed
+func _spawn_room_enemies(room: DungeonGenerator.Room) -> void:
+	if room.cleared:
 		return
 	
-	end_room_skeleton = SKELETON_SCENE.instantiate() as Node2D
-	add_child(end_room_skeleton)
-	end_room_skeleton.global_position = _room_center()
+	var count := _get_enemy_count_for_room(room)
+	if count <= 0:
+		return
+	
+	# Safe area for enemy placement (3 tiles from walls, avoids doors)
+	var safe_bounds := Rect2i(4, 4, room_width - 8, room_height - 8)
+	
+	for i in range(count):
+		var enemy := SKELETON_SCENE.instantiate() as Node2D
+		add_child(enemy)
+		
+		# Random position within safe bounds
+		var spawn_x := randi_range(safe_bounds.position.x, safe_bounds.end.x) * TILE_SIZE
+		var spawn_y := randi_range(safe_bounds.position.y, safe_bounds.end.y) * TILE_SIZE
+		
+		# BOSS room: single enemy at center
+		if room.type == DungeonGenerator.RoomType.BOSS:
+			enemy.global_position = _room_center()
+		else:
+			enemy.global_position = Vector2(spawn_x, spawn_y)
+		
+		_active_enemies.append(enemy)
+		enemy.tree_exiting.connect(_on_enemy_removed.bind(enemy))
+	
+	# Lock doors while enemies are alive
+	_lock_doors()
+
+
+## Called when an enemy is removed from tree (death or cleanup)
+func _on_enemy_removed(enemy: Node2D) -> void:
+	_active_enemies.erase(enemy)
+	
+	# Check if all enemies defeated — defer to avoid modifying tree during tree_exiting
+	if _active_enemies.is_empty() and _doors_locked:
+		call_deferred("_on_all_enemies_defeated")
+
+
+## Deferred callback when all enemies in the current room are dead
+func _on_all_enemies_defeated() -> void:
+	var room = generator.rooms[current_room_pos] as DungeonGenerator.Room
+	room.cleared = true
+	_unlock_doors()
+	
+	# Spawn return portal in boss room after clearing
+	if room.type == DungeonGenerator.RoomType.BOSS:
+		_spawn_return_portal_if_end_room(room)
+	
+	print("Room %s cleared!" % current_room_pos)
+
+
+## Free all active enemies (for room transitions)
+func _clear_active_enemies() -> void:
+	for enemy in _active_enemies:
+		if is_instance_valid(enemy):
+			# Disconnect signal to avoid triggering _on_enemy_removed during cleanup
+			var bound_callable := _on_enemy_removed.bind(enemy)
+			if enemy.tree_exiting.is_connected(bound_callable):
+				enemy.tree_exiting.disconnect(bound_callable)
+			enemy.queue_free()
+	_active_enemies.clear()
+
+
+## Seal door openings with wall tiles so player cannot leave
+func _lock_doors() -> void:
+	_doors_locked = true
+	var room = generator.rooms[current_room_pos] as DungeonGenerator.Room
+	var wall_atlas = Vector2i(2, 2)
+	
+	var door_x_start = room_width / 2 - door_width / 2
+	var door_x_end = door_x_start + door_width - 1
+	var door_y_start = room_height / 2 - door_height / 2
+	var door_y_end = door_y_start + door_height - 1
+	
+	for dir in room.doors:
+		match dir:
+			DungeonGenerator.Dir.UP:
+				for x in range(door_x_start, door_x_end + 1):
+					wall_layer.set_cell(Vector2i(x, 0), 0, wall_atlas)
+			DungeonGenerator.Dir.DOWN:
+				for x in range(door_x_start, door_x_end + 1):
+					wall_layer.set_cell(Vector2i(x, room_height - 1), 0, wall_atlas)
+			DungeonGenerator.Dir.LEFT:
+				for y in range(door_y_start, door_y_end + 1):
+					wall_layer.set_cell(Vector2i(0, y), 0, wall_atlas)
+			DungeonGenerator.Dir.RIGHT:
+				for y in range(door_y_start, door_y_end + 1):
+					wall_layer.set_cell(Vector2i(room_width - 1, y), 0, wall_atlas)
+
+
+## Remove wall tiles from door openings to restore passage
+func _unlock_doors() -> void:
+	_doors_locked = false
+	var room = generator.rooms[current_room_pos] as DungeonGenerator.Room
+	
+	var door_x_start = room_width / 2 - door_width / 2
+	var door_x_end = door_x_start + door_width - 1
+	var door_y_start = room_height / 2 - door_height / 2
+	var door_y_end = door_y_start + door_height - 1
+	
+	for dir in room.doors:
+		match dir:
+			DungeonGenerator.Dir.UP:
+				for x in range(door_x_start, door_x_end + 1):
+					wall_layer.erase_cell(Vector2i(x, 0))
+			DungeonGenerator.Dir.DOWN:
+				for x in range(door_x_start, door_x_end + 1):
+					wall_layer.erase_cell(Vector2i(x, room_height - 1))
+			DungeonGenerator.Dir.LEFT:
+				for y in range(door_y_start, door_y_end + 1):
+					wall_layer.erase_cell(Vector2i(0, y))
+			DungeonGenerator.Dir.RIGHT:
+				for y in range(door_y_start, door_y_end + 1):
+					wall_layer.erase_cell(Vector2i(room_width - 1, y))
 
 
 func _process(_delta: float) -> void:
 	_check_door_collision()
 
 
-func _check_door_collision() -> void:
+## Force-collect all GameItem drops in the current room before transitioning
+func _auto_collect_items() -> void:
 	if player == null:
+		return
+	for child in get_children():
+		if child is GameItem and not child._is_collected:
+			child._collect(player)
+
+
+func _check_door_collision() -> void:
+	if player == null or _doors_locked:
 		return
 	var room = generator.rooms[current_room_pos] as DungeonGenerator.Room
 	var player_tile = Vector2i(player.global_position / TILE_SIZE)
@@ -322,6 +485,9 @@ func _go_to_room(dir: DungeonGenerator.Dir) -> void:
 	
 	if not generator.rooms.has(new_pos):
 		return
+	
+	# Auto-collect all dropped items before leaving the room
+	_auto_collect_items()
 	
 	current_room_pos = new_pos
 	_render_room(new_pos)
