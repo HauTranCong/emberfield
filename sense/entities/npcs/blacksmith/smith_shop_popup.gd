@@ -7,12 +7,15 @@ signal close_requested
 @onready var dim: ColorRect = $Dim
 @onready var items_list: VBoxContainer = $Panel/VBox/ShopContent/ItemsScroll/ItemsList
 @onready var close_btn: Button = $Panel/VBox/TitleRow/Close
+@onready var gold_label: Label = $Panel/VBox/TitleRow/GoldLabel
 @onready var main_tab_container: HBoxContainer = $Panel/VBox/MainTabsRow
 @onready var category_tab_container: HBoxContainer = $Panel/VBox/ShopContent/CategoryTabs
 @onready var shop_content: VBoxContainer = $Panel/VBox/ShopContent
 @onready var crafting_content: HBoxContainer = $Panel/VBox/CraftingContent
 @onready var crafting_panel: CraftingPanel = $Panel/VBox/CraftingContent/CraftingPanel
 @onready var inventory_container: Control = $Panel/VBox/CraftingContent/InventoryContainer
+
+var _inventory: InventoryData = null
 
 var items: Array[Dictionary] = []
 var owner_npc: Node = null
@@ -55,6 +58,7 @@ func _ready() -> void:
 	_create_category_tabs()
 	_switch_main_tab("BUY_SELL")
 	_connect_signals()
+	_setup_gold_display()
 
 
 func _connect_signals() -> void:
@@ -62,6 +66,23 @@ func _connect_signals() -> void:
 		dim.dim_clicked.connect(_on_dim_clicked)
 	if close_btn:
 		close_btn.pressed.connect(_on_close_pressed)
+
+
+func _setup_gold_display() -> void:
+	var player := get_tree().get_first_node_in_group("player")
+	if player and player.get("inventory"):
+		_inventory = player.inventory
+		_inventory.gold_changed.connect(_on_gold_changed)
+		_update_gold_label(_inventory.gold)
+
+
+func _on_gold_changed(amount: int) -> void:
+	_update_gold_label(amount)
+
+
+func _update_gold_label(amount: int) -> void:
+	if gold_label:
+		gold_label.text = "%d G" % amount
 
 
 func _create_main_tabs() -> void:
@@ -181,9 +202,16 @@ func set_items(new_items: Array[Dictionary]) -> void:
 
 func show_popup() -> void:
 	visible = true
+	GameEvent.is_shop_open = true
+	GameEvent.shop_opened.emit()
+
 
 
 func hide_popup() -> void:
+	GameEvent.is_shop_open = false
+	GameEvent.shop_closed.emit()
+	if _inventory and _inventory.gold_changed.is_connected(_on_gold_changed):
+		_inventory.gold_changed.disconnect(_on_gold_changed)
 	visible = false
 	queue_free()
 

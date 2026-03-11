@@ -99,15 +99,16 @@ func _on_purchase_requested(item: Dictionary) -> void:
 	shop.process_purchase(item)
 
 ## Called when purchase is successful
-func _on_purchase_successful(_item: Dictionary, remaining_gold: int) -> void:
-	print("[Blacksmith] Thanks for your purchase! You have %d gold remaining." % remaining_gold)
-	# You could show a success message or play a sound here
+func _on_purchase_successful(item: Dictionary, remaining_gold: int) -> void:
+	var item_name: String = item.get("name", "item")
+	NotificationManager.show_success("Purchased %s! (%d G remaining)" % [item_name, remaining_gold])
 
-## Called when purchase fails
-func _on_purchase_failed(reason: String, _item: Dictionary) -> void:
-	print("[Blacksmith] Purchase failed: %s" % reason)
-	# You could show an error message to the player here
-	if reason == "Not enough gold":
-		print("[Blacksmith] Come back when you have more gold!")
-	elif reason == "Inventory full":
-		print("[Blacksmith] Your inventory is full! Clear some space first.")
+func _on_purchase_failed(reason: String, item: Dictionary) -> void:
+	var item_name: String = item.get("name", "item")
+	match reason:
+		"Not enough gold":
+			NotificationManager.show_error("Not enough gold to buy %s!" % item_name)
+		"Inventory full":
+			NotificationManager.show_warning("Inventory full! Can't buy %s." % item_name)
+		_:
+			NotificationManager.show_error("Cannot purchase %s." % item_name)

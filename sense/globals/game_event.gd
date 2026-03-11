@@ -6,6 +6,10 @@ signal augment_removed(equip_slot: String, augment_id: String)
 signal buff_applied(buff_id: String)
 signal buff_expired(buff_id: String)
 signal skill_used(skill_id: String)
+signal shop_opened
+signal shop_closed
+
+var is_shop_open: bool = false
 
 
 

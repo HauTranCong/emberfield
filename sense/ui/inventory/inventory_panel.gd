@@ -475,6 +475,11 @@ func _on_inventory_slot_right_clicked(index: int) -> void:
 	if slot_data.item == null:
 		return
 	
+	# When shop is open, right-click sells the item
+	if GameEvent.is_shop_open:
+		_request_sell_item(index, slot_data.item, slot_data.quantity)
+		return
+	
 	if slot_data.item.is_equippable():
 		inventory_data.equip_item(index)
 	elif slot_data.item.is_consumable():
@@ -484,6 +489,33 @@ func _on_inventory_slot_right_clicked(index: int) -> void:
 
 
 ## Handle right-click on equipment slot (unequip or augment)
+## Show sell confirmation and process sale
+func _request_sell_item(index: int, item: ItemData, quantity: int) -> void:
+	var sell_price: int = item.sell_price
+	if sell_price <= 0:
+		NotificationManager.show_warning("This item cannot be sold.")
+		return
+	
+	var qty_text := " (x%d)" % quantity if quantity > 1 else ""
+	var message := "Sell %s%s for %d G?" % [item.name, qty_text, sell_price]
+	
+	ConfirmDialog.show_confirm(message, func() -> void:
+		_execute_sell(index, item, sell_price)
+	)
+
+
+func _execute_sell(index: int, item: ItemData, sell_price: int) -> void:
+	if inventory_data == null:
+		return
+	var slot_data := inventory_data.get_item_at(index)
+	if slot_data.item == null or slot_data.item.id != item.id:
+		return
+	inventory_data.remove_item_at(index, 1)
+	inventory_data.gold += sell_price
+	NotificationManager.show_success("Sold %s for %d G" % [item.name, sell_price])
+
+
+## Handle right-click on equipment slot (unequip)
 func _on_equipment_slot_right_clicked(_index: int, slot_type: String) -> void:
 	if inventory_data == null:
 		return

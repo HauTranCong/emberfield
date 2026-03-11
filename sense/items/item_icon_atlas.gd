@@ -131,16 +131,51 @@ const ICONS := {
 	"cape_red": Vector2i(1, 3),
 	"cape_blue": Vector2i(1, 4),
 	
-	"bone": Vector2i(17, 9),
-
+	# === ROW 17: Materials ===	
+	"wood": Vector2i(17, 0),
 	"iron_ore": Vector2i(17, 1),
+	"gold_ore": Vector2i(17, 3),
+	"diamond": Vector2i(17, 4),
+	"leather": Vector2i(17, 8),
+	"bone": Vector2i(17, 9),
 	
-	# === ROW 3: Weapons (Swords) ===
-	"sword_iron": Vector2i(5, 1),
-	
-	# === ROW 4: Armor/Helmets ===
-	"leather_armor": Vector2i(7, 5),
-	
+	# === ROW 5: Weapons (Swords/Maces/Axes/Daggers/Blades) ===
+	"wooden_sword": Vector2i(5, 0),
+	"iron_sword": Vector2i(5, 1),
+	"platinum_sword": Vector2i(5, 2),
+
+	"pirate_blade": Vector2i(5, 5),
+
+	"dagger": Vector2i(5, 7),
+
+	"battle_axe": Vector2i(5, 11),
+
+	"thron_mace": Vector2i(5, 12),
+
+	# === ROW 6: Weapons (Shields/Bows) ===
+	"wooden_shield": Vector2i(6, 0),
+	"iron_shield": Vector2i(6, 1),
+	"kite_shield": Vector2i(6, 2),
+	"hunting_bow": Vector2i(6, 3),
+
+	# === ROW 7: Armor/Helmets ===
+	"iron_helmet": Vector2i(7, 1),
+	"leather_cap": Vector2i(7, 2),
+	"steel_helmet": Vector2i(7, 3),
+
+	"plate_armor": Vector2i(7, 4),
+	"iron_armor": Vector2i(7, 5),
+	"leather_armor": Vector2i(7, 6),
+
+	# === ROW 8: Glove/Boots/Necklaces ===
+	"leather_gloves": Vector2i(8, 0),
+	"iron_gloves": Vector2i(8, 1),
+	"leather_boots": Vector2i(8, 2),
+	"swift_boots": Vector2i(8, 3),
+	"gold_ring": Vector2i(8, 4),
+	"diamond_ring": Vector2i(8, 5),
+
+
 	# === ROW 6: Potions ===
 	"potion_red": Vector2i(9, 0),
 	
