@@ -11,7 +11,7 @@ This is a Godot 2D game project with:
 - Scene transition service for map management
 - Debug visualization system
 
-## Autoloads (8 total, defined in project.godot)
+## Autoloads (10 total, defined in project.godot)
 | Singleton | Script | Purpose |
 |-----------|--------|---------|
 | CollisionLayers | `sense/globals/collision_layers.gd` | Layer bitmask enum |
@@ -22,6 +22,8 @@ This is a Godot 2D game project with:
 | CameraService | `sense/globals/camera_service.gd` | Camera mode management |
 | RecipeDatabase | `sense/ui/crafting/recipe_database.gd` | Crafting recipe registry |
 | SkillDatabase | `sense/skills/skill_database.gd` | Skill definitions |
+| NotificationManager | `sense/globals/notification_manager.gd` | In-game notification toasts |
+| ConfirmDialog | `sense/globals/confirm_dialog.gd` | Global confirm dialog service |
 
 ## Critical Rules for Entity Creation
 
@@ -207,9 +209,11 @@ sense/
 │       └── merchant/             # general_goods.gd, item_sell.gd, ui_general_shop.gd
 ├── globals/                      # Autoloaded singletons & services
 │   ├── collision_layers.gd       # CollisionLayers.Layer enum
-│   ├── game_event.gd             # Global event bus (7 signals)
+│   ├── game_event.gd             # Global event bus (9 signals)
 │   ├── camera_service.gd         # Camera modes: FOLLOW, STATIC, ROOM
-│   └── scene_transition_service.gd # Map transitions with fade + caching
+│   ├── scene_transition_service.gd # Map transitions with fade + caching
+│   ├── notification_manager.gd   # In-game notification toasts (Autoload)
+│   └── confirm_dialog.gd         # Global confirm dialog service (Autoload)
 ├── items/                        # Item system
 │   ├── item_data.gd              # Item resource (11 types, 5 rarities, augments)
 │   ├── item_database.gd          # Item registry (Autoload, ~40+ items)

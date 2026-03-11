@@ -382,6 +382,9 @@ classDiagram
         +signal buff_applied(buff_id)
         +signal buff_expired(buff_id)
         +signal skill_used(skill_id)
+        +signal shop_opened
+        +signal shop_closed
+        +var is_shop_open: bool
     }
     
     class CameraService {
@@ -430,6 +433,19 @@ classDiagram
         +Dictionary skills
         +get_skill(id) SkillData
         +get_all_skills() Array
+    }
+    
+    class NotificationManager {
+        <<Autoload>>
+        +enum Type: INFO, SUCCESS, ERROR, WARNING
+        +show_notification(text, type, duration)
+    }
+    
+    class ConfirmDialog {
+        <<Autoload>>
+        +signal confirmed
+        +signal cancelled
+        +show_confirm(message, on_confirmed)
     }
     
     class CharacterStats {

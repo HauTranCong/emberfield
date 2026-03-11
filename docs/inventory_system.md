@@ -109,6 +109,8 @@ Defines all properties for an item.
 | CONSUMABLE  | -              | Use for effects (heal, stamina)  |
 | MATERIAL    | -              | Crafting materials               |
 | QUEST       | -              | Cannot be dropped or sold        |
+| SEGMENT     | -              | Crafting fragment materials      |
+| AUGMENT     | -              | Equipment augment (apply to gear)|
 
 #### Item Rarity
 

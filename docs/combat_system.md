@@ -340,7 +340,7 @@ func deactivate() -> void:
 
 func _on_area_entered(area: Area2D) -> void:
     if area is HurtboxComponent:
-        area.receive_damage(damage, knockback_force, global_position)
+        area.take_damage(damage, knockback_force, global_position)
 ```
 
 ### HurtboxComponent (Area2D)
@@ -354,7 +354,7 @@ class_name HurtboxComponent
 
 signal damage_received(amount: int, knockback: float, from_position: Vector2)
 
-func receive_damage(amount: int, knockback: float, from_position: Vector2) -> void:
+func take_damage(amount: int, knockback: float, from_position: Vector2) -> void:
     emit_signal("damage_received", amount, knockback, from_position)
 ```
 
@@ -399,7 +399,7 @@ sequenceDiagram
     PI->>PH: attack_pressed
     PH->>PH: activate()
     PH->>EHurt: collision detected
-    EHurt->>EHurt: receive_damage()
+    EHurt->>EHurt: take_damage()
     EHurt->>EHit: damage_received signal
     EHit->>EAI: take_damage()
     EAI->>EAI: HP -= X
