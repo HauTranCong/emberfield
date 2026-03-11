@@ -4,7 +4,6 @@ class_name SmithShopPopup
 signal buy_requested(item: Dictionary)
 signal close_requested
 
-@onready var dim: ColorRect = $Dim
 @onready var items_list: VBoxContainer = $Panel/VBox/ShopContent/ItemsScroll/ItemsList
 @onready var close_btn: Button = $Panel/VBox/TitleRow/Close
 @onready var gold_label: Label = $Panel/VBox/TitleRow/GoldLabel
@@ -62,8 +61,6 @@ func _ready() -> void:
 
 
 func _connect_signals() -> void:
-	if dim and dim.has_signal("dim_clicked"):
-		dim.dim_clicked.connect(_on_dim_clicked)
 	if close_btn:
 		close_btn.pressed.connect(_on_close_pressed)
 
@@ -220,10 +217,6 @@ func _on_close_pressed() -> void:
 	hide_popup()
 	close_requested.emit()
 
-
-func _on_dim_clicked(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.is_pressed():
-		hide_popup()
 
 func _refresh() -> void:
 	for c in items_list.get_children():

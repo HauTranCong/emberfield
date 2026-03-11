@@ -10,7 +10,7 @@ class_name UIPopupComponent
 @export var open_inventory_alongside: bool = false  # Open inventory panel side-by-side with this UI
 
 ## Track paired inventory panel for cleanup
-var _paired_inventory_panel: CanvasLayer = null
+var _paired_inventory_panel: Control = null
 
 ## Opens the UI scene in the HUD. Returns the instantiated UI node if successful, null if failed
 func open_ui(init_data: Dictionary = {}) -> Node:
@@ -91,8 +91,11 @@ func _open_paired_inventory() -> void:
 		if _paired_inventory_panel.has_method("open_inventory_docked_right"):
 			_paired_inventory_panel.open_inventory_docked_right()
 		else:
-			# Fallback: just open normally
 			_paired_inventory_panel.open_inventory()
+		# Ensure inventory renders above the shop popup by moving it to the end of HUD children
+		var parent = _paired_inventory_panel.get_parent()
+		if parent:
+			parent.move_child(_paired_inventory_panel, -1)
 
 ## Close the paired inventory panel and reset its positioning
 func _close_paired_inventory() -> void:

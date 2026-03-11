@@ -9,8 +9,8 @@ signal inventory_changed
 const GRID_COLUMNS := 6
 const SLOT_SIZE := 64
 
-@onready var slots_grid: GridContainer = $MarginContainer/VBoxContainer/ScrollContainer/SlotsGrid
-@onready var inventory_title: Label = $MarginContainer/VBoxContainer/InventoryTitle
+var slots_grid: GridContainer = null
+var inventory_title: Label = null
 
 var inventory_data: InventoryData
 var inventory_slots: Array[Panel] = []
