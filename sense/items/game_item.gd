@@ -594,6 +594,55 @@ func scatter_from(origin: Vector2) -> void:
 		direction = Vector2(randf_range(-1, 1), randf_range(-1, 1)).normalized()
 	_velocity = direction * scatter_force + Vector2(randf_range(-20, 20), randf_range(-20, 20))
 
+
+## Animated magnet-fly-to-player collection (used by auto-collect on room transitions)
+## Pops up, then arcs toward the collector with a trail-like shrink at the end
+func magnet_collect(collector: Node2D, duration: float = 0.45) -> void:
+	if _is_collected:
+		return
+	_is_collected = true
+	_can_pickup = false
+	
+	# Stop bobbing/rotation so the tween is clean
+	set_physics_process(false)
+	
+	# Phase 1: Pop up — quick scale bump + lift to grab attention
+	var pop_tween := create_tween()
+	pop_tween.set_parallel(true)
+	pop_tween.tween_property(self, "scale", Vector2(1.4, 1.4), 0.1) \
+		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	if sprite:
+		pop_tween.tween_property(sprite, "position:y", sprite.position.y - 10, 0.1) \
+			.set_ease(Tween.EASE_OUT)
+	if shadow:
+		pop_tween.tween_property(shadow, "modulate:a", 0.0, 0.1)
+	await pop_tween.finished
+	
+	if not is_instance_valid(self) or not is_instance_valid(collector):
+		return
+	
+	# Phase 2: Fly toward player — fast arc with shrink at the end
+	var fly_duration := duration - 0.1
+	var fly_tween := create_tween()
+	fly_tween.set_parallel(true)
+	fly_tween.tween_method(
+		func(t: float) -> void:
+			if is_instance_valid(collector):
+				global_position = global_position.lerp(collector.global_position, t),
+		0.0, 1.0, fly_duration
+	).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	# Shrink only in the last 40% of the flight
+	fly_tween.tween_property(self, "scale", Vector2(0.2, 0.2), fly_duration * 0.4) \
+		.set_delay(fly_duration * 0.6).set_ease(Tween.EASE_IN)
+	# Fade out only in the last 30%
+	if sprite:
+		fly_tween.tween_property(sprite, "modulate:a", 0.0, fly_duration * 0.3) \
+			.set_delay(fly_duration * 0.7)
+	
+	# After flight finishes, do the actual collection
+	_is_collected = false  # Temporarily allow _collect
+	fly_tween.chain().tween_callback(_collect.bind(collector))
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # SETUP METHODS
 # ═══════════════════════════════════════════════════════════════════════════════

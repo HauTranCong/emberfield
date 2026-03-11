@@ -363,6 +363,9 @@ func _on_all_enemies_defeated() -> void:
 	room.cleared = true
 	_unlock_doors()
 	
+	# Magnet-collect all enemy drops to player
+	_auto_collect_items()
+	
 	# Spawn return portal in boss room after clearing
 	if room.type == DungeonGenerator.RoomType.BOSS:
 		_spawn_return_portal_if_end_room(room)
@@ -439,13 +442,25 @@ func _process(_delta: float) -> void:
 	_check_door_collision()
 
 
-## Force-collect all GameItem drops in the current room before transitioning
+## Force-collect all GameItem drops with magnet animation before transitioning
+## Items are children of Main (current_scene via ItemSpawner), not DungeonLevel
 func _auto_collect_items() -> void:
 	if player == null:
 		return
-	for child in get_children():
+	var root := get_tree().current_scene
+	if root == null:
+		return
+	var delay := 0.0
+	for child in root.get_children():
 		if child is GameItem and not child._is_collected:
-			child._collect(player)
+			# Stagger each item's magnet animation slightly
+			if delay > 0.0:
+				get_tree().create_timer(delay).timeout.connect(
+					child.magnet_collect.bind(player, 0.25)
+				)
+			else:
+				child.magnet_collect(player, 0.25)
+			delay += 0.05
 
 
 func _check_door_collision() -> void:
@@ -485,9 +500,6 @@ func _go_to_room(dir: DungeonGenerator.Dir) -> void:
 	
 	if not generator.rooms.has(new_pos):
 		return
-	
-	# Auto-collect all dropped items before leaving the room
-	_auto_collect_items()
 	
 	current_room_pos = new_pos
 	_render_room(new_pos)
