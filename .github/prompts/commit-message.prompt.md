@@ -4,8 +4,8 @@ Generate clear, meaningful git commit messages or pull request descriptions base
 
 ## Mode Detection
 
-- **Commit mode** (default): User says "commit", or has staged changes → generate a commit message.
-- **PR mode**: User says "pull request", "PR", or "push" with context suggesting a PR → generate a PR description.
+- **Commit mode** (default): User says "commit", or has staged changes → generate a commit message -> push to git.
+- **PR mode**: User says "pull request", "PR", or "push" with context suggesting a PR → generate a PR description -> open a PR on GitHub.
 
 ---
 
