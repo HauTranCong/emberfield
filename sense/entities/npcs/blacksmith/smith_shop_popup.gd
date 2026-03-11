@@ -4,15 +4,15 @@ class_name SmithShopPopup
 signal buy_requested(item: Dictionary)
 signal close_requested
 
-@onready var items_list: VBoxContainer = $Panel/VBox/ShopContent/ItemsScroll/ItemsList
-@onready var close_btn: Button = $Panel/VBox/TitleRow/Close
-@onready var gold_label: Label = $Panel/VBox/TitleRow/GoldLabel
-@onready var main_tab_container: HBoxContainer = $Panel/VBox/MainTabsRow
-@onready var category_tab_container: HBoxContainer = $Panel/VBox/ShopContent/CategoryTabs
-@onready var shop_content: VBoxContainer = $Panel/VBox/ShopContent
-@onready var crafting_content: HBoxContainer = $Panel/VBox/CraftingContent
-@onready var crafting_panel: CraftingPanel = $Panel/VBox/CraftingContent/CraftingPanel
-@onready var inventory_container: Control = $Panel/VBox/CraftingContent/InventoryContainer
+@onready var gold_label: Label = $Main/MainMargin/MainAlign/TitleRow/GoldLabel
+@onready var main_tab_container: HBoxContainer = $Main/MainMargin/MainAlign/MainTabsRow
+@onready var category_tab_container: HBoxContainer = $Main/MainMargin/MainAlign/ShopContent/CategoryTabs
+@onready var shop_content: VBoxContainer = $Main/MainMargin/MainAlign/ShopContent
+@onready var crafting_content: HBoxContainer = $Main/MainMargin/MainAlign/CraftingContent
+@onready var crafting_panel: CraftingPanel = $Main/MainMargin/MainAlign/CraftingContent/CraftingPanel
+@onready var inventory_container: Control = $Main/MainMargin/MainAlign/CraftingContent/InventoryContainer
+@onready var items_list: VBoxContainer = $Main/MainMargin/MainAlign/ShopContent/ItemsScroll/ItemsList
+@onready var close_btn: Button = $Main/MainMargin/MainAlign/TitleRow/Close
 
 var _inventory: InventoryData = null
 
