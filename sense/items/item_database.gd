@@ -49,13 +49,13 @@ func _create_sample_items() -> void:
 	steel_sword.name = "Steel Sword"
 	steel_sword.description = "A well-crafted steel sword with a sharp edge."
 	steel_sword.item_type = ItemData.ItemType.WEAPON
-	steel_sword.rarity = ItemData.ItemRarity.UNCOMMON
+	steel_sword.rarity = ItemData.ItemRarity.COMMON
 	steel_sword.stackable = false
 	steel_sword.attack_bonus = 25
 	steel_sword.buy_price = 300
 	steel_sword.sell_price = 150
 	steel_sword.use_atlas_icon = true
-	steel_sword.atlas_icon_name = "sword_iron"  # Reuse sword icon
+	steel_sword.atlas_icon_name = "sword_iron"
 	items["steel_sword"] = steel_sword
 	
 	var fire_blade := ItemData.new()
@@ -63,14 +63,78 @@ func _create_sample_items() -> void:
 	fire_blade.name = "Flame Blade"
 	fire_blade.description = "A magical blade imbued with fire essence. Burns with eternal flame."
 	fire_blade.item_type = ItemData.ItemType.WEAPON
-	fire_blade.rarity = ItemData.ItemRarity.RARE
+	fire_blade.rarity = ItemData.ItemRarity.COMMON
 	fire_blade.stackable = false
 	fire_blade.attack_bonus = 40
 	fire_blade.buy_price = 1000
 	fire_blade.sell_price = 500
 	fire_blade.use_atlas_icon = true
-	fire_blade.atlas_icon_name = "sword_iron"  # Reuse sword icon
+	fire_blade.atlas_icon_name = "sword_iron"
 	items["fire_blade"] = fire_blade
+	
+	# More weapons
+	var battle_axe := ItemData.new()
+	battle_axe.id = "battle_axe"
+	battle_axe.name = "Battle Axe"
+	battle_axe.description = "A heavy axe that deals massive damage."
+	battle_axe.item_type = ItemData.ItemType.WEAPON
+	battle_axe.rarity = ItemData.ItemRarity.COMMON
+	battle_axe.stackable = false
+	battle_axe.attack_bonus = 30
+	battle_axe.speed_bonus = -5.0
+	battle_axe.buy_price = 250
+	battle_axe.sell_price = 125
+	battle_axe.use_atlas_icon = true
+	battle_axe.atlas_row = 3
+	battle_axe.atlas_col = 2
+	items["battle_axe"] = battle_axe
+	
+	var dagger := ItemData.new()
+	dagger.id = "dagger"
+	dagger.name = "Dagger"
+	dagger.description = "A quick, light blade for swift attacks."
+	dagger.item_type = ItemData.ItemType.WEAPON
+	dagger.rarity = ItemData.ItemRarity.COMMON
+	dagger.stackable = false
+	dagger.attack_bonus = 10
+	dagger.speed_bonus = 15.0
+	dagger.buy_price = 90
+	dagger.sell_price = 45
+	dagger.use_atlas_icon = true
+	dagger.atlas_row = 0
+	dagger.atlas_col = 1
+	items["dagger"] = dagger
+	
+	var war_hammer := ItemData.new()
+	war_hammer.id = "war_hammer"
+	war_hammer.name = "War Hammer"
+	war_hammer.description = "A crushing weapon that breaks through armor."
+	war_hammer.item_type = ItemData.ItemType.WEAPON
+	war_hammer.rarity = ItemData.ItemRarity.COMMON
+	war_hammer.stackable = false
+	war_hammer.attack_bonus = 35
+	war_hammer.speed_bonus = -10.0
+	war_hammer.buy_price = 400
+	war_hammer.sell_price = 200
+	war_hammer.use_atlas_icon = true
+	war_hammer.atlas_row = 3
+	war_hammer.atlas_col = 1
+	items["war_hammer"] = war_hammer
+	
+	var hunting_bow := ItemData.new()
+	hunting_bow.id = "hunting_bow"
+	hunting_bow.name = "Hunting Bow"
+	hunting_bow.description = "A reliable bow for ranged combat."
+	hunting_bow.item_type = ItemData.ItemType.WEAPON
+	hunting_bow.rarity = ItemData.ItemRarity.COMMON
+	hunting_bow.stackable = false
+	hunting_bow.attack_bonus = 20
+	hunting_bow.buy_price = 180
+	hunting_bow.sell_price = 90
+	hunting_bow.use_atlas_icon = true
+	hunting_bow.atlas_row = 1
+	hunting_bow.atlas_col = 8
+	items["hunting_bow"] = hunting_bow
 	
 	# === ARMOR ===
 	var leather_armor := ItemData.new()
@@ -92,15 +156,47 @@ func _create_sample_items() -> void:
 	iron_armor.name = "Iron Armor"
 	iron_armor.description = "Sturdy iron armor. Heavy but protective."
 	iron_armor.item_type = ItemData.ItemType.ARMOR
-	iron_armor.rarity = ItemData.ItemRarity.UNCOMMON
+	iron_armor.rarity = ItemData.ItemRarity.COMMON
 	iron_armor.stackable = false
 	iron_armor.defense_bonus = 25
 	iron_armor.speed_bonus = -10.0
 	iron_armor.buy_price = 400
 	iron_armor.sell_price = 200
 	iron_armor.use_atlas_icon = true
-	iron_armor.atlas_icon_name = "leather_armor"  # Reuse armor icon
+	iron_armor.atlas_icon_name = "leather_armor"
 	items["iron_armor"] = iron_armor
+	
+	var chainmail := ItemData.new()
+	chainmail.id = "chainmail"
+	chainmail.name = "Chainmail Armor"
+	chainmail.description = "Flexible armor made of interlocking rings."
+	chainmail.item_type = ItemData.ItemType.ARMOR
+	chainmail.rarity = ItemData.ItemRarity.COMMON
+	chainmail.stackable = false
+	chainmail.defense_bonus = 18
+	chainmail.speed_bonus = -5.0
+	chainmail.buy_price = 250
+	chainmail.sell_price = 125
+	chainmail.use_atlas_icon = true
+	chainmail.atlas_row = 7
+	chainmail.atlas_col = 3
+	items["chainmail"] = chainmail
+	
+	var plate_armor := ItemData.new()
+	plate_armor.id = "plate_armor"
+	plate_armor.name = "Plate Armor"
+	plate_armor.description = "Heavy full plate armor. Maximum protection."
+	plate_armor.item_type = ItemData.ItemType.ARMOR
+	plate_armor.rarity = ItemData.ItemRarity.COMMON
+	plate_armor.stackable = false
+	plate_armor.defense_bonus = 35
+	plate_armor.speed_bonus = -15.0
+	plate_armor.buy_price = 600
+	plate_armor.sell_price = 300
+	plate_armor.use_atlas_icon = true
+	plate_armor.atlas_row = 7
+	plate_armor.atlas_col = 4
+	items["plate_armor"] = plate_armor
 	
 	# === HELMET ===
 	var iron_helmet := ItemData.new()
@@ -117,6 +213,36 @@ func _create_sample_items() -> void:
 	iron_helmet.atlas_icon_name = "helmet_horned"
 	items["iron_helmet"] = iron_helmet
 	
+	var leather_cap := ItemData.new()
+	leather_cap.id = "leather_cap"
+	leather_cap.name = "Leather Cap"
+	leather_cap.description = "A simple leather hood for basic protection."
+	leather_cap.item_type = ItemData.ItemType.HELMET
+	leather_cap.rarity = ItemData.ItemRarity.COMMON
+	leather_cap.stackable = false
+	leather_cap.defense_bonus = 4
+	leather_cap.buy_price = 30
+	leather_cap.sell_price = 15
+	leather_cap.use_atlas_icon = true
+	leather_cap.atlas_row = 6
+	leather_cap.atlas_col = 0
+	items["leather_cap"] = leather_cap
+	
+	var steel_helmet := ItemData.new()
+	steel_helmet.id = "steel_helmet"
+	steel_helmet.name = "Steel Helmet"
+	steel_helmet.description = "A well-crafted steel helmet for superior protection."
+	steel_helmet.item_type = ItemData.ItemType.HELMET
+	steel_helmet.rarity = ItemData.ItemRarity.COMMON
+	steel_helmet.stackable = false
+	steel_helmet.defense_bonus = 15
+	steel_helmet.buy_price = 120
+	steel_helmet.sell_price = 60
+	steel_helmet.use_atlas_icon = true
+	steel_helmet.atlas_row = 6
+	steel_helmet.atlas_col = 1
+	items["steel_helmet"] = steel_helmet
+	
 	# === SHIELD ===
 	var wooden_shield := ItemData.new()
 	wooden_shield.id = "wooden_shield"
@@ -129,9 +255,40 @@ func _create_sample_items() -> void:
 	wooden_shield.buy_price = 50
 	wooden_shield.sell_price = 25
 	wooden_shield.use_atlas_icon = true
-	wooden_shield.atlas_row = 18  # Shield row - adjust with debug tool
+	wooden_shield.atlas_row = 18
 	wooden_shield.atlas_col = 0
 	items["wooden_shield"] = wooden_shield
+	
+	var iron_shield := ItemData.new()
+	iron_shield.id = "iron_shield"
+	iron_shield.name = "Iron Shield"
+	iron_shield.description = "A sturdy iron shield for better protection."
+	iron_shield.item_type = ItemData.ItemType.SHIELD
+	iron_shield.rarity = ItemData.ItemRarity.COMMON
+	iron_shield.stackable = false
+	iron_shield.defense_bonus = 20
+	iron_shield.buy_price = 150
+	iron_shield.sell_price = 75
+	iron_shield.use_atlas_icon = true
+	iron_shield.atlas_row = 1
+	iron_shield.atlas_col = 1
+	items["iron_shield"] = iron_shield
+	
+	var kite_shield := ItemData.new()
+	kite_shield.id = "kite_shield"
+	kite_shield.name = "Kite Shield"
+	kite_shield.description = "Large shield providing excellent defensive coverage."
+	kite_shield.item_type = ItemData.ItemType.SHIELD
+	kite_shield.rarity = ItemData.ItemRarity.COMMON
+	kite_shield.stackable = false
+	kite_shield.defense_bonus = 28
+	kite_shield.speed_bonus = -5.0
+	kite_shield.buy_price = 300
+	kite_shield.sell_price = 150
+	kite_shield.use_atlas_icon = true
+	kite_shield.atlas_row = 1
+	kite_shield.atlas_col = 2
+	items["kite_shield"] = kite_shield
 	
 	# === BOOTS ===
 	var leather_boots := ItemData.new()
@@ -149,22 +306,85 @@ func _create_sample_items() -> void:
 	leather_boots.atlas_icon_name = "boot_green"
 	items["leather_boots"] = leather_boots
 	
+	var iron_boots := ItemData.new()
+	iron_boots.id = "iron_boots"
+	iron_boots.name = "Iron Boots"
+	iron_boots.description = "Heavy iron boots that provide good protection."
+	iron_boots.item_type = ItemData.ItemType.BOOTS
+	iron_boots.rarity = ItemData.ItemRarity.COMMON
+	iron_boots.stackable = false
+	iron_boots.defense_bonus = 10
+	iron_boots.speed_bonus = -5.0
+	iron_boots.buy_price = 80
+	iron_boots.sell_price = 40
+	iron_boots.use_atlas_icon = true
+	iron_boots.atlas_row = 7
+	iron_boots.atlas_col = 1
+	items["iron_boots"] = iron_boots
+	
+	var swift_boots := ItemData.new()
+	swift_boots.id = "swift_boots"
+	swift_boots.name = "Swift Boots"
+	swift_boots.description = "Light boots enchanted for speed."
+	swift_boots.item_type = ItemData.ItemType.BOOTS
+	swift_boots.rarity = ItemData.ItemRarity.COMMON
+	swift_boots.stackable = false
+	swift_boots.defense_bonus = 3
+	swift_boots.speed_bonus = 20.0
+	swift_boots.buy_price = 150
+	swift_boots.sell_price = 75
+	swift_boots.use_atlas_icon = true
+	swift_boots.atlas_row = 7
+	swift_boots.atlas_col = 2
+	items["swift_boots"] = swift_boots
+	
 	# === ACCESSORIES ===
 	var silver_ring := ItemData.new()
 	silver_ring.id = "silver_ring"
 	silver_ring.name = "Silver Ring"
 	silver_ring.description = "A simple silver ring with minor enchantments."
 	silver_ring.item_type = ItemData.ItemType.ACCESSORY
-	silver_ring.rarity = ItemData.ItemRarity.UNCOMMON
+	silver_ring.rarity = ItemData.ItemRarity.COMMON
 	silver_ring.stackable = false
 	silver_ring.attack_bonus = 5
 	silver_ring.defense_bonus = 5
 	silver_ring.buy_price = 200
 	silver_ring.sell_price = 100
 	silver_ring.use_atlas_icon = true
-	silver_ring.atlas_row = 8  # Ring row - adjust with debug tool
+	silver_ring.atlas_row = 8
 	silver_ring.atlas_col = 2
 	items["silver_ring"] = silver_ring
+	
+	var gold_ring := ItemData.new()
+	gold_ring.id = "gold_ring"
+	gold_ring.name = "Gold Ring"
+	gold_ring.description = "An elegant golden ring that boosts vitality."
+	gold_ring.item_type = ItemData.ItemType.ACCESSORY
+	gold_ring.rarity = ItemData.ItemRarity.COMMON
+	gold_ring.stackable = false
+	gold_ring.health_bonus = 20
+	gold_ring.defense_bonus = 8
+	gold_ring.buy_price = 350
+	gold_ring.sell_price = 175
+	gold_ring.use_atlas_icon = true
+	gold_ring.atlas_row = 8
+	gold_ring.atlas_col = 4
+	items["gold_ring"] = gold_ring
+	
+	var strength_amulet := ItemData.new()
+	strength_amulet.id = "strength_amulet"
+	strength_amulet.name = "Strength Amulet"
+	strength_amulet.description = "An amulet that enhances physical power."
+	strength_amulet.item_type = ItemData.ItemType.ACCESSORY
+	strength_amulet.rarity = ItemData.ItemRarity.COMMON
+	strength_amulet.stackable = false
+	strength_amulet.attack_bonus = 12
+	strength_amulet.buy_price = 280
+	strength_amulet.sell_price = 140
+	strength_amulet.use_atlas_icon = true
+	strength_amulet.atlas_row = 8
+	strength_amulet.atlas_col = 6
+	items["strength_amulet"] = strength_amulet
 	
 	# === CONSUMABLES ===
 	var health_potion := ItemData.new()
@@ -187,7 +407,7 @@ func _create_sample_items() -> void:
 	large_health_potion.name = "Large Health Potion"
 	large_health_potion.description = "A large red potion that greatly restores health."
 	large_health_potion.item_type = ItemData.ItemType.CONSUMABLE
-	large_health_potion.rarity = ItemData.ItemRarity.UNCOMMON
+	large_health_potion.rarity = ItemData.ItemRarity.COMMON
 	large_health_potion.stackable = true
 	large_health_potion.max_stack = 10
 	large_health_potion.heal_amount = 100
@@ -233,13 +453,13 @@ func _create_sample_items() -> void:
 	gold_ore.name = "Gold Ore"
 	gold_ore.description = "Precious gold ore. Valuable but soft."
 	gold_ore.item_type = ItemData.ItemType.MATERIAL
-	gold_ore.rarity = ItemData.ItemRarity.UNCOMMON
+	gold_ore.rarity = ItemData.ItemRarity.COMMON
 	gold_ore.stackable = true
 	gold_ore.max_stack = 99
 	gold_ore.buy_price = 50
 	gold_ore.sell_price = 25
 	gold_ore.use_atlas_icon = true
-	gold_ore.atlas_icon_name = "iron_ore"  # Reuse ore icon
+	gold_ore.atlas_icon_name = "iron_ore"
 	items["gold_ore"] = gold_ore
 	
 	var monster_bone := ItemData.new()

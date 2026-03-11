@@ -1,0 +1,6 @@
+[gd_resource type="Resource" script_class="CraftingPanel" load_steps=2 format=3 uid="uid://c3y7j8k9l0m1n"]
+
+[ext_resource type="Script" path="res://sense/ui/crafting/crafting_panel.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
