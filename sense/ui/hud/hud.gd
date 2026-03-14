@@ -19,11 +19,25 @@ extends CanvasLayer
 # Dungeon Minimap (room-layout based)
 @onready var dungeon_minimap: DungeonMinimap = $MinimapContainer/MarginContainer/DungeonMinimap
 
+# Information feed (under minimap)
+@onready var feed_container: PanelContainer = $FeedContainer
+@onready var feed_rows: Array[HBoxContainer] = [
+	$FeedContainer/MarginContainer/FeedList/FeedRow1,
+	$FeedContainer/MarginContainer/FeedList/FeedRow2,
+	$FeedContainer/MarginContainer/FeedList/FeedRow3
+]
+
 var stats: CharacterStats
-var player: Node2D  # Reference to player for minimap
+var player: Node2D # Reference to player for minimap
 
 # Hotbar (skill + item quick-use bar at bottom-center) — scene instance
 @onready var hotbar: Hotbar = $HotbarAnchor/Hotbar
+
+const FEED_MAX_ROWS := 3
+const FEED_MERGE_WINDOW := 0.8
+const FEED_ENTRY_DURATION := 2.5
+
+var _feed_entries: Array[Dictionary] = []
 
 
 func _ready() -> void:
@@ -31,6 +45,8 @@ func _ready() -> void:
 	# hide_all_status_icons()
 	# enable_all_status_icons()
 	show_shield_icon(true)
+	if feed_container:
+		feed_container.visible = false
 
 
 func setup(character_stats: CharacterStats) -> void:
@@ -62,7 +78,6 @@ func hide_all_status_icons() -> void:
 	icon_poison.visible = false
 	icon_burn.visible = false
 	icon_freeze.visible = false
-
 
 
 func enable_all_status_icons() -> void:
@@ -121,7 +136,8 @@ func _on_buff_applied(buff_data: Dictionary) -> void:
 		show_heal_icon(true)
 	elif "defense" in source_id:
 		show_shield_icon(true)
-	# TODO: Add duration overlay (Label with countdown) on each icon
+		if feed_container:
+			feed_container.visible = false # TODO: Add duration overlay (Label with countdown) on each icon
 
 
 func _on_buff_expired(buff_id: String) -> void:
@@ -172,6 +188,88 @@ func get_hotbar() -> Hotbar:
 	return hotbar
 
 
+# === INFO FEED ===
+
+## Push one row into the HUD information feed (below minimap).
+## - icon: optional entry icon
+## - title: label text (item/system info)
+## - quantity: positive amount shown as +N
+## - merge_key: when provided, duplicate entries merge in a short time window
+func push_info_feed_entry(icon: Texture2D, title: String, quantity: int, merge_key: String = "") -> void:
+	var safe_title := title.strip_edges()
+	if safe_title.is_empty():
+		safe_title = "Unknown"
+
+	var safe_quantity: int = max(quantity, 1)
+	var now_s := Time.get_ticks_msec() / 1000.0
+
+	# Merge with a recent duplicate entry to reduce spam.
+	if not merge_key.is_empty():
+		for i in range(_feed_entries.size()):
+			var entry: Dictionary = _feed_entries[i]
+			if entry.get("merge_key", "") == merge_key and now_s - entry.get("last_update", 0.0) <= FEED_MERGE_WINDOW:
+				entry["quantity"] = int(entry.get("quantity", 0)) + safe_quantity
+				entry["title"] = safe_title
+				entry["icon"] = icon if icon != null else entry.get("icon", null)
+				entry["last_update"] = now_s
+				entry["expires_at"] = now_s + FEED_ENTRY_DURATION
+				_feed_entries[i] = entry
+				_render_info_feed()
+				return
+
+	var new_entry := {
+		"title": safe_title,
+		"quantity": safe_quantity,
+		"icon": icon,
+		"merge_key": merge_key,
+		"last_update": now_s,
+		"expires_at": now_s + FEED_ENTRY_DURATION
+	}
+	_feed_entries.push_front(new_entry)
+	if _feed_entries.size() > FEED_MAX_ROWS:
+		_feed_entries.resize(FEED_MAX_ROWS)
+
+	_render_info_feed()
+
+
+func _render_info_feed() -> void:
+	if feed_container:
+		feed_container.visible = _feed_entries.size() > 0
+
+	for row_index in range(feed_rows.size()):
+		var row := feed_rows[row_index]
+		var icon_rect := row.get_node_or_null("Icon") as TextureRect
+		var title_label := row.get_node_or_null("Title") as Label
+		var qty_label := row.get_node_or_null("Qty") as Label
+
+		if row_index < _feed_entries.size():
+			var entry: Dictionary = _feed_entries[row_index]
+			row.visible = true
+			if title_label:
+				title_label.text = str(entry.get("title", "Unknown"))
+			if qty_label:
+				qty_label.text = "+%d" % int(entry.get("quantity", 1))
+			if icon_rect:
+				icon_rect.texture = entry.get("icon", icon_rect.texture)
+		else:
+			row.visible = false
+
+
+func _prune_expired_feed_entries() -> void:
+	if _feed_entries.is_empty():
+		return
+
+	var now_s := Time.get_ticks_msec() / 1000.0
+	var filtered: Array[Dictionary] = []
+	for entry in _feed_entries:
+		if now_s <= float(entry.get("expires_at", 0.0)):
+			filtered.append(entry)
+
+	if filtered.size() != _feed_entries.size():
+		_feed_entries = filtered
+		_render_info_feed()
+
+
 # === MINIMAP FUNCTIONS ===
 
 func setup_minimap(player_node: Node2D, world: Node2D) -> void:
@@ -213,6 +311,8 @@ func update_dungeon_current_room(pos: Vector2i) -> void:
 
 
 func _process(_delta: float) -> void:
+	_prune_expired_feed_entries()
+
 	# Update minimap camera to follow player
 	if player != null and minimap_camera != null:
 		minimap_camera.global_position = player.global_position
