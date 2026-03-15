@@ -1,0 +1,40 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://sense/ui/hud/hotbar.gd" id="1_hotbar"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hotbar_bg"]
+bg_color = Color(0.08, 0.07, 0.1, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.35, 0.3, 0.45, 0.8)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+content_margin_left = 6.0
+content_margin_top = 4.0
+content_margin_right = 6.0
+content_margin_bottom = 4.0
+
+[node name="Hotbar" type="PanelContainer"]
+theme_override_styles/panel = SubResource("StyleBoxFlat_hotbar_bg")
+script = ExtResource("1_hotbar")
+
+[node name="RootHBox" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SkillSection" type="HBoxContainer" parent="RootHBox"]
+layout_mode = 2
+theme_override_constants/separation = 3
+
+[node name="Separator" type="VSeparator" parent="RootHBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(2, 0)
+theme_override_constants/separation = 4
+
+[node name="ItemSection" type="HBoxContainer" parent="RootHBox"]
+layout_mode = 2
+theme_override_constants/separation = 3

@@ -33,26 +33,26 @@ signal chest_opened(contents: Array[Dictionary])
 # ═══════════════════════════════════════════════════════════════════════════════
 
 enum PickupMode {
-	AUTO,       ## Tự động nhặt khi chạm
-	INTERACT,   ## Cần nhấn phím interact
-	PROXIMITY,  ## Nhặt khi đứng gần một lúc
-	MAGNET      ## Tự động hút về player
+	AUTO, ## Tự động nhặt khi chạm
+	INTERACT, ## Cần nhấn phím interact
+	PROXIMITY, ## Nhặt khi đứng gần một lúc
+	MAGNET ## Tự động hút về player
 }
 
 enum VisualStyle {
-	STATIC,     ## Đứng yên
-	BOB,        ## Nhấp nhô lên xuống
-	SPARKLE,    ## Lấp lánh (cho quest items)
-	ROTATE      ## Xoay (cho coins)
+	STATIC, ## Đứng yên
+	BOB, ## Nhấp nhô lên xuống
+	SPARKLE, ## Lấp lánh (cho quest items)
+	ROTATE ## Xoay (cho coins)
 }
 
 enum ContentType {
-	ITEM,       ## Vật phẩm từ ItemDatabase
-	GOLD,       ## Tiền vàng
-	HEALTH,     ## Hồi máu trực tiếp
-	STAMINA,    ## Hồi stamina
-	XP,         ## Kinh nghiệm
-	MULTI_ITEM  ## Nhiều items (chest)
+	ITEM, ## Vật phẩm từ ItemDatabase
+	GOLD, ## Tiền vàng
+	HEALTH, ## Hồi máu trực tiếp
+	STAMINA, ## Hồi stamina
+	XP, ## Kinh nghiệm
+	MULTI_ITEM ## Nhiều items (chest)
 }
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -77,7 +77,7 @@ enum ContentType {
 @export var content_type: ContentType = ContentType.ITEM
 @export var item_id: String = ""
 @export var quantity: int = 1
-@export var value: int = 0  ## For GOLD, HEALTH, STAMINA, XP
+@export var value: int = 0 ## For GOLD, HEALTH, STAMINA, XP
 
 @export_category("Content - Multi Item (Chest)")
 ## Array of {item_id: String, quantity: int}
@@ -91,7 +91,7 @@ enum ContentType {
 @export var scatter_force: float = 80.0
 @export var one_time_only: bool = true
 @export var respawn_time: float = 0.0
-@export var lifetime: float = 0.0  ## 0 = infinite
+@export var lifetime: float = 0.0 ## 0 = infinite
 
 @export_category("Interaction")
 @export var show_label: bool = false
@@ -305,9 +305,12 @@ func _collect_item(collector: Node2D) -> void:
 	if item == null:
 		push_warning("GameItem: Item '%s' not found in database" % item_id)
 		return
-	
+
 	var remaining := inventory.add_item(item, quantity)
-	
+	var collected_qty := quantity - remaining
+	if collected_qty > 0:
+		_push_pickup_feed_item(item, collected_qty)
+
 	# Spawn excess as new item
 	if remaining > 0:
 		var excess := GameItem.create_item(item_id, remaining)
@@ -320,6 +323,8 @@ func _collect_gold(collector: Node2D) -> void:
 	if inventory:
 		var amount := value if value > 0 else gold_amount
 		inventory.gold += amount
+		if amount > 0:
+			_push_pickup_feed_gold(amount)
 
 
 func _collect_health(collector: Node2D) -> void:
@@ -370,6 +375,7 @@ func _collect_multi_item(collector: Node2D) -> void:
 		total_gold += randi_range(gold_range.x, gold_range.y)
 	if total_gold > 0:
 		inventory.gold += total_gold
+		_push_pickup_feed_gold(total_gold)
 		all_items.append({"item_id": "gold", "quantity": total_gold})
 	
 	# Add fixed contents
@@ -394,20 +400,29 @@ func _collect_multi_item(collector: Node2D) -> void:
 		var loot_gold := loot_table.roll_gold()
 		if loot_gold > 0:
 			inventory.gold += loot_gold
+			_push_pickup_feed_gold(loot_gold)
 			all_items.append({"item_id": "gold", "quantity": loot_gold})
 	
 	chest_opened.emit(all_items)
 
 
-func _add_item_to_inventory(inventory: InventoryData, p_item_id: String, qty: int) -> void:
+func _add_item_to_inventory(inventory: InventoryData, p_item_id: String, qty: int) -> int:
 	var item: ItemData = ItemDatabase.get_item(p_item_id)
-	if item:
-		var remaining := inventory.add_item(item, qty)
-		if remaining > 0:
-			# Spawn excess
-			var excess := GameItem.create_item(p_item_id, remaining)
-			excess.global_position = global_position + Vector2(0, 20)
-			get_tree().current_scene.call_deferred("add_child", excess)
+	if item == null:
+		return 0
+
+	var remaining := inventory.add_item(item, qty)
+	var collected_qty := qty - remaining
+	if collected_qty > 0:
+		_push_pickup_feed_item(item, collected_qty)
+
+	if remaining > 0:
+		# Spawn excess
+		var excess := GameItem.create_item(p_item_id, remaining)
+		excess.global_position = global_position + Vector2(0, 20)
+		get_tree().current_scene.call_deferred("add_child", excess)
+
+	return collected_qty
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # HELPER METHODS
@@ -417,6 +432,33 @@ func _get_inventory(node: Node2D) -> InventoryData:
 	if node.has_method("get_inventory"):
 		return node.get_inventory()
 	return null
+
+
+func _get_hud_node() -> Node:
+	var hud := get_tree().get_first_node_in_group("hud")
+	if hud != null:
+		return hud
+	var main := get_tree().root.get_node_or_null("Main")
+	if main != null:
+		return main.get_node_or_null("HUD")
+	return null
+
+
+func _push_pickup_feed_item(item: ItemData, qty: int) -> void:
+	if item == null or qty <= 0:
+		return
+	var hud := _get_hud_node()
+	if hud != null and hud.has_method("push_info_feed_entry"):
+		hud.push_info_feed_entry(item.get_icon(), item.name, qty, "item:%s" % item.id)
+
+
+func _push_pickup_feed_gold(amount: int) -> void:
+	if amount <= 0:
+		return
+	var hud := _get_hud_node()
+	if hud != null and hud.has_method("push_info_feed_entry"):
+		var gold_icon := ItemIconAtlas.get_named_icon("gold_coin")
+		hud.push_info_feed_entry(gold_icon, "Gold", amount, "gold")
 
 
 func _try_unlock(collector: Node2D) -> bool:
@@ -466,39 +508,39 @@ func _update_icon() -> void:
 			
 			if icon:
 				sprite.texture = icon
-				sprite.scale = Vector2(0.5, 0.5)  # Scale down items
+				sprite.scale = Vector2(0.5, 0.5) # Scale down items
 		
 		ContentType.GOLD:
 			# Get gold coin icon from atlas
 			var gold_icon := ItemIconAtlas.get_named_icon("gold_coin")
 			if gold_icon:
 				sprite.texture = gold_icon
-			sprite.scale = Vector2(0.5, 0.5)  # Scale down gold
-			sprite.modulate = Color(1.0, 0.95, 0.7)  # Subtle gold tint
+			sprite.scale = Vector2(0.5, 0.5) # Scale down gold
+			sprite.modulate = Color(1.0, 0.95, 0.7) # Subtle gold tint
 		
 		ContentType.HEALTH:
 			# Get heart icon from atlas
 			var health_icon := ItemIconAtlas.get_named_icon("heart")
 			if health_icon:
 				sprite.texture = health_icon
-			sprite.scale = Vector2(0.5, 0.5)  # Scale down
-			sprite.modulate = Color(1.0, 0.4, 0.4)  # Red tint
+			sprite.scale = Vector2(0.5, 0.5) # Scale down
+			sprite.modulate = Color(1.0, 0.4, 0.4) # Red tint
 		
 		ContentType.STAMINA:
 			# Get stamina icon from atlas (using gem for now)
 			var stamina_icon := ItemIconAtlas.get_named_icon("gem_green")
 			if stamina_icon:
 				sprite.texture = stamina_icon
-			sprite.scale = Vector2(0.5, 0.5)  # Scale down
-			sprite.modulate = Color(0.4, 0.9, 1.0)  # Blue tint
+			sprite.scale = Vector2(0.5, 0.5) # Scale down
+			sprite.modulate = Color(0.4, 0.9, 1.0) # Blue tint
 		
 		ContentType.XP:
 			# Get XP icon from atlas (using brain for now)
 			var xp_icon := ItemIconAtlas.get_named_icon("brain")
 			if xp_icon:
 				sprite.texture = xp_icon
-			sprite.scale = Vector2(0.5, 0.5)  # Scale down
-			sprite.modulate = Color(0.5, 1.0, 0.6)  # Green tint
+			sprite.scale = Vector2(0.5, 0.5) # Scale down
+			sprite.modulate = Color(0.5, 1.0, 0.6) # Green tint
 
 
 func _setup_label() -> void:
@@ -573,7 +615,7 @@ func _respawn() -> void:
 	if sprite:
 		sprite.modulate.a = 1.0
 		sprite.position = Vector2.ZERO
-	_update_icon()  # Restore correct scale and icon
+	_update_icon() # Restore correct scale and icon
 	if shadow:
 		shadow.modulate.a = 0.3
 
@@ -593,6 +635,55 @@ func scatter_from(origin: Vector2) -> void:
 	if direction == Vector2.ZERO:
 		direction = Vector2(randf_range(-1, 1), randf_range(-1, 1)).normalized()
 	_velocity = direction * scatter_force + Vector2(randf_range(-20, 20), randf_range(-20, 20))
+
+
+## Animated magnet-fly-to-player collection (used by auto-collect on room transitions)
+## Pops up, then arcs toward the collector with a trail-like shrink at the end
+func magnet_collect(collector: Node2D, duration: float = 0.45) -> void:
+	if _is_collected:
+		return
+	_is_collected = true
+	_can_pickup = false
+	
+	# Stop bobbing/rotation so the tween is clean
+	set_physics_process(false)
+	
+	# Phase 1: Pop up — quick scale bump + lift to grab attention
+	var pop_tween := create_tween()
+	pop_tween.set_parallel(true)
+	pop_tween.tween_property(self , "scale", Vector2(1.4, 1.4), 0.1) \
+		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	if sprite:
+		pop_tween.tween_property(sprite, "position:y", sprite.position.y - 10, 0.1) \
+			.set_ease(Tween.EASE_OUT)
+	if shadow:
+		pop_tween.tween_property(shadow, "modulate:a", 0.0, 0.1)
+	await pop_tween.finished
+	
+	if not is_instance_valid(self ) or not is_instance_valid(collector):
+		return
+	
+	# Phase 2: Fly toward player — fast arc with shrink at the end
+	var fly_duration := duration - 0.1
+	var fly_tween := create_tween()
+	fly_tween.set_parallel(true)
+	fly_tween.tween_method(
+		func(t: float) -> void:
+			if is_instance_valid(collector):
+				global_position = global_position.lerp(collector.global_position, t),
+		0.0, 1.0, fly_duration
+	).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	# Shrink only in the last 40% of the flight
+	fly_tween.tween_property(self , "scale", Vector2(0.2, 0.2), fly_duration * 0.4) \
+		.set_delay(fly_duration * 0.6).set_ease(Tween.EASE_IN)
+	# Fade out only in the last 30%
+	if sprite:
+		fly_tween.tween_property(sprite, "modulate:a", 0.0, fly_duration * 0.3) \
+			.set_delay(fly_duration * 0.7)
+	
+	# After flight finishes, do the actual collection
+	_is_collected = false # Temporarily allow _collect
+	fly_tween.chain().tween_callback(_collect.bind(collector))
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # SETUP METHODS

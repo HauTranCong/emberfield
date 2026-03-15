@@ -57,8 +57,13 @@ sense/maps/dungeon/
 ├── dungeon_generator.gd   # Algorithm sinh dungeon layout
 ├── dungeon_level.gd       # Runtime rendering & gameplay
 ├── dungeon_map.tscn       # Scene chính với TileMapLayers
+├── dungeon_tilestructure.gd # Predefined tile structures cho rooms
+├── tileset_structure.gd   # TilesetStructure resource class
 ├── return_portal.gd       # Script portal về town
 └── return_portal.tscn     # Portal scene
+
+sense/ui/hud/
+└── dungeon_minimap.gd     # DungeonMinimap (separate HUD component)
 ```
 
 ---

@@ -10,13 +10,19 @@
 
 ### ✨ Tính năng chính
 
-- 🎮 **Hệ thống Player**: Di chuyển 8 hướng, tấn công, state machine
-- ⚔️ **Combat System**: Hitbox/Hurtbox component-based, i-frames, knockback
-- 🎒 **Inventory System**: 32 slots, equipment (7 slots), drag & drop, tabs
-- 💰 **Item System**: Loot tables, gold/health/XP pickups, chests
-- 🏪 **NPC & Shops**: Blacksmith, Merchant với shop UI
-- 👾 **Enemies**: Skeleton với AI (patrol, chase, attack)
-- 🗺️ **Maps**: Town map với tileset, portals
+- 🎮 **Hệ thống Player**: Di chuyển 8 hướng, tấn công, skills, state machine (5 states)
+- ⚔️ **Combat System**: Hitbox/Hurtbox component-based, i-frames, knockback, passive effects
+- 🎒 **Inventory System**: 32 slots, equipment (7 slots), drag & drop, tabs, sorting
+- 💎 **Augment System**: Equipment customization với stat boosts, passive effects, active skills
+- 🔨 **Crafting System**: Tiered recipes (1-3 tiers), category tabs (Augments, Buffs)
+- 🧪 **Buff System**: Timed stat buffs (attack/defense/health/speed) với status icons
+- ⚡ **Skill System**: Equipment-bound active skills (Q/E/R/F), cooldowns, VFX
+- 💰 **Item System**: 11 item types, 5 rarities, loot tables, gold/health/XP pickups, chests
+- 🏪 **NPC & Shops**: Blacksmith, Merchant với shop UI, crafting station
+- 👾 **Enemies**: Skeleton với AI (patrol, chase, attack), loot drops
+- 🏰 **Dungeon System**: Procedural generation (Binding of Isaac style), 4 room types
+- 🗺️ **Maps**: Town, Dungeon với scene transitions, minimap
+- 🎯 **Hotbar**: 4 skill slots + 8 item slots với cooldown display
 
 ### 🎯 Thông số kỹ thuật
 
@@ -26,6 +32,19 @@
 | **Resolution** | 1280x720 |
 | **Rendering** | GL Compatibility (Pixel Perfect) |
 | **Architecture** | Component-based, State Machine |
+
+### 🔌 Autoloads (8 Singletons)
+
+| Singleton | Script | Purpose |
+|-----------|--------|---------|
+| CollisionLayers | `collision_layers.gd` | Layer bitmask enum |
+| InteractionManager | `interaction_manager.tscn` | E-to-interact prompt |
+| GameEvent | `game_event.gd` | Global signal bus (7 signals) |
+| ItemDatabase | `item_database.gd` | All item definitions (~40+ items) |
+| SceneTransitionService | `scene_transition_service.gd` | Map transitions with fade |
+| CameraService | `camera_service.gd` | Camera modes (FOLLOW/STATIC/ROOM) |
+| RecipeDatabase | `recipe_database.gd` | Crafting recipe registry |
+| SkillDatabase | `skill_database.gd` | Skill definitions (3 skills) |
 
 ---
 
@@ -47,18 +66,21 @@ emberfield/
 │   └── 📂 tilesets/              # Map tilesets
 │
 ├── 📂 docs/                      # Documentation
-│   ├── architecture.md           # System architecture
-│   ├── combat_system.md          # Combat mechanics
-│   ├── inventory_system.md       # Inventory & equipment
-│   └── item_system.md            # Item spawning & loot
+│   ├── architecture.md           # System architecture (UML diagrams)
+│   ├── combat_system.md          # Combat mechanics & skills
+│   ├── inventory_system.md       # Inventory, equipment & augments
+│   ├── item_system.md            # Item spawning, loot & crafting
+│   ├── dungeon_system.md         # Dungeon generation & gameplay
+│   └── LAYER_AND_MASK_STANDARDS.md # Collision layer config
 │
 └── 📂 sense/                     # Source code
-    ├── 📂 globals/               # Autoloads (CollisionLayers, GameEvent)
-    ├── 📂 components/            # Reusable components
+    ├── 📂 globals/               # Autoloads (8 singletons)
+    ├── 📂 components/            # Reusable components (11 files)
     ├── 📂 entities/              # Player, Enemies, NPCs
     ├── 📂 items/                 # Item system
-    ├── 📂 maps/                  # Game maps
-    └── 📂 ui/                    # HUD, Inventory UI
+    ├── 📂 skills/                # Skill system
+    ├── 📂 maps/                  # Town, Dungeon, Portal
+    └── 📂 ui/                    # HUD, Inventory, Augment, Crafting
 ```
 
 ---
@@ -72,38 +94,63 @@ emberfield/
 | **HealthComponent** | `health_component.gd` | HP management, death signal |
 | **HitboxComponent** | `hitbox_component.gd` | Deal damage, LOS check |
 | **HurtboxComponent** | `hurtbox_component.gd` | Receive damage, i-frames |
+| **BuffComponent** | `buff_component.gd` | Timed stat buffs (ATK/DEF/HP/SPD) |
+| **PassiveEffectProcessor** | `passive_effect_processor.gd` | On-hit/on-damage effects |
+| **SkillComponent** | `skill_component.gd` | Equipment-bound active skills |
+| **SkillExecutor** | `skill_executor.gd` | Spawn skill hitboxes + VFX |
 | **InteractionManager** | `interaction_manager.gd` | NPC/object interaction |
 | **ShopComponent** | `shop_component.gd` | Shop functionality |
+| **UIPopupComponent** | `ui_popup_component.gd` | UI panel open/close helper |
 
 ### Item System
 
 | Component | File | Purpose |
 |-----------|------|---------|
-| **ItemData** | `item_data.gd` | Item resource definition |
-| **ItemDatabase** | `item_database.gd` | All items registry (Autoload) |
+| **ItemData** | `item_data.gd` | Item resource (11 types, 5 rarities, augments) |
+| **ItemDatabase** | `item_database.gd` | All items registry (Autoload, ~40+ items) |
 | **ItemIconAtlas** | `item_icon_atlas.gd` | Extract icons from sprite sheet |
-| **GameItem** | `game_item.gd` | Droppable item (AUTO, MAGNET, INTERACT) |
+| **ItemHelper** | `item_helper.gd` | Item utility functions |
+| **GameItem** | `game_item.gd` | Droppable item (AUTO, MAGNET, INTERACT, PROXIMITY) |
 | **ItemSpawner** | `item_spawner.gd` | Factory for spawning items |
-| **LootTable** | `loot_table.gd` | Drop rate configuration |
+| **LootTable** | `loot_table.gd` | Weighted drop rate configuration |
 
 ### Inventory System
 
 | Component | File | Purpose |
 |-----------|------|---------|
-| **InventoryData** | `inventory_data.gd` | Inventory state (32 slots + equipment) |
-| **InventoryPanel** | `inventory_panel.gd` | Main UI controller |
-| **InventorySlotUI** | `inventory_slot_ui.gd` | Individual slot rendering |
+| **InventoryData** | `inventory_data.gd` | Inventory state (32 slots + 7 equip + augments) |
+| **InventoryPanel** | `inventory_panel.gd` | Main UI controller with tabs |
+| **InventorySlotUI** | `inventory_slot_ui.gd` | Individual slot with rarity glow |
+| **AugmentPanel** | `augment_panel.gd` | Augment management UI |
+| **CraftingPanel** | `crafting_panel.gd` | Tiered crafting UI |
+| **CraftingRecipe** | `crafting_recipe.gd` | Recipe resource (1-3 tiers) |
+| **RecipeDatabase** | `recipe_database.gd` | Recipe registry (Autoload) |
+| **Hotbar** | `hotbar.gd` | Skill (Q/E/R/F) + item (1-8) quick bar |
+| **DungeonMinimap** | `dungeon_minimap.gd` | Room-layout minimap for dungeons |
 
 ### Entity Structure
 
 ```
-Player/Enemy (CharacterBody2D)
+Player (CharacterBody2D)
 ├── AnimatedSprite2D
 ├── CollisionShape2D
-├── HealthComponent (Node)
-├── HitboxComponent (Area2D)     # Layer 7/8
+├── HitboxComponent (Area2D)           # Layer 7
 │   └── CollisionShape2D
-└── HurtboxComponent (Area2D)    # Layer 5/6
+├── HurtboxComponent (Area2D)          # Layer 5
+│   └── CollisionShape2D
+├── BuffComponent (Node)               # Timed stat buffs
+├── PassiveEffectProcessor (Node)      # On-hit/on-damage effects
+├── SkillComponent (Node)              # Active skills (Q/E/R/F)
+└── SkillExecutor (Node)               # Skill hitbox + VFX spawning
+Note: Player uses CharacterStats (Resource) for HP instead of HealthComponent
+
+Enemy (CharacterBody2D)
+├── AnimatedSprite2D
+├── CollisionShape2D
+├── HealthComponent (Node)             # HP management
+├── HitboxComponent (Area2D)           # Layer 8
+│   └── CollisionShape2D
+└── HurtboxComponent (Area2D)          # Layer 6
     └── CollisionShape2D
 ```
 
@@ -114,9 +161,11 @@ Player/Enemy (CharacterBody2D)
 | Input | Action |
 |-------|--------|
 | `W` `A` `S` `D` / Arrow Keys | Di chuyển |
-| `Space` / `J` | Tấn công |
-| `E` | Tương tác (NPC, Shop, Pickup) |
-| `B` / `I` | Mở Inventory |
+| `A` (character_attack) | Tấn công |
+| `E` (character_interact) | Tương tác (NPC, Shop, Pickup) |
+| `B` (open_inventory) | Mở Inventory |
+| `Q` `E` `R` `F` | Skills (weapon/armor/helmet/boots) |
+| `1` - `8` | Hotbar item slots |
 | `ESC` | Đóng UI |
 
 ---
@@ -213,10 +262,12 @@ loot.add_entry("health_potion", 30)    # Uncommon
 
 | Document | Description |
 |----------|-------------|
-| [architecture.md](docs/architecture.md) | System architecture & design |
-| [combat_system.md](docs/combat_system.md) | Combat mechanics, hitbox/hurtbox |
-| [inventory_system.md](docs/inventory_system.md) | Inventory, equipment, UI |
-| [item_system.md](docs/item_system.md) | Items, loot tables, spawning |
+| [architecture.md](docs/architecture.md) | System architecture, UML class diagrams |
+| [combat_system.md](docs/combat_system.md) | Combat mechanics, skills, passive effects |
+| [inventory_system.md](docs/inventory_system.md) | Inventory, equipment, augments, crafting |
+| [item_system.md](docs/item_system.md) | Items, loot tables, spawning, augment types |
+| [dungeon_system.md](docs/dungeon_system.md) | Procedural dungeon generation |
+| [LAYER_AND_MASK_STANDARDS.md](docs/LAYER_AND_MASK_STANDARDS.md) | Collision layer configuration |
 
 ---
 
@@ -224,22 +275,37 @@ loot.add_entry("health_potion", 30)    # Uncommon
 
 | Module | Folder | Description |
 |--------|--------|-------------|
-| Player | `sense/entities/player/` | Character controller, stats |
-| Enemies | `sense/entities/enemies/` | AI, behaviors |
-| NPCs | `sense/entities/npcs/` | Dialogue, shop logic |
-| Items | `sense/items/` | Item spawning, loot |
-| Inventory | `sense/ui/inventory/` | Inventory UI |
-| Components | `sense/components/` | Shared components |
+| Player | `sense/entities/player/` | Character controller, stats, state machine |
+| Enemies | `sense/entities/enemies/` | AI, behaviors, loot drops |
+| NPCs | `sense/entities/npcs/` | Shops, interaction, crafting |
+| Items | `sense/items/` | Item spawning, loot tables |
+| Skills | `sense/skills/` | Skill data, execution, VFX |
+| Inventory | `sense/ui/inventory/` | Inventory UI, equipment |
+| Augments | `sense/ui/augment/` | Augment management UI |
+| Crafting | `sense/ui/crafting/` | Crafting recipes, panel |
+| HUD | `sense/ui/hud/` | Health/stamina bars, hotbar, minimap |
+| Components | `sense/components/` | Shared components (11 files) |
+| Maps | `sense/maps/` | Town, Dungeon, Portal |
 
 ---
 
 ## 🔄 Recent Updates
 
+- ✅ Procedural dungeon generation (Binding of Isaac style)
+- ✅ Skill system with 3 skills (whirlwind, shield_bash, fire_burst)
+- ✅ Augment system for equipment customization
+- ✅ Tiered crafting system with recipe database
+- ✅ Buff component with timed stat buffs
+- ✅ Passive effects (life_steal, burn, freeze, poison, thorns, crit)
+- ✅ Hotbar with skill slots (Q/E/R/F) + item slots (1-8)
+- ✅ Dungeon minimap with room exploration tracking
+- ✅ Scene transition service with fade + map caching
 - ✅ Item icon atlas system with default fallback
 - ✅ Inventory drag & drop with equipment validation
+- ✅ Inventory sorting by type and rarity
 - ✅ Loot table for enemy drops
-- ✅ Gold/Health/XP pickup types
-- ✅ Comprehensive documentation
+- ✅ Gold/Health/Stamina/XP pickup types
+- ✅ Comprehensive documentation (6 docs)
 
 ---
 

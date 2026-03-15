@@ -19,10 +19,14 @@ class Room:
 	var pos: Vector2i          # Grid position
 	var type: RoomType         # Room type
 	var doors: Array[Dir] = [] # Connected directions
+	var cleared: bool = false  # True when all enemies in this room are defeated
 	
 	func _init(p: Vector2i, t: RoomType = RoomType.NORMAL):
 		pos = p
 		type = t
+		# START and TREASURE rooms are cleared by default (no enemies)
+		if t == RoomType.START or t == RoomType.TREASURE:
+			cleared = true
 
 ## Generated rooms: grid_pos -> Room
 var rooms: Dictionary = {}

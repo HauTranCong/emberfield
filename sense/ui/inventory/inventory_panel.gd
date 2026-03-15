@@ -1,4 +1,5 @@
-extends CanvasLayer
+extends Control
+class_name InventoryPanel
 
 ## Inventory panel UI - main inventory interface
 ## Uses scene nodes instead of building UI in code
@@ -12,11 +13,19 @@ const INVENTORY_SIZE := 32
 ## Tab filter types
 enum TabFilter { ALL, EQUIP, MATERIAL }
 
+## If true, hide overlay and skip ESC close (managed by parent).
+## Set via scene override or call set_embedded_mode() before _ready().
+@export var embedded_mode: bool = false
+
+## Internal flag
+var _embedded := false
+
 # Node references from scene
 @onready var slots_grid: GridContainer = $CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox/InventoryGrid/GridMargin/SlotsGrid
 @onready var equip_grid: GridContainer = $CenterContainer/MainPanel/MainMargin/MainHBox/EquipmentPanel/EquipMargin/EquipVBox/EquipGrid
 
 # Tab buttons
+@onready var sort_button: Button = $CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox/HeaderRow/TabsContainer/Sort
 @onready var tab_all: Button = $CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox/HeaderRow/TabsContainer/TabAll
 @onready var tab_equip: Button = $CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox/HeaderRow/TabsContainer/TabEquip
 @onready var tab_material: Button = $CenterContainer/MainPanel/MainMargin/MainHBox/InventoryVBox/HeaderRow/TabsContainer/TabMaterial
@@ -43,6 +52,7 @@ enum TabFilter { ALL, EQUIP, MATERIAL }
 @onready var tooltip_stats: Label = $CenterContainer/MainPanel/TooltipPanel/MarginContainer/TooltipContent/ItemStats
 
 var inventory_data: InventoryData
+var character_stats: CharacterStats
 var inventory_slots: Array[InventorySlotUI] = []
 var equipment_slots: Dictionary = {}
 var selected_slot_index: int = -1
@@ -58,7 +68,7 @@ func _ready() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if not visible:
+	if not visible or _embedded:
 		return
 	
 	if event.is_action_pressed("ui_cancel"):
@@ -66,11 +76,30 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
+## Enable embedded mode: hides overlay, disables ESC-close, adjusts sizing for HBox
+func set_embedded_mode(enabled: bool) -> void:
+	_embedded = enabled
+	# Hide overlay (parent handles dim background)
+	var overlay = get_node_or_null("Overlay")
+	if overlay:
+		overlay.visible = not enabled
+	
+	if enabled:
+		# Set minimum size so HBox can allocate proper space
+		custom_minimum_size = Vector2(500, 450)
+		# Shrink the MainPanel minimum to fit side-by-side
+		var main_panel = get_node_or_null("CenterContainer/MainPanel")
+		if main_panel:
+			main_panel.custom_minimum_size = Vector2(500, 450)
+
+
 func _setup_tabs() -> void:
 	tab_buttons = [tab_all, tab_equip, tab_material]
 	tab_all.pressed.connect(_on_tab_pressed.bind(TabFilter.ALL))
 	tab_equip.pressed.connect(_on_tab_pressed.bind(TabFilter.EQUIP))
 	tab_material.pressed.connect(_on_tab_pressed.bind(TabFilter.MATERIAL))
+	sort_button.pressed.connect(_on_sort_pressed)
+	_style_sort_button()
 	_update_tab_styles()
 
 
@@ -78,6 +107,34 @@ func _on_tab_pressed(tab: TabFilter) -> void:
 	current_tab = tab
 	_update_tab_styles()
 	_refresh_inventory()
+
+
+func _on_sort_pressed() -> void:
+	if inventory_data == null:
+		return
+	inventory_data.sort_inventory()
+
+
+func _style_sort_button() -> void:
+	sort_button.add_theme_color_override("font_color", Color(0.7, 0.65, 0.55, 1.0))
+	sort_button.add_theme_color_override("font_hover_color", Color(1.0, 0.9, 0.6, 1.0))
+	sort_button.add_theme_color_override("font_pressed_color", Color(1.0, 0.85, 0.4, 1.0))
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(0.15, 0.14, 0.12, 1.0)
+	bg.border_color = Color(0.35, 0.3, 0.25, 0.6)
+	bg.set_border_width_all(1)
+	bg.set_corner_radius_all(2)
+	bg.set_content_margin_all(4)
+	sort_button.add_theme_stylebox_override("normal", bg)
+	var hover_bg := StyleBoxFlat.new()
+	hover_bg.bg_color = Color(0.2, 0.18, 0.15, 1.0)
+	hover_bg.border_color = Color(0.5, 0.45, 0.35, 0.8)
+	hover_bg.set_border_width_all(1)
+	hover_bg.set_corner_radius_all(2)
+	hover_bg.set_content_margin_all(4)
+	sort_button.add_theme_stylebox_override("hover", hover_bg)
+	sort_button.add_theme_stylebox_override("pressed", hover_bg)
+	sort_button.tooltip_text = "Sort Inventory"
 
 
 func _update_tab_styles() -> void:
@@ -170,12 +227,17 @@ func _setup_equipment_slots() -> void:
 		equipment_slots[slot_type] = slot
 
 
-## Setup inventory with data
-func setup(data: InventoryData) -> void:
+## Setup inventory with data and optional character stats
+func setup(data: InventoryData, stats: CharacterStats = null) -> void:
 	inventory_data = data
+	character_stats = stats
 	inventory_data.inventory_changed.connect(_refresh_inventory)
 	inventory_data.equipment_changed.connect(_refresh_equipment)
 	inventory_data.gold_changed.connect(_refresh_gold)
+	
+	# Refresh stats when buffs change (via health_changed which fires on buff apply)
+	if character_stats:
+		character_stats.health_changed.connect(func(_c: int, _m: int) -> void: _refresh_stats())
 	
 	_refresh_inventory()
 	_refresh_equipment("")
@@ -252,8 +314,14 @@ func _refresh_stats() -> void:
 	if inventory_data == null:
 		return
 	
-	atk_value.text = str(inventory_data.get_total_attack_bonus())
-	def_value.text = str(inventory_data.get_total_defense_bonus())
+	if character_stats:
+		# Show total stats (base + equipment + buff)
+		atk_value.text = str(character_stats.attack_damage)
+		def_value.text = str(character_stats.defense)
+	else:
+		# Fallback: equipment bonuses only
+		atk_value.text = str(inventory_data.get_total_attack_bonus())
+		def_value.text = str(inventory_data.get_total_defense_bonus())
 
 
 func _refresh_gold(amount: int) -> void:
@@ -420,6 +488,7 @@ func _on_inventory_slot_right_clicked(index: int) -> void:
 			_apply_consumable_effect(result)
 
 
+## Handle right-click on equipment slot (unequip or augment)
 ## Show sell confirmation and process sale
 func _request_sell_item(index: int, item: ItemData, quantity: int) -> void:
 	var sell_price: int = item.sell_price
@@ -450,7 +519,13 @@ func _execute_sell(index: int, item: ItemData, sell_price: int) -> void:
 func _on_equipment_slot_right_clicked(_index: int, slot_type: String) -> void:
 	if inventory_data == null:
 		return
-	inventory_data.unequip_item(slot_type)
+
+	var item := inventory_data.get_equipped(slot_type)
+	if item != null and item.get_augment_slot_count() > 0:
+		# If item has augment slots, open augment panel instead of unequipping
+		_open_augment_panel(slot_type)
+	else:
+		inventory_data.unequip_item(slot_type)
 
 
 ## Handle hover on equipment slot
@@ -509,6 +584,8 @@ func _get_item_type_string(type: ItemData.ItemType) -> String:
 		ItemData.ItemType.CONSUMABLE: return "Consumable"
 		ItemData.ItemType.MATERIAL: return "Material"
 		ItemData.ItemType.QUEST: return "Quest Item"
+		ItemData.ItemType.SEGMENT: return "Segment"
+		ItemData.ItemType.AUGMENT: return "Augment"
 		_: return "Unknown"
 
 
@@ -526,13 +603,83 @@ func _get_item_stats_string(item: ItemData) -> String:
 		stats.append("💚 Heals %d HP" % item.heal_amount)
 	if item.stamina_restore > 0:
 		stats.append("💙 Restores %.0f Stamina" % item.stamina_restore)
-	
+
+	# Augment-specific stats
+	if item.item_type == ItemData.ItemType.AUGMENT:
+		match item.augment_type:
+			ItemData.AugmentType.PASSIVE_EFFECT:
+				stats.append(_get_passive_effect_description(item.passive_effect, item.passive_value))
+			ItemData.AugmentType.ACTIVE_SKILL:
+				stats.append("Grants Skill: %s" % item.active_skill_id)
+			ItemData.AugmentType.TIMED_BUFF:
+				stats.append("Duration: %.0fs" % item.buff_duration)
+
+	# Augment slots on equippable items
+	if item.is_equippable() and item.get_augment_slot_count() > 0:
+		stats.append("")
+		stats.append("--- Augment Slots ---")
+		var slot_count := item.get_augment_slot_count()
+		for i in range(slot_count):
+			if i < item.applied_augments.size():
+				var aug_id: String = item.applied_augments[i]
+				var aug_item: ItemData = ItemDatabase.get_item(aug_id)
+				if aug_item:
+					stats.append("  [%s]" % aug_item.name)
+				else:
+					stats.append("  [Unknown]")
+			else:
+				stats.append("  [ Empty Slot ]")
+
 	if stats.size() > 0:
 		return "\n".join(stats)
 	return ""
+
+
+func _get_passive_effect_description(effect: ItemData.PassiveEffect, value: float) -> String:
+	match effect:
+		ItemData.PassiveEffect.LIFE_STEAL:    return "Life Steal: %.0f%%" % value
+		ItemData.PassiveEffect.CRIT_CHANCE:   return "Crit Chance: +%.0f%%" % value
+		ItemData.PassiveEffect.THORNS:        return "Thorns: Reflect %.0f%% damage" % value
+		ItemData.PassiveEffect.BURN_ON_HIT:   return "Burn: %.0f damage/s for 3s" % value
+		ItemData.PassiveEffect.FREEZE_ON_HIT: return "Freeze: Slow %.0f%% for 2s" % value
+		ItemData.PassiveEffect.POISON_ON_HIT: return "Poison: %.0f damage/s for 3s" % value
+		_: return ""
 
 
 func _apply_consumable_effect(result: Dictionary) -> void:
 	print("[Inventory] Used consumable: heal=%d, stamina=%f" % [result.heal_amount, result.stamina_restore])
 	# Emit signal so player can apply the effects
 	item_used.emit(result)
+
+
+# =============================================================================
+# AUGMENT PANEL INTEGRATION
+# =============================================================================
+
+## Open the augment panel for a specific equipment slot
+func _open_augment_panel(equip_slot: String) -> void:
+	var equipment: ItemData = inventory_data.get_equipped(equip_slot)
+	if equipment == null or equipment.get_augment_slot_count() == 0:
+		return
+
+	# Remove existing augment panel if any
+	var existing := get_node_or_null("AugmentPanel")
+	if existing:
+		existing.queue_free()
+
+	var panel : AugmentPanel = preload("res://sense/ui/augment/AugmentPanel.tscn").instantiate()
+	panel.name = "AugmentPanel"
+	add_child(panel)
+	panel.setup(inventory_data, equip_slot)
+
+	# Position near the equipment panel
+	var eq_slot_ui: Control = equipment_slots.get(equip_slot)
+	if eq_slot_ui:
+		await get_tree().process_frame
+		var slot_rect := eq_slot_ui.get_global_rect()
+		panel.global_position = Vector2(slot_rect.end.x + 10, slot_rect.position.y)
+
+
+## Called from equipment slot context — shows augment button if item has slots
+func _on_augment_button_pressed(equip_slot: String) -> void:
+	_open_augment_panel(equip_slot)
