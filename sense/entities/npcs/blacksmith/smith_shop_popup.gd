@@ -4,6 +4,7 @@ class_name SmithShopPopup
 signal buy_requested(item: Dictionary)
 signal close_requested
 
+@onready var dim: ColorRect = $Dim
 @onready var gold_label: Label = $Main/MainMargin/MainAlign/TitleRow/GoldLabel
 @onready var main_tab_container: HBoxContainer = $Main/MainMargin/MainAlign/MainTabsRow
 @onready var category_tab_container: HBoxContainer = $Main/MainMargin/MainAlign/ShopContent/CategoryTabs
@@ -61,6 +62,8 @@ func _ready() -> void:
 
 
 func _connect_signals() -> void:
+	if dim and dim.has_signal("dim_clicked"):
+		dim.dim_clicked.connect(_on_dim_clicked)
 	if close_btn:
 		close_btn.pressed.connect(_on_close_pressed)
 
@@ -203,7 +206,6 @@ func show_popup() -> void:
 	GameEvent.shop_opened.emit()
 
 
-
 func hide_popup() -> void:
 	GameEvent.is_shop_open = false
 	GameEvent.shop_closed.emit()
@@ -216,6 +218,11 @@ func hide_popup() -> void:
 func _on_close_pressed() -> void:
 	hide_popup()
 	close_requested.emit()
+
+
+func _on_dim_clicked(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.is_pressed():
+		hide_popup()
 
 
 func _refresh() -> void:
