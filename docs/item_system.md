@@ -88,6 +88,79 @@ assets/items/
 
 ---
 
+## Item Types (ItemData.ItemType)
+
+| Type | Slot | Mô Tả |
+|------|------|-------|
+| `WEAPON` | weapon | Vũ khí - attack bonus |
+| `ARMOR` | armor | Giáp - defense bonus |
+| `HELMET` | helmet | Mũ - defense bonus |
+| `BOOTS` | boots | Giày - speed bonus |
+| `SHIELD` | shield | Khiên - defense bonus |
+| `ACCESSORY` | accessory_1/2 | Phụ kiện |
+| `CONSUMABLE` | - | Sử dụng (heal, stamina, buff) |
+| `MATERIAL` | - | Nguyên liệu chế tạo |
+| `QUEST` | - | Vật phẩm nhiệm vụ |
+| `SEGMENT` | - | Mảnh ghép (crafting) |
+| `AUGMENT` | - | Nâng cấp trang bị |
+
+## AugmentType Enum
+
+| Type | Mô Tả |
+|------|-------|
+| `NONE` | Không phải augment |
+| `STAT_BOOST` | Tăng chỉ số (attack/defense/health/speed) |
+| `PASSIVE_EFFECT` | Hiệu ứng passive (life_steal, burn, thorns...) |
+| `ACTIVE_SKILL` | Gắn skill vào equipment slot |
+| `TIMED_BUFF` | Buff có thời hạn (sử dụng như consumable) |
+
+## PassiveEffect Enum
+
+| Effect | Mô Tả |
+|--------|-------|
+| `NONE` | Không có |
+| `LIFE_STEAL` | Hồi HP theo % damage dealt |
+| `CRIT_CHANCE` | % cơ hội gây critical (2x) |
+| `THORNS` | Phản damage khi nhận damage |
+| `BURN_ON_HIT` | Gây burn DoT khi đánh trúng |
+| `FREEZE_ON_HIT` | Làm chậm target khi đánh trúng |
+| `POISON_ON_HIT` | Gây poison DoT khi đánh trúng |
+
+## ItemRarity Enum
+
+| Rarity | Color | Augment Slots |
+|--------|-------|---------------|
+| `COMMON` | Gray `(0.7, 0.7, 0.7)` | 0 |
+| `UNCOMMON` | Green `(0.3, 0.8, 0.3)` | 1 |
+| `RARE` | Blue `(0.3, 0.5, 1.0)` | 2 |
+| `EPIC` | Purple `(0.7, 0.3, 0.9)` | 3 |
+| `LEGENDARY` | Orange `(1.0, 0.6, 0.1)` | 4 |
+
+## Augment Properties on ItemData
+
+Khi `item_type == AUGMENT`, các properties sau được sử dụng:
+
+```gdscript
+@export var augment_type: AugmentType = AugmentType.NONE
+@export var passive_effect: PassiveEffect = PassiveEffect.NONE
+@export var passive_value: float = 0.0      # % hoặc giá trị của passive
+@export var active_skill_id: String = ""     # ID skill từ SkillDatabase
+@export var buff_duration: float = 0.0      # Thời gian buff (cho TIMED_BUFF)
+var applied_augments: Array[String] = []    # Augment IDs đã gắn (cho equipment)
+```
+
+### Helper Methods liên quan Augment
+
+```gdscript
+func is_augment() -> bool         # item_type == AUGMENT
+func is_timed_buff() -> bool      # augment_type == TIMED_BUFF
+func is_crafting_material() -> bool  # MATERIAL hoặc SEGMENT
+func get_augment_slot_count() -> int  # Dựa trên rarity: Common=0..Legendary=4
+func is_augmentable() -> bool     # is_equippable() && augment slots > applied count
+```
+
+---
+
 ## Collision Layers
 
 | Layer | Giá trị | Mô tả |
@@ -117,6 +190,7 @@ signal chest_opened(contents: Array[Dictionary])
 ```gdscript
 signal inventory_changed
 signal equipment_changed(slot_type: String)
+signal augments_changed(equip_slot: String)
 signal gold_changed(amount: int)
 ```
 
@@ -342,10 +416,16 @@ var equipment_speed_bonus: float = 0.0
 
 # Final stats (computed)
 var attack_damage: int:
-    get: return base_attack_damage + equipment_attack_bonus
+    get: return base_attack_damage + equipment_attack_bonus + buff_attack_bonus
 
 var defense: int:
-    get: return base_defense + equipment_defense_bonus
+    get: return base_defense + equipment_defense_bonus + buff_defense_bonus
+
+# Buff bonuses (from BuffComponent)
+var buff_attack_bonus: int = 0
+var buff_defense_bonus: int = 0
+var buff_health_bonus: int = 0
+var buff_speed_bonus: float = 0.0
 ```
 
 ---

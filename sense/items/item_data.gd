@@ -14,6 +14,8 @@ extends Resource
 ## ║  CONSUMABLE → Used from inventory, applies effect             ║
 ## ║  MATERIAL   → Crafting materials, cannot be used directly     ║
 ## ║  QUEST      → Quest items, cannot be dropped or sold          ║
+## ║  SEGMENT    → Magical crafting drops, stackable max 99        ║
+## ║  AUGMENT    → Crafted buff items, slotted into equipment      ║
 ## ╚═══════════════════════════════════════════════════════════════╝
 
 enum ItemType {
@@ -25,7 +27,27 @@ enum ItemType {
 	ACCESSORY,
 	CONSUMABLE,
 	MATERIAL,
-	QUEST
+	QUEST,
+	SEGMENT,   ## Magical crafting drops, stackable max 99
+	AUGMENT    ## Crafted buff items, non-stackable, slotted into equipment
+}
+
+enum AugmentType {
+	NONE,            ## Not an augment item
+	STAT_BOOST,      ## Pure stat increase (ATK, DEF, HP, SPD)
+	PASSIVE_EFFECT,  ## On-hit / on-damaged passive (life steal, burn, thorns, etc.)
+	ACTIVE_SKILL,    ## Grants an activatable skill when slotted
+	TIMED_BUFF       ## Consumable-style — used from inventory for temporary buff
+}
+
+enum PassiveEffect {
+	NONE,
+	LIFE_STEAL,     ## Heal % of damage dealt
+	CRIT_CHANCE,    ## % chance for 2× damage
+	THORNS,         ## Reflect % damage back to attacker on hit received
+	BURN_ON_HIT,    ## Apply burn DoT on hit
+	FREEZE_ON_HIT,  ## Apply slow on hit
+	POISON_ON_HIT   ## Apply poison DoT on hit
 }
 
 enum ItemRarity {
@@ -72,6 +94,17 @@ enum ItemRarity {
 @export var stamina_restore: float = 0.0
 @export var effect_duration: float = 0.0
 
+@export_category("Augment Properties")
+@export var augment_type: AugmentType = AugmentType.NONE
+@export var passive_effect: PassiveEffect = PassiveEffect.NONE
+@export var passive_value: float = 0.0          ## e.g. 5.0 = 5% life steal, 10.0 = 10% crit
+@export var active_skill_id: String = ""        ## Links to SkillData.id (e.g. "whirlwind")
+@export var buff_duration: float = 0.0          ## > 0 means timed consumable buff; 0 = permanent augment
+
+## Augments slotted into this equipment instance (array of augment item IDs)
+## Only populated on duplicated equipment instances, never on ItemDatabase templates
+var applied_augments: Array[String] = []
+
 
 ## Get the color associated with item rarity
 func get_rarity_color() -> Color:
@@ -104,7 +137,41 @@ func is_equippable() -> bool:
 
 ## Check if this item is consumable
 func is_consumable() -> bool:
-	return item_type == ItemType.CONSUMABLE
+	return item_type == ItemType.CONSUMABLE or is_timed_buff()
+
+
+## Returns how many augment slots this equipment has, based on rarity
+## Only equippable items have slots. Common=0, Uncommon=1, Rare=2, Epic=3, Legendary=4
+func get_augment_slot_count() -> int:
+	if not is_equippable():
+		return 0
+	match rarity:
+		ItemRarity.COMMON:    return 0
+		ItemRarity.UNCOMMON:  return 1
+		ItemRarity.RARE:      return 2
+		ItemRarity.EPIC:      return 3
+		ItemRarity.LEGENDARY: return 4
+		_: return 0
+
+
+## True if this equipment piece can accept augments (has at least 1 slot and isn't full)
+func is_augmentable() -> bool:
+	return get_augment_slot_count() > 0 and applied_augments.size() < get_augment_slot_count()
+
+
+## True if this is a SEGMENT or MATERIAL (valid crafting input)
+func is_crafting_material() -> bool:
+	return item_type in [ItemType.SEGMENT, ItemType.MATERIAL]
+
+
+## True if this is an AUGMENT item that can be slotted into equipment
+func is_augment() -> bool:
+	return item_type == ItemType.AUGMENT and augment_type != AugmentType.TIMED_BUFF
+
+
+## True if this is a timed buff consumable (crafted via AUGMENT type but used like a consumable)
+func is_timed_buff() -> bool:
+	return item_type == ItemType.AUGMENT and augment_type == AugmentType.TIMED_BUFF
 
 
 ## Get the icon texture (supports both direct texture and atlas)

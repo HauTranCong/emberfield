@@ -1,0 +1,86 @@
+[gd_scene format=3 uid="uid://y50yu4eyc8gn"]
+
+[ext_resource type="Script" uid="uid://cq2j144uiiqqn" path="res://sense/ui/augment/augment_panel.gd" id="1_augment"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel_bg"]
+content_margin_left = 12.0
+content_margin_top = 10.0
+content_margin_right = 12.0
+content_margin_bottom = 10.0
+bg_color = Color(0.06, 0.06, 0.1, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.5, 0.4, 0.7, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="AugmentPanel" type="PanelContainer" unique_id=511747447]
+custom_minimum_size = Vector2(340, 320)
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel_bg")
+script = ExtResource("1_augment")
+
+[node name="RootVBox" type="VBoxContainer" parent="." unique_id=53805749]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleRow" type="HBoxContainer" parent="RootVBox" unique_id=1801901348]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="RootVBox/TitleRow" unique_id=1260716433]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.85, 0.5, 1)
+theme_override_font_sizes/font_size = 15
+text = "Augment: "
+
+[node name="CloseBtn" type="Button" parent="RootVBox/TitleRow" unique_id=900999572]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+text = "X"
+
+[node name="StatsLabel" type="Label" parent="RootVBox" unique_id=358123607]
+modulate = Color(0.7, 0.8, 0.7, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+
+[node name="HSeparator1" type="HSeparator" parent="RootVBox" unique_id=266798868]
+layout_mode = 2
+
+[node name="SlotsTitleLabel" type="Label" parent="RootVBox" unique_id=1760093279]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Augment Slots:"
+
+[node name="SlotsContainer" type="VBoxContainer" parent="RootVBox" unique_id=2010913287]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="HSeparator2" type="HSeparator" parent="RootVBox" unique_id=1680863087]
+layout_mode = 2
+
+[node name="AvailableTitleLabel" type="Label" parent="RootVBox" unique_id=561432928]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Available Augments:"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="RootVBox" unique_id=1704875252]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="AvailableGrid" type="GridContainer" parent="RootVBox/ScrollContainer" unique_id=1272808565]
+layout_mode = 2
+theme_override_constants/h_separation = 4
+theme_override_constants/v_separation = 4
+columns = 4
+
+[node name="NoAugmentsLabel" type="Label" parent="RootVBox" unique_id=885144292]
+visible = false
+modulate = Color(0.5, 0.5, 0.5, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "No augment items in inventory."

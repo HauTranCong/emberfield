@@ -181,6 +181,32 @@ const ICONS := {
 	
 	# === CURRENCY ===
 	"gold_coin": Vector2i(12, 7),
+
+	# === SEGMENT ITEMS (placeholder positions — update when pixel art is created) ===
+	"fire_shard": Vector2i(1, 2),          # Reuse gem_green slot for now
+	"frost_shard": Vector2i(1, 2),         # Reuse gem_green slot
+	"power_fragment": Vector2i(1, 2),      # Reuse gem_green slot
+	"spirit_essence": Vector2i(1, 2),      # Reuse gem_green slot
+	"venom_gland": Vector2i(1, 2),         # Reuse gem_green slot
+	"herb_segment": Vector2i(1, 2),        # Reuse gem_green slot
+	"inferno_shard": Vector2i(1, 2),       # Reuse gem_green slot
+	"blizzard_shard": Vector2i(1, 2),      # Reuse gem_green slot
+	"greater_power_fragment": Vector2i(1, 2),  # Reuse gem_green slot
+	"hellfire_shard": Vector2i(1, 2),      # Reuse gem_green slot
+
+	# === AUGMENT ITEMS (placeholder positions — update when pixel art is created) ===
+	"flame_augment": Vector2i(0, 1),       # Reuse scroll slot
+	"frost_augment": Vector2i(0, 1),       # Reuse scroll slot
+	"power_augment": Vector2i(0, 1),       # Reuse scroll slot
+	"lifesteal_augment": Vector2i(0, 1),   # Reuse scroll slot
+	"crit_augment": Vector2i(0, 1),        # Reuse scroll slot
+	"whirlwind_augment": Vector2i(0, 1),   # Reuse scroll slot
+	"shield_bash_augment": Vector2i(0, 1), # Reuse scroll slot
+
+	# === TIMED BUFF ITEMS (placeholder positions — update when pixel art is created) ===
+	"vitality_tonic": Vector2i(9, 0),      # Reuse potion_red slot
+	"speed_elixir": Vector2i(9, 1),        # Reuse blue potion slot
+	"defense_brew": Vector2i(9, 0),        # Reuse potion_red slot
 }
 
 

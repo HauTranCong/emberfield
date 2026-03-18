@@ -2,7 +2,9 @@
 
 [ext_resource type="Script" uid="uid://dhvrxlu2dsbah" path="res://sense/ui/hud/hud.gd" id="1_hud"]
 [ext_resource type="Script" uid="uid://8pc4qips1k7a" path="res://sense/ui/hud/pixel_bar.gd" id="2_pixel_bar"]
-[ext_resource type="Script" path="res://sense/ui/hud/dungeon_minimap.gd" id="3_dungeon_minimap"]
+[ext_resource type="Script" uid="uid://cphqfjo1g8kr" path="res://sense/ui/hud/dungeon_minimap.gd" id="3_dungeon_minimap"]
+[ext_resource type="PackedScene" path="res://sense/ui/hud/Hotbar.tscn" id="4_hotbar"]
+[ext_resource type="Texture2D" uid="uid://bwh8l3wbsbt4v" path="res://icon.svg" id="5_feed_placeholder_icon"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_icon_speed"]
 bg_color = Color(0.2, 0.8, 0.4, 1)
@@ -83,6 +85,18 @@ border_width_top = 3
 border_width_right = 3
 border_width_bottom = 3
 border_color = Color(0.4, 0.35, 0.5, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_feed_panel"]
+bg_color = Color(0.08, 0.09, 0.12, 0.62)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.55, 0.62, 0.72, 0.66)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
@@ -299,8 +313,120 @@ layout_mode = 2
 mouse_filter = 2
 color = Color(1, 0.9, 0.1, 1)
 
-[node name="DungeonMinimap" type="Control" parent="MinimapContainer/MarginContainer"]
+[node name="DungeonMinimap" type="Control" parent="MinimapContainer/MarginContainer" unique_id=1493528590]
 visible = false
 custom_minimum_size = Vector2(126, 126)
 layout_mode = 2
 script = ExtResource("3_dungeon_minimap")
+
+[node name="FeedContainer" type="PanelContainer" parent="." unique_id=1915054804]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -228.0
+offset_top = 156.0
+offset_right = -8.0
+offset_bottom = 252.0
+grow_horizontal = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_feed_panel")
+
+[node name="MarginContainer" type="MarginContainer" parent="FeedContainer" unique_id=786757044]
+layout_mode = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 6
+
+[node name="FeedList" type="VBoxContainer" parent="FeedContainer/MarginContainer" unique_id=2096615074]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="FeedRow1" type="HBoxContainer" parent="FeedContainer/MarginContainer/FeedList" unique_id=1195453517]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Icon" type="TextureRect" parent="FeedContainer/MarginContainer/FeedList/FeedRow1" unique_id=949572542]
+custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+texture = ExtResource("5_feed_placeholder_icon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Title" type="Label" parent="FeedContainer/MarginContainer/FeedList/FeedRow1" unique_id=916230620]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Health Potion"
+vertical_alignment = 1
+
+[node name="Qty" type="Label" parent="FeedContainer/MarginContainer/FeedList/FeedRow1" unique_id=956537619]
+custom_minimum_size = Vector2(46, 0)
+layout_mode = 2
+text = "+3"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="FeedRow2" type="HBoxContainer" parent="FeedContainer/MarginContainer/FeedList" unique_id=618908287]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Icon" type="TextureRect" parent="FeedContainer/MarginContainer/FeedList/FeedRow2" unique_id=554097449]
+custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+texture = ExtResource("5_feed_placeholder_icon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Title" type="Label" parent="FeedContainer/MarginContainer/FeedList/FeedRow2" unique_id=1933183168]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Long Item Name Sample"
+vertical_alignment = 1
+
+[node name="Qty" type="Label" parent="FeedContainer/MarginContainer/FeedList/FeedRow2" unique_id=2020684139]
+custom_minimum_size = Vector2(46, 0)
+layout_mode = 2
+text = "+12"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="FeedRow3" type="HBoxContainer" parent="FeedContainer/MarginContainer/FeedList" unique_id=1937739778]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Icon" type="TextureRect" parent="FeedContainer/MarginContainer/FeedList/FeedRow3" unique_id=592127311]
+custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+texture = ExtResource("5_feed_placeholder_icon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Title" type="Label" parent="FeedContainer/MarginContainer/FeedList/FeedRow3" unique_id=1544847509]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Gold Coin"
+vertical_alignment = 1
+
+[node name="Qty" type="Label" parent="FeedContainer/MarginContainer/FeedList/FeedRow3" unique_id=1792500502]
+custom_minimum_size = Vector2(46, 0)
+layout_mode = 2
+text = "+150"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="HotbarAnchor" type="CenterContainer" parent="." unique_id=310686361]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -64.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="Hotbar" parent="HotbarAnchor" unique_id=150248533 instance=ExtResource("4_hotbar")]
+layout_mode = 2
+size_flags_horizontal = 4

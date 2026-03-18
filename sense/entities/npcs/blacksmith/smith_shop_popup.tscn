@@ -4,7 +4,21 @@
 [ext_resource type="Script" uid="uid://ivcxe0jvu4up" path="res://sense/ui/dim_background.gd" id="2_dim"]
 [ext_resource type="Script" path="res://sense/ui/crafting/crafting_panel.gd" id="3_craft"]
 
-[node name="SmithShopPopup" type="Control" unique_id=1723710890]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lm1fb"]
+bg_color = Color(0.16, 0.14, 0.18, 1)
+border_width_left = 6
+border_width_top = 6
+border_width_right = 6
+border_width_bottom = 6
+border_color = Color(0.45, 0.4, 0.35, 1)
+expand_margin_left = 2.0
+expand_margin_top = 2.0
+expand_margin_right = 2.0
+expand_margin_bottom = 2.0
+shadow_size = 4
+
+[node name="SmithShopPopup" type="Control" unique_id=47427660]
+custom_minimum_size = Vector2(400, 450)
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -15,7 +29,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_p2ngm")
 
-[node name="Dim" type="ColorRect" parent="." unique_id=655285671]
+[node name="Dim" type="ColorRect" parent="." unique_id=23351774]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -24,7 +38,8 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("2_dim")
 
-[node name="Panel" type="Panel" parent="." unique_id=1623341362]
+[node name="Main" type="Panel" parent="." unique_id=1568829902]
+custom_minimum_size = Vector2(0, 450)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -37,104 +52,80 @@ offset_right = 600.0
 offset_bottom = 300.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_lm1fb")
 
-[node name="VBox" type="VBoxContainer" parent="Panel" unique_id=713197938]
+[node name="MainMargin" type="MarginContainer" parent="Main" unique_id=1725420614]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = 10.0
-offset_right = -10.0
-offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
 
-[node name="TitleRow" type="HBoxContainer" parent="Panel/VBox" unique_id=1506066440]
+[node name="MainAlign" type="VBoxContainer" parent="Main/MainMargin" unique_id=842657579]
 layout_mode = 2
 
-[node name="Title" type="Label" parent="Panel/VBox/TitleRow" unique_id=1464175471]
+[node name="TitleRow" type="HBoxContainer" parent="Main/MainMargin/MainAlign" unique_id=396991001]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Main/MainMargin/MainAlign/TitleRow" unique_id=1544773734]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Blacksmith Shop"
 
-[node name="GoldLabel" type="Label" parent="Panel/VBox/TitleRow"]
-layout_mode = 2
+[node name="GoldLabel" type="Label" parent="Main/MainMargin/MainAlign/TitleRow" unique_id=1234359062]
 custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+theme_override_font_sizes/font_size = 16
 text = "0 G"
 horizontal_alignment = 2
-theme_override_font_sizes/font_size = 16
-theme_override_colors/font_color = Color(1, 0.84, 0, 1)
 
-[node name="Close" type="Button" parent="Panel/VBox/TitleRow" unique_id=1060449895]
+[node name="Close" type="Button" parent="Main/MainMargin/MainAlign/TitleRow" unique_id=1407534414]
 layout_mode = 2
 text = "X"
 
-[node name="MainTabsRow" type="HBoxContainer" parent="Panel/VBox" unique_id=1504318310]
+[node name="MainTabsRow" type="HBoxContainer" parent="Main/MainMargin/MainAlign" unique_id=688788287]
 layout_mode = 2
 alignment = 1
 
-[node name="ShopContent" type="VBoxContainer" parent="Panel/VBox" unique_id=1933936301]
+[node name="ShopContent" type="VBoxContainer" parent="Main/MainMargin/MainAlign" unique_id=621304351]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="CategoryTabs" type="HBoxContainer" parent="Panel/VBox/ShopContent" unique_id=283746592]
+[node name="CategoryTabs" type="HBoxContainer" parent="Main/MainMargin/MainAlign/ShopContent" unique_id=1986734761]
 layout_mode = 2
 alignment = 1
 
-[node name="ItemsScroll" type="ScrollContainer" parent="Panel/VBox/ShopContent" unique_id=35454512]
+[node name="ItemsScroll" type="ScrollContainer" parent="Main/MainMargin/MainAlign/ShopContent" unique_id=1886155155]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="ItemsList" type="VBoxContainer" parent="Panel/VBox/ShopContent/ItemsScroll" unique_id=436700578]
+[node name="ItemsList" type="VBoxContainer" parent="Main/MainMargin/MainAlign/ShopContent/ItemsScroll" unique_id=1802746186]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="Hint" type="Label" parent="Panel/VBox/ShopContent" unique_id=487278669]
+[node name="Hint" type="Label" parent="Main/MainMargin/MainAlign/ShopContent" unique_id=414615783]
 layout_mode = 2
 text = "Click an item to purchase"
 horizontal_alignment = 1
 
-[node name="CraftingContent" type="HBoxContainer" parent="Panel/VBox" unique_id=1058141027]
+[node name="CraftingContent" type="HBoxContainer" parent="Main/MainMargin/MainAlign" unique_id=446742464]
 visible = false
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="CraftingPanel" type="Panel" parent="Panel/VBox/CraftingContent" unique_id=1107004052]
+[node name="CraftingPanel" type="Panel" parent="Main/MainMargin/MainAlign/CraftingContent" unique_id=2113233322]
 custom_minimum_size = Vector2(500, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 script = ExtResource("3_craft")
 
-[node name="MarginContainer" type="MarginContainer" parent="Panel/VBox/CraftingContent/CraftingPanel" unique_id=389329998]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/margin_left = 10
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 10
-
-[node name="VBoxContainer" type="VBoxContainer" parent="Panel/VBox/CraftingContent/CraftingPanel/MarginContainer" unique_id=1934618501]
-layout_mode = 2
-
-[node name="CraftingTitle" type="Label" parent="Panel/VBox/CraftingContent/CraftingPanel/MarginContainer/VBoxContainer" unique_id=1051539674]
-layout_mode = 2
-text = "Add recipe to craft item"
-horizontal_alignment = 1
-
-[node name="RecipeContainer" type="ScrollContainer" parent="Panel/VBox/CraftingContent/CraftingPanel/MarginContainer/VBoxContainer" unique_id=285682709]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="RecipeList" type="VBoxContainer" parent="Panel/VBox/CraftingContent/CraftingPanel/MarginContainer/VBoxContainer/RecipeContainer" unique_id=1261486912]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="InventoryContainer" type="Control" parent="Panel/VBox/CraftingContent" unique_id=639206808]
+[node name="InventoryContainer" type="Control" parent="Main/MainMargin/MainAlign/CraftingContent" unique_id=1346366939]
 custom_minimum_size = Vector2(500, 0)
 layout_mode = 2
 size_flags_horizontal = 3

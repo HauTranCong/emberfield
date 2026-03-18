@@ -7,6 +7,10 @@ class_name UIPopupComponent
 @export var ui_scene: PackedScene
 @export var ui_node_name: String = "PopupUI"  # Prevents duplicate UI instances
 @export var close_on_exit: bool = true  # Auto-close UI when player leaves interaction area
+@export var open_inventory_alongside: bool = false  # Open inventory panel side-by-side with this UI
+
+## Track paired inventory panel for cleanup
+var _paired_inventory_panel: Control = null
 
 ## Opens the UI scene in the HUD. Returns the instantiated UI node if successful, null if failed
 func open_ui(init_data: Dictionary = {}) -> Node:
@@ -37,6 +41,11 @@ func open_ui(init_data: Dictionary = {}) -> Node:
 	if ui_instance.has_method("show_popup"):
 		ui_instance.show_popup()
 	
+	# Open inventory alongside if configured (for shop side-by-side layout)
+	if open_inventory_alongside:
+		ui_instance.tree_exiting.connect(_close_paired_inventory)
+		_open_paired_inventory()
+	
 	print("UIPopupComponent: Opened ", ui_node_name)
 	return ui_instance
 
@@ -50,6 +59,9 @@ func open_ui_with_name(custom_name: String, init_data: Dictionary = {}) -> Node:
 
 ## Closes the UI if it exists in the HUD
 func hide_popup() -> bool:
+	# Close paired inventory BEFORE removing shop UI
+	_close_paired_inventory()
+	
 	var hud = get_tree().root.get_node_or_null("Main/HUD")
 	if not hud:
 		return false
@@ -70,3 +82,23 @@ func setup_auto_close(interaction_area: InteractionArea) -> void:
 	if close_on_exit and interaction_area:
 		interaction_area.on_exit = func(_body: Node2D):
 			hide_popup()
+
+## Open the player's inventory panel docked to the right side
+func _open_paired_inventory() -> void:
+	var player = get_tree().get_first_node_in_group("player")
+	if player and player.get("inventory_panel"):
+		_paired_inventory_panel = player.inventory_panel
+		if _paired_inventory_panel.has_method("open_inventory_docked_right"):
+			_paired_inventory_panel.open_inventory_docked_right()
+		else:
+			_paired_inventory_panel.open_inventory()
+		# Ensure inventory renders above the shop popup by moving it to the end of HUD children
+		var parent = _paired_inventory_panel.get_parent()
+		if parent:
+			parent.move_child(_paired_inventory_panel, -1)
+
+## Close the paired inventory panel and reset its positioning
+func _close_paired_inventory() -> void:
+	if _paired_inventory_panel:
+		_paired_inventory_panel.close_inventory()
+		_paired_inventory_panel = null

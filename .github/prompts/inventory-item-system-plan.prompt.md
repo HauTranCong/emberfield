@@ -63,7 +63,7 @@ Active skills are **equipment-bound** — wearing an augmented piece grants the 
 | **Equipment-bound skills** | No separate skill slot UI. Unequipping the augmented item removes the skill. Keeps skill acquisition tied to gear progression. |
 | **Buff stacking** | Same `buff_id` refreshes duration (no stacking). Different buff types stack additively. Prevents trivial stat inflation. |
 | **Non-destructive augment removal** | Extracting an augment returns the `AUGMENT` item to inventory. Encourages experimentation. |
-| **Crafting at world station** | Reuse blacksmith area in town. Add a forge/anvil `InteractionArea` next to existing blacksmith NPC. Uses existing `UIPopupComponent` pattern. |
+| **Crafting at blacksmith** | Reuse existing blacksmith NPC's shop popup. Add a "Crafting" tab alongside "Buy/Sell" in `SmithShopPopup`. No separate CraftingStation entity needed. |
 | **Both existing + new materials** | Existing `MATERIAL` items (iron_ore, gold_ore, monster_bone) and new `SEGMENT` drops are both valid crafting inputs. |
 | **Tiered recipes** | Each recipe has T1/T2/T3 tiers. Higher tiers require rarer segments and produce stronger outputs. Player picks tier in crafting UI. |
 | **Rarity-based augment slots** | Common=0, Uncommon=1, Rare=2, Epic=3, Legendary=4. Motivates seeking higher-rarity gear. |
@@ -178,7 +178,7 @@ func is_consumable() -> bool:
 
 ---
 
-### Step 2. Create `CraftingRecipe` resource → `sense/crafting/crafting_recipe.gd` (NEW FILE)
+### Step 2. Create `CraftingRecipe` resource → `sense/ui/crafting/crafting_recipe.gd` (NEW FILE)
 
 A pure data resource with no scene dependencies. Validates ingredient availability against `InventoryData`.
 
@@ -278,7 +278,7 @@ func _get_tier_data(tier: int) -> Dictionary:
 
 ---
 
-### Step 3. Create `RecipeDatabase` → `sense/crafting/recipe_database.gd` (NEW FILE, autoload)
+### Step 3. Create `RecipeDatabase` → `sense/ui/crafting/recipe_database.gd` (NEW FILE, autoload)
 
 Follows the same pattern as `ItemDatabase` (autoload, dictionary lookup, static data).
 
@@ -385,7 +385,7 @@ func _add_recipe(id: String, recipe_name: String, desc: String, category: Crafti
 Register as autoload in `project.godot`:
 ```ini
 [autoload]
-RecipeDatabase="*res://sense/crafting/recipe_database.gd"
+RecipeDatabase="*res://sense/ui/crafting/recipe_database.gd"
 ```
 
 ---
@@ -1187,64 +1187,40 @@ func is_skill_ready(skill_id: String) -> bool:
 
 ---
 
-## Phase 4 — Crafting Station & UI
+## Phase 4 — Crafting UI (integrated into Blacksmith)
 
-### Step 10. Create `CraftingStation` → `sense/crafting/crafting_station.gd` + `CraftingStation.tscn` (NEW FILES)
+### Step 10. Integrate crafting into Blacksmith → modify `sense/entities/npcs/blacksmith/smith_shop_popup.gd` + `blacksmith.gd` (EXISTING FILES)
 
-**Architecture**: Uses the existing `InteractionArea` + `UIPopupComponent` pattern (same as blacksmith/merchant).
+**Architecture**: Crafting is a **tab** within the existing Blacksmith shop UI (`SmithShopPopup`). No separate CraftingStation entity is needed — the blacksmith forge already serves as the crafting station. The `SmithShopPopup` has two main tabs: "Buy/Sell" and "Crafting". When the player selects the "Crafting" tab, the `CraftingPanel` is shown alongside an embedded inventory panel.
 
 ```
-CraftingStation (StaticBody2D)
-├── Sprite2D                    # Forge/anvil sprite
-├── CollisionShape2D            # Physics body
-├── InteractionArea (Area2D)    # Layer 9 (INTERACTABLE), Mask 2 (PLAYER)
-│   └── CollisionShape2D
-└── UIPopupComponent (Node)     # Opens CraftingPanel.tscn
+SmithShopPopup (Control)
+├── Dim (ColorRect)                  # Click-to-close background
+└── Panel
+    └── VBox
+        ├── TitleRow (HBox)          # Title + Close button
+        ├── MainTabsRow (HBox)       # [Buy/Sell] [Crafting] tab buttons
+        ├── ShopContent (VBox)       # Buy/Sell tab content (existing)
+        │   ├── CategoryTabs
+        │   └── ItemsScroll
+        └── CraftingContent (HBox)   # Crafting tab content
+            ├── CraftingPanel        # Recipe list + detail + craft button
+            └── InventoryContainer   # Embedded inventory for ingredient reference
 ```
 
-**Script** (`crafting_station.gd`):
-```gdscript
-extends StaticBody2D
+**Key behavior** (`smith_shop_popup.gd`):
+- `_create_main_tabs()` — Creates "Buy/Sell" and "Crafting" tab buttons
+- `_switch_main_tab(tab)` — Toggles between shop and crafting content
+- `_setup_crafting_view()` — Injects player inventory into `CraftingPanel` and creates an `EmbeddedInventoryPanel` for reference
+- `CraftingPanel` is a child node of the popup, built programmatically via `_build_ui()` in `_ready()`
 
-## ╔═══════════════════════════════════════════════════════╗
-## ║  Crafting Station — World interactable entity          ║
-## ║  Uses UIPopupComponent (same pattern as Blacksmith)    ║
-## ║  Collision: Layer 1 (WORLD), Mask: none                ║
-## ║  InteractionArea: Layer 9, Mask 2                      ║
-## ╚═══════════════════════════════════════════════════════╝
-
-@onready var interaction_area: InteractionArea = $InteractionArea
-@onready var ui_popup: UIPopupComponent = $UIPopupComponent
-
-func _ready() -> void:
-    collision_layer = CollisionLayers.Layer.WORLD
-    collision_mask = 0
-
-    # Configure interaction
-    interaction_area.action_name = "Craft"
-    interaction_area.interact = _on_interact
-    ui_popup.ui_node_name = "CraftingPanel"
-    ui_popup.setup_auto_close(interaction_area)
-
-func _on_interact() -> void:
-    var player = get_tree().get_first_node_in_group("player")
-    if player and player.inventory:
-        var ui := ui_popup.open_ui({"inventory": player.inventory})
-        if ui:
-            GameEvent.request_ui_pause.emit(true)
-            ui.tree_exited.connect(func(): GameEvent.request_ui_pause.emit(false))
-```
-
-**Placement**: Add instance to town map scene (`sense/maps/town/`) near the blacksmith NPC.
+**No separate scene needed**: The `CraftingPanel` class (`sense/ui/crafting/crafting_panel.gd`) is a `Panel` that constructs its entire UI in code. It is instantiated as a child of `CraftingContent` in the blacksmith popup scene (`smith_shop_popup.tscn`).
 
 ---
 
-### Step 11. Create `CraftingPanel` UI → `sense/ui/crafting/crafting_panel.gd` + `CraftingPanel.tscn` (NEW FILES)
+### Step 11. `CraftingPanel` UI → `sense/ui/crafting/crafting_panel.gd` (EXISTING FILE)
 
-**Architecture**: `CanvasLayer` popup. Same lifecycle pattern as `InventoryPanel`:
-- `initialize(data: Dictionary)` — receives player inventory
-- `show_popup()` / `hide_popup()` — visibility control
-- Emits `GameEvent.request_ui_pause` for pause integration
+**Architecture**: `Panel` node embedded within `SmithShopPopup`. Builds its entire UI programmatically in `_ready()` via `_build_ui()`. Receives player inventory via `set_player_inventory()` or `initialize()` (for UIPopupComponent compatibility).
 
 ```
 CraftingPanel (CanvasLayer)
@@ -1850,7 +1826,7 @@ signal skill_used(skill_id: String)
 
 Add after existing autoloads:
 ```ini
-RecipeDatabase="*res://sense/crafting/recipe_database.gd"
+RecipeDatabase="*res://sense/ui/crafting/recipe_database.gd"
 SkillDatabase="*res://sense/skills/skill_database.gd"
 ```
 
@@ -1924,15 +1900,13 @@ SkillDatabase="*res://sense/skills/skill_database.gd"
 
 | File | Type | Purpose |
 |---|---|---|
-| `sense/crafting/crafting_recipe.gd` | Resource | Recipe data: tiers, ingredients, results |
-| `sense/crafting/recipe_database.gd` | Autoload | All recipe definitions, lookup methods |
-| `sense/crafting/crafting_station.gd` | Script | World interactable station (UIPopupComponent pattern) |
-| `sense/crafting/CraftingStation.tscn` | Scene | Station scene with InteractionArea |
-| `sense/ui/crafting/crafting_panel.gd` | Script | Crafting UI logic (recipe list, tier selection, craft button) |
-| `sense/ui/crafting/CraftingPanel.tscn` | Scene | Crafting UI layout |
+| `sense/ui/crafting/crafting_recipe.gd` | Resource | Recipe data: tiers, ingredients, results |
+| `sense/ui/crafting/recipe_database.gd` | Autoload | All recipe definitions, lookup methods |
+| `sense/ui/crafting/crafting_panel.gd` | Script | Crafting UI logic (recipe list, tier selection, craft button), `_refresh_all()` guards null UI refs for headless/test usage |
+| `sense/ui/crafting/embedded_inventory_panel.gd` | Script | Embedded inventory for crafting tab reference |
 | `sense/ui/augment/augment_panel.gd` | Script | Augment slot UI (drag/drop augments into equipment) |
 | `sense/ui/augment/AugmentPanel.tscn` | Scene | Augment panel layout |
-| `sense/components/buff_component.gd` | Component | Timed buff manager (decoupled Node) |
+| `sense/components/buff_component.gd` | Component | Timed buff manager (decoupled Node), emits `GameEvent.buff_applied`/`GameEvent.buff_expired` in all paths (`apply_buff`, `remove_buff`, `clear_all_buffs`, `_process` expiry) |
 | `sense/components/passive_effect_processor.gd` | Component | On-hit/on-damage passive effects (decoupled Node) |
 | `sense/components/skill_component.gd` | Component | Equipment-bound skill manager (decoupled Node) |
 | `sense/skills/skill_data.gd` | Resource | Skill definition (cooldown, damage, range) |
@@ -1947,13 +1921,16 @@ SkillDatabase="*res://sense/skills/skill_database.gd"
 | `sense/items/item_database.gd` | +10 segment items, +13 augment items, +6 timed buff items in `_create_sample_items()` |
 | `sense/items/item_icon_atlas.gd` | +29 new icon mappings in `ICONS` dictionary |
 | `sense/ui/inventory/inventory_data.gd` | +`augments_changed` signal, +`apply_augment()`, +`remove_augment()`, +`_get_augment_stat_sum()`, +`get_all_augment_passive_effects()`, +`get_all_augment_active_skills()`, updated `get_total_*_bonus()` to include augment stats, updated `use_item()` for timed buffs |
-| `sense/ui/inventory/inventory_panel.gd` | +Augment button on equipment slots, +augment slot section in tooltips, +passive effect descriptions, +`_open_augment_panel()` |
+| `sense/entities/npcs/blacksmith/smith_shop_popup.gd` | +"Crafting" main tab, +`CraftingPanel` integration, +`EmbeddedInventoryPanel` for crafting view, +tab switching logic |
+| `sense/entities/npcs/blacksmith/smith_shop_popup.tscn` | +CraftingContent HBox with CraftingPanel + InventoryContainer child nodes |
+| `sense/ui/inventory/inventory_panel.gd` | +`character_stats: CharacterStats` var, +Augment button on equipment slots, +augment slot section in tooltips, +passive effect descriptions, +`_open_augment_panel()`, updated `setup()` to accept optional `CharacterStats` param, updated `_refresh_stats()` to show total stats (base + equipment + buff) instead of equipment-only bonuses, auto-refreshes stats on buff apply/expire via `health_changed` |
 | `sense/entities/player/character_stats.gd` | +`buff_*_bonus` vars, +`apply_buff_bonuses()`, +`clear_buff_bonuses()`, updated computed properties to include buff bonuses |
-| `sense/entities/player/player.gd` | +`SKILL` state, +BuffComponent/PassiveEffectProcessor/SkillComponent/SkillExecutor creation & wiring in `_ready()`, +`_on_buffs_changed()`, +`_on_skill_activated()`, +`_on_skill_effect_finished()`, +`_get_all_passive_effects()`, +`_state_skill()`, updated `_on_item_used()` for timed buffs |
+| `sense/entities/player/player.gd` | +`SKILL` state, +BuffComponent/PassiveEffectProcessor/SkillComponent/SkillExecutor creation & wiring in `_ready()`, +`_on_buffs_changed()`, +`_on_skill_activated()`, +`_on_skill_effect_finished()`, +`_get_all_passive_effects()`, +`_state_skill()`, updated `_on_item_used()` for timed buffs with debug stat prints, passes `stats` to `inventory_panel.setup(inventory, stats)` |
 | `sense/ui/hud/hud.gd` | +`connect_buff_component()`, +`connect_skill_component()`, +buff icon lifecycle, +skill cooldown display |
 | `sense/globals/game_event.gd` | +6 new signals (item_crafted, augment_applied/removed, buff_applied/expired, skill_used) |
 | `sense/entities/enemies/skeleton/skeleton.gd` | +segment items in loot table weights |
 | `project.godot` | +`RecipeDatabase` and `SkillDatabase` autoloads |
+| `sense/main.gd` | +`_test_phase7()` — comprehensive tests for GameEvent signal emissions (buff_applied/expired, item_crafted, augment_applied/removed, skill_used), autoload validation, cross-referencing recipe ingredients/results against ItemDatabase, and skill augments against SkillDatabase |
 
 ---
 
@@ -1961,7 +1938,7 @@ SkillDatabase="*res://sense/skills/skill_database.gd"
 
 | # | Test | Steps | Expected |
 |---|---|---|---|
-| 1 | **Crafting flow** | Walk to station → interact → select Flame Augment → pick T1 → verify 3× fire_shard + 2× iron_ore highlighted green → click Craft | `flame_augment_t1` appears in inventory, ingredients consumed |
+| 1 | **Crafting flow** | Walk to blacksmith → interact → click "Crafting" tab → select Flame Augment → pick T1 → verify 3× fire_shard + 2× iron_ore highlighted green → click Craft | `flame_augment_t1` appears in inventory, ingredients consumed |
 | 2 | **Tier upgrade** | Same recipe → pick T2 → verify needs inferno_shard + gold_ore | `flame_augment_t2` produced with stronger stats |
 | 3 | **Insufficient ingredients** | Select recipe with missing ingredients | Craft button disabled, missing ingredients shown in red |
 | 4 | **Augment application** | Open inventory → click equipped Rare sword (2 slots) → "Augment" → drag `flame_augment_t1` into slot 1 | Augment consumed from inventory, tooltip shows augment in slot, ATK stat updated |
@@ -1994,6 +1971,7 @@ Phase 1 (Foundation)   ──▶  Phase 2 (Buffs)  ──▶  Phase 3 (Augments)
                                    │
                     Phase 4 (Crafting UI)  ──▶  Phase 5 (Skills)
                          Steps 10-12              Steps 13-16
+                    (Blacksmith integration)
                               │                      │
                               └──────────────────────┘
                                         │

@@ -16,20 +16,26 @@ stateDiagram-v2
     
     IDLE --> MOVE : movement_input
     IDLE --> ATTACK : attack_pressed
+    IDLE --> SKILL : skill_pressed
     IDLE --> DEATH : HP <= 0
     
     MOVE --> IDLE : no_input
     MOVE --> ATTACK : attack_pressed
+    MOVE --> SKILL : skill_pressed
     MOVE --> DEATH : HP <= 0
     
     ATTACK --> IDLE : animation_finished
     ATTACK --> DEATH : HP <= 0
+    
+    SKILL --> IDLE : skill_effect_finished
+    SKILL --> DEATH : HP <= 0
     
     DEATH --> [*] : game_over
     
     note right of IDLE : velocity = 0
     note right of MOVE : speed = move_speed
     note right of ATTACK : velocity = 0\nhitbox active
+    note right of SKILL : velocity = 0\nskill hitbox active
     note right of DEATH : play death anim
 ```
 
@@ -241,6 +247,77 @@ else:
 
 ---
 
+## Passive & Skill Combat Systems
+
+### PassiveEffectProcessor
+
+Xử lý passive effects từ augments trên equipment. Được inject vào Player qua callables để giữ decoupling.
+
+**On-Hit Effects** (kích hoạt khi Player gây damage):
+| Effect | Mô Tả |
+|--------|-------|
+| `LIFE_STEAL` | Hồi HP theo % damage dealt |
+| `CRIT_CHANCE` | % cơ hội gây critical (2x damage) |
+| `BURN_ON_HIT` | Gây burn DoT cho target |
+| `FREEZE_ON_HIT` | Làm chậm target |
+| `POISON_ON_HIT` | Gây poison DoT cho target |
+
+**On-Damage Effects** (kích hoạt khi Player nhận damage):
+| Effect | Mô Tả |
+|--------|-------|
+| `THORNS` | Phản damage lại attacker theo % |
+
+### Skill Activation Flow
+
+```mermaid
+sequenceDiagram
+    participant P as Player
+    participant SC as SkillComponent
+    participant SE as SkillExecutor
+    participant SDB as SkillDatabase
+    participant HB as Skill Hitbox (Area2D)
+    participant EHurt as Enemy Hurtbox
+
+    P->>P: Input: Q/E/R/F pressed
+    P->>SC: try_activate_skill(skill_id)
+    SC->>SC: Check cooldown_remaining <= 0
+    SC->>SC: Check stamina available
+    SC->>P: use_stamina(stamina_cost)
+    SC-->>P: skill_activated signal
+    P->>P: _change_state(SKILL)
+    
+    P->>SE: execute_skill(skill_data, origin, dir, damage, parent)
+    
+    alt Whirlwind (AoE)
+        SE->>HB: Create circular hitbox at player
+        SE->>SE: Spawn WhirlwindVFX
+    else Shield Bash (Cone)
+        SE->>HB: Create forward hitbox
+    else Fire Burst (Ranged)
+        SE->>HB: Create hitbox at target position
+    end
+    
+    HB->>EHurt: area_entered (Layer 7 → Mask 6)
+    EHurt->>EHurt: take_damage()
+    
+    SE-->>P: skill_effect_finished signal
+    P->>P: _change_state(IDLE)
+    SC->>SC: Start cooldown timer
+```
+
+### Skill Slot Mapping
+
+| Equipment Slot | Skill Key | Input Action |
+|---------------|-----------|-------------|
+| Weapon | Q | skill_1 |
+| Armor | E | skill_2 |
+| Helmet | R | skill_3 |
+| Boots | F | skill_4 |
+
+Skills are bound to equipment via `ACTIVE_SKILL` augments applied to equipment items.
+
+---
+
 ## Component Classes
 
 ### HitboxComponent (Area2D)
@@ -263,7 +340,7 @@ func deactivate() -> void:
 
 func _on_area_entered(area: Area2D) -> void:
     if area is HurtboxComponent:
-        area.receive_damage(damage, knockback_force, global_position)
+        area.take_damage(damage, knockback_force, global_position)
 ```
 
 ### HurtboxComponent (Area2D)
@@ -277,7 +354,7 @@ class_name HurtboxComponent
 
 signal damage_received(amount: int, knockback: float, from_position: Vector2)
 
-func receive_damage(amount: int, knockback: float, from_position: Vector2) -> void:
+func take_damage(amount: int, knockback: float, from_position: Vector2) -> void:
     emit_signal("damage_received", amount, knockback, from_position)
 ```
 
@@ -322,7 +399,7 @@ sequenceDiagram
     PI->>PH: attack_pressed
     PH->>PH: activate()
     PH->>EHurt: collision detected
-    EHurt->>EHurt: receive_damage()
+    EHurt->>EHurt: take_damage()
     EHurt->>EHit: damage_received signal
     EHit->>EAI: take_damage()
     EAI->>EAI: HP -= X
@@ -357,10 +434,15 @@ Cả Player và Enemy đều có `debug_draw_enabled` export để hiển thị:
 ### Player Stats
 | Stat | Giá trị mặc định | Mô tả |
 |------|------------------|-------|
-| max_health | 100 | HP tối đa |
-| move_speed | 100 | Tốc độ di chuyển |
-| attack_damage | 10 | Damage mỗi đòn |
+| base_max_health | 100 | HP tối đa |
+| base_move_speed | 120 | Tốc độ di chuyển |
+| base_attack_damage | 10 | Damage mỗi đòn |
+| base_defense | 0 | Giảm damage nhận |
 | invincibility_duration | 0.5s | Thời gian bất tử |
+
+**Damage Formula:** `effective_damage = max(1, raw_damage - target_defense)`
+
+**Stat Bonuses:** Final stats = base + equipment_bonus + buff_bonus
 
 ### Enemy (Skeleton) Stats
 | Stat | Giá trị | Mô tả |
@@ -412,4 +494,10 @@ Cả Player và Enemy đều có `debug_draw_enabled` export để hiển thị:
 | [sense/components/hitbox_component.gd](../sense/components/hitbox_component.gd) | Hitbox component |
 | [sense/components/hurtbox_component.gd](../sense/components/hurtbox_component.gd) | Hurtbox component |
 | [sense/components/health_component.gd](../sense/components/health_component.gd) | Health component |
+| [sense/components/buff_component.gd](../sense/components/buff_component.gd) | Timed stat buffs |
+| [sense/components/passive_effect_processor.gd](../sense/components/passive_effect_processor.gd) | On-hit/on-damage passive effects |
+| [sense/components/skill_component.gd](../sense/components/skill_component.gd) | Equipment-bound active skills |
+| [sense/skills/skill_executor.gd](../sense/skills/skill_executor.gd) | Skill hitbox spawning & VFX |
+| [sense/skills/skill_data.gd](../sense/skills/skill_data.gd) | Skill resource definitions |
+| [sense/skills/skill_database.gd](../sense/skills/skill_database.gd) | Skill registry (Autoload) |
 | [sense/globals/collision_layers.gd](../sense/globals/collision_layers.gd) | Collision layer constants |

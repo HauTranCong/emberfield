@@ -54,10 +54,10 @@ static func floor_patch() -> TilesetStructure:
 static func get_random_wall_structure() -> TilesetStructure:
 	var choices: Array[Callable] = [
 		wall_block_large,
-		# wall_panel,
-		# pillar,
-		# low_wall,
-		# small_block_a,
-		# small_block_b,
+		wall_panel,
+		pillar,
+		low_wall,
+		small_block_a,
+		small_block_b,
 	]
 	return choices.pick_random().call()

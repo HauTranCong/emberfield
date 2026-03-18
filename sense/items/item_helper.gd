@@ -31,6 +31,13 @@ static func create_item(data: Dictionary) -> ItemData:
 	item.stamina_restore = data.get("stamina", 0.0)
 	item.effect_duration = data.get("duration", 0.0)
 	
+	# Augment properties
+	item.augment_type = data.get("augment_type", ItemData.AugmentType.NONE)
+	item.passive_effect = data.get("passive_effect", ItemData.PassiveEffect.NONE)
+	item.passive_value = data.get("passive_value", 0.0)
+	item.active_skill_id = data.get("active_skill_id", "")
+	item.buff_duration = data.get("buff_duration", 0.0)
+	
 	# Icon - supports both atlas name and row/col
 	item.use_atlas_icon = data.get("use_atlas", true)
 	if data.has("icon_name"):
